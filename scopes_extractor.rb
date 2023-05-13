@@ -49,4 +49,6 @@ rescue OptionParser::InvalidOption
 end
 
 extractor = ScopesExtractor.new(options)
-extractor.extract
+results = extractor.extract
+
+puts results
