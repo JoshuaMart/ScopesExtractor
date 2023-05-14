@@ -19,7 +19,8 @@ class Intigriti
         next if program['status'] == 4 # Suspended
 
         results[program['name']] = program_info(program)
-        results[program['name']]['scopes'] = Scopes.sync({ handle: program['handle'], company: program['companyHandle'] }, token)
+        results[program['name']]['scopes'] =
+          Scopes.sync({ handle: program['handle'], company: program['companyHandle'] }, token)
       end
     end
 

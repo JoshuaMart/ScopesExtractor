@@ -7,5 +7,6 @@ gem 'dotenv'
 gem 'logger'
 gem 'mechanize'
 gem 'optparse'
-gem 'typhoeus'
 gem 'rotp'
+gem 'typhoeus'
+

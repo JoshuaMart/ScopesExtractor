@@ -21,7 +21,7 @@ class Bugcrowd
       in_scopes = JSON.parse(response.body)['targets']
       scopes['in'] = parse_scopes(in_scopes)
 
-      scopes['out'] = { } # TODO
+      scopes['out'] = {} # TODO
 
       scopes
     end

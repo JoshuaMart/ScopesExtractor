@@ -6,7 +6,9 @@ class Bugcrowd
   # Bugcrowd Sync Programs
   class Programs
     def self.sync(results, options, cookie, page_id = 1)
-      response = HttpClient.get("https://bugcrowd.com/programs.json?page[]=#{page_id}&waitlistable[]=false&joinable[]=false", cookie)
+      response = HttpClient.get(
+        "https://bugcrowd.com/programs.json?page[]=#{page_id}&waitlistable[]=false&joinable[]=false", cookie
+      )
       return unless response&.code == 200
 
       body = JSON.parse(response.body)

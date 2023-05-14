@@ -14,8 +14,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency('dotenv', '~> 2.8', '>= 2.8.1')
   spec.add_dependency('logger', '~> 1.5', '>= 1.5.3')
   spec.add_dependency('mechanize', '~> 2.9', '>= 2.9.1')
-  spec.add_dependency('typhoeus', '~> 1.4', '>= 1.4.0')
   spec.add_dependency('rotp', '~> 6.2', '>= 6.2.2')
+  spec.add_dependency('typhoeus', '~> 1.4', '>= 1.4.0')
 
   spec.files = Dir['lib/**/*.rb']
 end

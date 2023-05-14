@@ -5,13 +5,13 @@ class Hackerone
   class Scopes
     def self.sync(program)
       scopes = {}
-      response = HttpClient.get( "https://api.hackerone.com/v1/hackers/programs/#{program[:slug]}")
+      response = HttpClient.get("https://api.hackerone.com/v1/hackers/programs/#{program[:slug]}")
       return scopes unless response&.code == 200
 
       in_scopes = JSON.parse(response.body)['relationships']['structured_scopes']['data']
       scopes['in'] = parse_scopes(in_scopes)
 
-      scopes['out'] = { } # TODO
+      scopes['out'] = {} # TODO
 
       scopes
     end

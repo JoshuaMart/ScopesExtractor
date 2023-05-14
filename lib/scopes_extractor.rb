@@ -32,7 +32,7 @@ class ScopesExtractor
     if options[:yeswehack]
       jwt = YesWeHack::Auth.jwt
       results['YesWeHack'] = {}
-      
+
       YesWeHack::Programs.sync(results['YesWeHack'], options, jwt)
     end
 
@@ -52,7 +52,7 @@ class ScopesExtractor
 
     if options[:hackerone]
       results['Hackerone'] = {}
-      
+
       Hackerone::Programs.sync(results['Hackerone'], options)
     end
 

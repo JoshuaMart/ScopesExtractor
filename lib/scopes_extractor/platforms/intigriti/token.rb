@@ -30,7 +30,7 @@ class Intigriti
     end
 
     def self.submit_otp(mechanize)
-      return if ENV['INTIGRITI_OTP']&.empty?
+      return if ENV['INTIGRITI_OTP'] && ENV['INTIGRITI_OTP'].empty?
 
       totp_page = mechanize.get('https://login.intigriti.com/account/loginwith2fa')
       totp_code = ROTP::TOTP.new(ENV.fetch('INTI_OTP', nil))

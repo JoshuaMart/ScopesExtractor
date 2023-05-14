@@ -8,14 +8,13 @@ class HttpClient
   }
 
   def self.headers(url, authentication)
-    case
-    when url.include?('yeswehack')
+    if url.include?('yeswehack')
       { 'Content-Type' => 'application/json', Authorization: "Bearer #{authentication}" }
-    when url.include?('intigriti')
+    elsif url.include?('intigriti')
       { Authorization: "Bearer #{authentication}" }
-    when url.include?('bugcrowd')
+    elsif url.include?('bugcrowd')
       { 'Cookie' => authentication }
-    when url.include?('hackerone')
+    elsif url.include?('hackerone')
       @request_options[:userpwd] = "#{ENV.fetch('H1_USERNAME', nil)}:#{ENV.fetch('H1_API_KEY', nil)}"
       { 'Accept' => 'application/json' }
     else

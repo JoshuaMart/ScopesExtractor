@@ -36,7 +36,8 @@ optparse = OptionParser.new do |opts|
     options[:skip_vdp] = true
   end
 
-  opts.on('--credz-file file', 'File containing the platform identifiers for the extraction of scopes for private programs') do |v|
+  opts.on('--credz-file file',
+          'File containing the platform identifiers for the extraction of scopes for private programs') do |v|
     options[:credz_file] = v
   end
 end
