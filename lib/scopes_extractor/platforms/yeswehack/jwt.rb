@@ -4,7 +4,7 @@ class YesWeHack
   # YesWeHack Auth Class
   class Auth
     def self.jwt
-      totp_token = get_totp_token
+      totp_token = extract_totp_token
       return unless totp_token
 
       response = send_totp(totp_token)
@@ -16,7 +16,7 @@ class YesWeHack
       jwt
     end
 
-    def self.get_totp_token
+    def self.extract_totp_token
       data = { email: ENV.fetch('YWH_EMAIL', nil), password: ENV.fetch('YWH_PASSWORD', nil) }.to_json
       response = HttpClient.post('https://api.yeswehack.com/login', data)
       return unless response&.code == 200

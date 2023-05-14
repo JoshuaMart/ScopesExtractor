@@ -32,10 +32,6 @@ class YesWeHack
       scopes_normalized
     end
 
-    # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/MethodLength
-    # rubocop:disable Metrics/PerceivedComplexity
-    # rubocop:disable Metrics/CyclomaticComplexity
     def self.normalize(scope)
       # Remove (+++) & When end with '*'
       scope = scope.gsub(/\(?\+\)?/, '').sub(/\*$/, '').strip
