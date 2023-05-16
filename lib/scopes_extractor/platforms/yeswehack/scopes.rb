@@ -25,6 +25,8 @@ class YesWeHack
 
         normalized = normalize(infos['scope'])
         normalized.each do |asset|
+          next unless asset.include?('.')
+
           scopes_normalized << asset
         end
       end
@@ -37,16 +39,20 @@ class YesWeHack
       scope = scope.gsub(/\(?\+\)?/, '').sub(/\*$/, '').strip
       return [] if scope.include?('<') # <yourdomain>-yeswehack.domain.tld
 
+      scope = scope.split[0] # When spaces
+
       normalized = []
 
-      match = scope.match(/^(.*)\((.*)\)$/) # Ex: *.lazada.(sg|vn|co.id|co.th|com|com.ph|com.my)
-      if match && match[1] && match[2]
-        tlds = match[2].split('|')
-        tlds.each { |tld| normalized << "#{match[1]}#{tld}" }
-      elsif scope.include?(' ')
-        normalized << scope.split(' ')[0]
+      multi_subs = scope.match(/^\((.*)\)(.*)/) # Ex: (online|portal|agents|agentuat|surinameuat|surinameopsuat|suriname|thailandevoa).vfsevisa.com
+      multi_tld = scope.match(/^(.*)\((.*)\)$/) # Ex: *.lazada.(sg|vn|co.id|co.th|com|com.ph|com.my)
+      if multi_tld && multi_tld[1] && multi_tld[2]
+        tlds = multi_tld[2].split('|')
+        tlds.each { |tld| normalized << "#{multi_tld[1]}#{tld}" }
       elsif scope.match?(%r{https?://\*})
         normalized << scope.sub(%r{https?://}, '')
+      elsif multi_subs && multi_subs[1] && multi_subs[2]
+        subs = multi_subs[1].split('|')
+        subs.each { |sub| normalized << "#{sub}#{multi_subs[2]}"}
       else
         normalized << scope
       end
