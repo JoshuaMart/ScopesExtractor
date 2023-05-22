@@ -56,6 +56,8 @@ class ScopesExtractor
       Hackerone::Programs.sync(results['Hackerone'], options)
     end
 
+    File.open('extract.json', 'w') { |f| f.write(JSON.pretty_generate(results)) } if options[:save]
+
     results
   end
 end

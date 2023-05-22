@@ -40,6 +40,10 @@ optparse = OptionParser.new do |opts|
           'File containing the platform identifiers for the extraction of scopes for private programs') do |v|
     options[:credz_file] = v
   end
+
+  opts.on('--save', 'Save results to JSON file') do
+    options[:save] = true
+  end
 end
 
 begin
