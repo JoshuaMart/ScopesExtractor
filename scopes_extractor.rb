@@ -26,10 +26,10 @@ optparse = OptionParser.new do |opts|
   end
 
   opts.on('--all', 'Extract scopes for all platforms') do
-    options[:ywh] = true
-    options[:h1] = true
+    options[:yeswehack] = true
+    options[:hackerone] = true
     options[:intigriti] = true
-    options[:bc] = true
+    options[:bugcrowd] = true
   end
 
   opts.on('--skip-vdp', 'Skip VDP Programs') do
