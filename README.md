@@ -12,7 +12,7 @@
 
 In your Gemfile
 ```ruby
-gem 'scopes_extractor', '~> 0.2.0'
+gem 'scopes_extractor', '~> 0.3.0'
 ```
 
 Or
@@ -49,5 +49,5 @@ puts results
 As script :
 
 ```
-ruby scopes_extractor.rb --all --skip-vdp --credz-file .env
+ruby scopes_extractor.rb --all --skip-vdp --credz-file .env --save
 ```
