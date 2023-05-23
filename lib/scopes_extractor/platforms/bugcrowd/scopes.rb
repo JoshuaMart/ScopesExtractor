@@ -33,8 +33,9 @@ class Bugcrowd
       scopes.each do |scope|
         next unless scope['category'] == 'website' || scope['category'] == 'api'
 
-        endpoint = scope['name']
+        endpoint = scope['name'].split.first
         next if exclusions.any? { |exclusion| endpoint.include?(exclusion) } || !endpoint.include?('.')
+        next if endpoint.include?('*') && !endpoint.start_with?('*.')
 
         scopes_normalized << endpoint
       end

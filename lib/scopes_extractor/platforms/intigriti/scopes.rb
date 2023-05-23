@@ -27,12 +27,18 @@ class Intigriti
       scopes_normalized = []
 
       scopes.each do |scope|
-        next unless scope['type'] == 1 # 1 == Web Application
+        next unless scope['type'] == 1 || scope['type'] == 6 # 1 == Web Application || 6 == Other
 
-        endpoint = normalize(scope['endpoint'])
-        next if exclusions.any? { |exclusion| endpoint.include?(exclusion) } || !endpoint.include?('.')
+        if scope['type'] == 1 # Web Application
+          endpoint = normalize(scope['endpoint'])
+          scopes_normalized << endpoint unless exclusions.any? { |exclusion| endpoint.include?(exclusion) } || !endpoint.include?('.')
+        end
 
-        scopes_normalized << endpoint
+        endpoints_description = extract_description(scope['description'])
+        endpoints_description&.each do |endpoint_description|
+          endpoint_description = normalize(endpoint_description)
+          scopes_normalized << endpoint_description unless exclusions.any? { |exclusion| endpoint_description.include?(exclusion) } || !endpoint_description.include?('.')
+        end
       end
 
       scopes_normalized
@@ -41,6 +47,15 @@ class Intigriti
     def self.normalize(endpoint)
       endpoint.gsub('/*', '').gsub(' ', '').sub('.*', '.com').sub('.<tld>', '.com')
               .sub(%r{/$}, '').sub(/\*$/, '')
+    end
+
+    def self.extract_description(description)
+      return [] unless description
+
+      match = description.match(/In Scope(.*)Out of Scope/im)
+      return unless match && match[1]
+
+      match[1].scan(/\*\.[\w.-]+\.\w+/)
     end
   end
 end

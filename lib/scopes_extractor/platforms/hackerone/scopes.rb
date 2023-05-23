@@ -26,6 +26,9 @@ class Hackerone
         normalized = normalized(endpoint)
 
         normalized.each do |asset|
+          next unless asset.include?('.')
+          next if asset.include?('*') && !asset.start_with?('*.')
+
           scopes_normalized << asset
         end
       end

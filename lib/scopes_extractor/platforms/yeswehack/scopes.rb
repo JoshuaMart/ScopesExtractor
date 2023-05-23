@@ -26,6 +26,7 @@ class YesWeHack
         normalized = normalize(infos['scope'])
         normalized.each do |asset|
           next unless asset.include?('.')
+          next if asset.include?('*') && !asset.start_with?('*.')
 
           scopes_normalized << asset
         end
