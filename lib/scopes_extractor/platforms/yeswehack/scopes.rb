@@ -28,7 +28,7 @@ class YesWeHack
           next unless asset.include?('.')
           next if asset.include?('*') && !asset.start_with?('*.')
 
-          scopes_normalized << asset
+          scopes_normalized << asset.sub('/*', '')
         end
       end
 

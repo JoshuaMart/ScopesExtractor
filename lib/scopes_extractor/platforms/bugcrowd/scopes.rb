@@ -37,7 +37,8 @@ class Bugcrowd
         next if exclusions.any? { |exclusion| endpoint.include?(exclusion) } || !endpoint.include?('.')
         next if endpoint.include?('*') && !endpoint.start_with?('*.')
 
-        scopes_normalized << endpoint
+        endpoint.sub!(%r{/$}, '')
+        scopes_normalized << endpoint.sub('/*', '')
       end
 
       scopes_normalized

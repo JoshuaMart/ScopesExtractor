@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'scopes_extractor'
-  spec.version       = '0.6.0'
+  spec.version       = '0.7.0'
   spec.authors       = ['Joshua MARTINELLE']
   spec.email         = ['contact@jomar.fr']
   spec.summary       = 'BugBounty Scopes Extractor'

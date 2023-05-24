@@ -14,7 +14,7 @@ class Hackerone
         next if options[:skip_vdp] && !program['attributes']['offers_bounties']
 
         results[program['attributes']['name']] = program_info(program)
-        results[program['attributes']['name']]['scopes'] = Scopes.sync(program_info(program))
+        results[program['attributes']['name']]['scopes'] = Scopes.sync(program_info(program), options)
       end
 
       sync(results, options, page_id + 1) if programs_infos[:next_page]
