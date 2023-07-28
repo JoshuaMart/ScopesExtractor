@@ -12,7 +12,7 @@
 
 In your Gemfile
 ```ruby
-gem 'scopes_extractor', '~> 0.7.0'
+gem 'scopes_extractor', '~> 0.8.0'
 ```
 
 Or

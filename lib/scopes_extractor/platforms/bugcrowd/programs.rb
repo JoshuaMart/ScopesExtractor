@@ -6,9 +6,10 @@ class Bugcrowd
   # Bugcrowd Sync Programs
   class Programs
     def self.sync(results, options, cookie, page_id = 1)
-      response = HttpClient.get(
-        "https://bugcrowd.com/programs.json?page[]=#{page_id}&waitlistable[]=false&joinable[]=false", cookie
-      )
+      url = "https://bugcrowd.com/programs.json?page[]=#{page_id}&waitlistable[]=false&joinable[]=false"
+      url += "&vdp[]=false" if options[:skip_vdp]
+
+      response = HttpClient.get(url, cookie)
       return unless response&.code == 200
 
       body = JSON.parse(response.body)
@@ -20,7 +21,6 @@ class Bugcrowd
     def self.parse_programs(programs, options, results, cookie)
       programs.each do |program|
         next if program['status'] == 4 # Disabled
-        next if program['min_rewards'].nil? && options[:skip_vdp]
 
         results[program['name']] = program_info(program)
         results[program['name']]['scopes'] = Scopes.sync(program_info(program), cookie)
