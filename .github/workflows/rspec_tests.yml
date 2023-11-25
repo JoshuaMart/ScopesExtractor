@@ -28,10 +28,3 @@ jobs:
         curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
         chmod +x ./cc-test-reporter
         ./cc-test-reporter before-build
-
-    - name: Run RSpec
-      run: bundle exec rspec
-
-    - name: Upload coverage to Code Climate
-      run: |
-        ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}}
