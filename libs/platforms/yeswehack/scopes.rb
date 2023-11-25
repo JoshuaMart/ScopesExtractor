@@ -8,7 +8,7 @@ module ScopesExtractor
         url: %w[web-application api ip-address],
         mobile: %w[mobile-application mobile-application-android mobile-application-ios],
         other: %w[other],
-		    executable: %w[application]
+        executable: %w[application]
       }.freeze
 
       def self.sync(program, config)
@@ -27,7 +27,7 @@ module ScopesExtractor
 
       def self.parse_scopes(scopes)
         normalized = {}
-  
+
         scopes.each do |infos|
           category_name = CATEGORIES.find { |_key, values| values.include?(infos['scope_type']) }&.first
           if category_name.nil?
@@ -38,7 +38,7 @@ module ScopesExtractor
           normalized[category_name] = [] unless normalized[category_name]
           normalized[category_name] << infos['scope']
         end
-  
+
         normalized
       end
     end
