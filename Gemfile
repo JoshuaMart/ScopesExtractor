@@ -7,5 +7,6 @@ gem 'dotenv'
 gem 'logger'
 gem 'rotp'
 gem 'rspec'
+gem 'simplecov', require: false, group: :test
 gem 'typhoeus'
 gem 'webmock'

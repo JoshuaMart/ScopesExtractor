@@ -7,6 +7,7 @@ GEM
     crack (0.4.5)
       rexml
     diff-lcs (1.5.0)
+    docile (1.4.0)
     dotenv (2.8.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
@@ -29,6 +30,12 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
     rspec-support (3.12.1)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.12.3)
+    simplecov_json_formatter (0.1.4)
     typhoeus (1.4.1)
       ethon (>= 0.9.0)
     webmock (3.19.1)
@@ -45,6 +52,7 @@ DEPENDENCIES
   logger
   rotp
   rspec
+  simplecov
   typhoeus
   webmock
 
