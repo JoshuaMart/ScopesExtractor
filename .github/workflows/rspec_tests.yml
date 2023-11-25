@@ -33,6 +33,7 @@ jobs:
       run: bundle exec rspec
 
     - name: Upload coverage to Code Climate
+      if: always()
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       run: |
