@@ -1,0 +1,27 @@
+name: RSpec Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  run-rspec:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2.2'
+
+    - name: Install Dependencies
+      run: |
+        gem install bundler
+        bundle install
+
+    - name: Run RSpec
+      run: bundle exec rspec
+
