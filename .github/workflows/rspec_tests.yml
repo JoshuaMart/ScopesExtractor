@@ -34,7 +34,6 @@ jobs:
 
     - name: Upload coverage to Code Climate
       if: always()
-      env:
-        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       run: |
-        ./cc-test-reporter after-build --exit-code $? --coverage-input-type lcov
+        export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
+        ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}}
