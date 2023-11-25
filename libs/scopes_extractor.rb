@@ -7,15 +7,23 @@ Dir[File.join(__dir__, 'platforms', '**', '*.rb')].sort.each { |file| require fi
 Dir[File.join(__dir__, 'utilities', '*.rb')].sort.each { |file| require file }
 
 module ScopesExtractor
-  # Extaact
+  # Extract
   class Extract
+    attr_accessor :config, :results
+
     def initialize
       @config = Config.load
+      @results = {}
     end
 
     def run
-      jwt_ywh = YesWeHack.authenticate(@config[:yeswehack])
-      puts "JWT YesWeHack: #{jwt_ywh}"
+      results['YesWeHack'] = {}
+
+      jwt = YesWeHack.authenticate(config[:yeswehack])
+      return unless jwt
+
+      config[:yeswehack][:headers] = { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" }
+      YesWeHack::Programs.sync(results, config[:yeswehack])
     end
   end
 end

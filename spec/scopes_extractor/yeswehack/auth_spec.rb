@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative '../../../libs/scopes_extractor'
 
 describe ScopesExtractor::YesWeHack do
   describe '.authenticate' do
