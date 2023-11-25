@@ -3,9 +3,9 @@
 require 'logger'
 require 'colorize'
 
-class ScopesExtractor
+module ScopesExtractor
   # Provides helper methods to be used in all the different classes
-  class Utilities
+  module Utilities
     # Creates a singleton logger
     def self.logger
       @logger ||= Logger.new($stdout)
