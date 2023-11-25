@@ -13,7 +13,6 @@ GEM
       ffi (>= 1.15.0)
     ffi (1.16.3-x64-mingw-ucrt)
     hashdiff (1.0.1)
-    json (2.6.3)
     logger (1.6.0)
     public_suffix (5.0.4)
     rexml (3.2.6)
@@ -36,9 +35,6 @@ GEM
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.12.3)
-    simplecov-json (0.2.3)
-      json
-      simplecov
     simplecov_json_formatter (0.1.4)
     typhoeus (1.4.1)
       ethon (>= 0.9.0)
@@ -57,7 +53,6 @@ DEPENDENCIES
   rotp
   rspec
   simplecov
-  simplecov-json
   typhoeus
   webmock
 

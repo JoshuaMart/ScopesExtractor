@@ -33,6 +33,5 @@ jobs:
       run: bundle exec rspec
 
     - name: Upload coverage to Code Climate
-      if: always()
       run: |
-        ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}} -coverage-input-type lcov-json
+        ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}}
