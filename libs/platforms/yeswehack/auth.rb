@@ -7,7 +7,7 @@ module ScopesExtractor
       totp_token = extract_totp_token(config)
       return unless totp_token
 
-      extract_jwt(config)
+      extract_jwt(totp_token, config)
     end
 
     def self.extract_totp_token(config)
@@ -22,7 +22,7 @@ module ScopesExtractor
       json['totp_token']
     end
 
-    def self.extract_jwt(config)
+    def self.extract_jwt(totp_token, config)
       otp_code = ROTP::TOTP.new(config[:otp]).now
       body = { token: totp_token, code: otp_code }.to_json
 
