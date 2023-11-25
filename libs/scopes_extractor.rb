@@ -24,6 +24,8 @@ module ScopesExtractor
 
       config[:yeswehack][:headers] = { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" }
       YesWeHack::Programs.sync(results, config[:yeswehack])
+
+      File.open('extract.json', 'w') { |f| f.write(JSON.pretty_generate(results)) }
     end
   end
 end
