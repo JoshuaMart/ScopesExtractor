@@ -38,9 +38,6 @@ RSpec.describe ScopesExtractor::YesWeHack::Programs do
       allow(ScopesExtractor::HttpClient).to receive(:get)
         .with("https://api.yeswehack.com/programs?page=#{page_id}", { headers: config[:headers] })
         .and_return(response)
-
-      allow(ScopesExtractor::Parser).to receive(:json_parse).with(response.body)
-                                                            .and_return(JSON.parse(response.body))
     end
 
     context 'when response is successful' do
