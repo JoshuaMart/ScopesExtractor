@@ -12,10 +12,10 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Install Ruby (2.6)
+    - name: Install Ruby (3.2)
       uses: actions/setup-ruby@v1
       with:
-        ruby-version: 2.6.x
+        ruby-version: 3.2.x
 
     - name: Setup Code Climate test-reporter
       run: |
