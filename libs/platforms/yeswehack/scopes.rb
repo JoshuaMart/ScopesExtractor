@@ -19,28 +19,79 @@ module ScopesExtractor
         json = Parser.json_parse(response.body)
         return unless json
 
-        scopes['in'] = parse_scopes(json['scopes'])
-        scopes['out'] = parse_scopes(json['out_of_scope'])
+        scopes['in'] = parse_scopes(json['scopes'], true)
+        scopes['out'] = parse_scopes(json['out_of_scope'], false)
 
         scopes
       end
 
-      def self.parse_scopes(scopes)
-        normalized = {}
+      def self.parse_scopes(data, in_scope)
+        scopes = {}
 
-        scopes.each do |infos|
-          category_name = CATEGORIES.find { |_key, values| values.include?(infos['scope_type']) }&.first
-          if category_name.nil?
-            Utilities.log_warn("YesWeHack - Inexistent categories : #{infos['scope_type']} - #{infos['scope']}")
-            next
-          end
+        data.each do |infos|
+          category = find_category(infos, in_scope)
+          next unless category
 
-          normalized[category_name] = [] unless normalized[category_name]
-          normalized[category_name] << infos['scope']
+          scopes[category] ||= []
+          add_scope_to_category(scopes, category, infos)
         end
 
-        normalized
+        scopes
       end
+
+      def self.add_scope_to_category(scopes, category, infos)
+        if category == :url
+          normalize_urls(infos['scope']).each { |url| scopes[category] << url }
+        else
+          scopes[category] << infos['scope']
+        end
+      end
+
+      def self.find_category(infos, in_scope)
+        category = CATEGORIES.find { |_key, values| values.include?(infos['scope_type']) }&.first
+        Utilities.log_warn("YesWeHack - Inexistent categories : #{infos}") if category.nil? && in_scope
+
+        category
+      end
+
+      # rubocop:disable Metrics/AbcSize
+      # rubocop:disable Metrics/MethodLength
+      # rubocop:disable Metrics/CyclomaticComplexity
+      # rubocop:disable Metrics/PerceivedComplexity
+      def self.normalize_urls(scope)
+        normalized_urls = []
+
+        scope = scope.split(' ')[0]
+        scope = scope[..-2] if scope.end_with?('/*')
+        scope = scope[..-2] if scope.end_with?(')/')
+
+        # Ex: (a|b|c).domain.tld
+        multi_subs = scope.match(/^\((.*)\)(.*)/)
+
+        # Ex: *.domain.(a|b|c)
+        multi_tld = scope.match(/^(.*)[\[(](.*)[\])]$/)
+
+        if multi_tld && multi_tld[1] && multi_tld[2]
+          tlds = multi_tld[2].split('|')
+          tlds.each { |tld| normalized_urls << "#{multi_tld[1]}#{tld}" }
+        elsif multi_subs && multi_subs[1] && multi_subs[2]
+          subs = multi_subs[1].split('|')
+          subs.each { |sub| normalized_urls << "#{sub}#{multi_subs[2]}" }
+        elsif scope.match?(%r{https?://\*})
+          normalized_urls << scope.sub(%r{https?://}, '')
+        elsif !scope.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}) && !scope.match?(%r{^^[/\w.-]+$})
+          Utilities.log_warn("YesWeHack - Non-normalized scope : #{scope}")
+          normalized_urls << scope
+        else
+          normalized_urls << scope
+        end
+
+        normalized_urls
+      end
+      # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/MethodLength
+      # rubocop:enable Metrics/CyclomaticComplexity
+      # rubocop:enable Metrics/PerceivedComplexity
     end
   end
 end
