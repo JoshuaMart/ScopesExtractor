@@ -1,0 +1,31 @@
+name: Codeclimate
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install Ruby (3.2)
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2.2'
+
+    - name: Build and test with RSpec
+      run: |
+        gem install bundler
+        bundle install --jobs 4 --retry 3
+
+    - name: Test & publish code coverage
+      uses: paambaati/codeclimate-action@v3.0.0
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      with:
+        coverageCommand: bundle exec rspec
+        coverageLocations: ${{ github.workspace }}/coverage/coverage.json:simplecov
