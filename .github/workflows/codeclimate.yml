@@ -15,7 +15,7 @@ jobs:
     - name: Install Ruby (3.2)
       uses: actions/setup-ruby@v1
       with:
-        ruby-version: 3.2.x
+        ruby-version: 3.2.2
 
     - name: Setup Code Climate test-reporter
       run: |
