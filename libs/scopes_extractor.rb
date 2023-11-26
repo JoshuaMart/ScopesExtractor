@@ -20,7 +20,10 @@ module ScopesExtractor
       results['YesWeHack'] = {}
 
       jwt = YesWeHack.authenticate(config[:yeswehack])
-      return unless jwt
+      unless jwt
+        Utilities.log_warn('YesWeHack - Authentication Failed')
+        return
+      end
 
       config[:yeswehack][:headers] = { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" }
       YesWeHack::Programs.sync(results, config[:yeswehack])

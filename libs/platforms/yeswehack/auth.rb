@@ -7,7 +7,12 @@ module ScopesExtractor
       totp_token = extract_totp_token(config)
       return unless totp_token
 
-      extract_jwt(totp_token, config)
+      jwt = extract_jwt(totp_token, config)
+      if jwt.nil?
+        sleep(25)
+        jwt = extract_jwt(totp_token, config)
+      end
+      jwt
     end
 
     def self.extract_totp_token(config)
