@@ -9,6 +9,7 @@ module ScopesExtractor
 
     def self.get(url, options = {})
       @options.merge!(options)
+      @options[:body] = nil
 
       Typhoeus.get(url, @options)
     end
