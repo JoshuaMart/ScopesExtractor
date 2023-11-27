@@ -34,7 +34,7 @@ module ScopesExtractor
       resp = HttpClient.get(AUTH_RESEARCHER_URL, options)
       resp = HttpClient.get(resp.headers['location'], options)
 
-      prepare_oidc_body(resp&.body, options)
+      prepare_oidc_body(resp.body, options)
       resp = HttpClient.post(SIGNIN_OIDC_RESEARCHER_URL, options)
 
       resp.headers['set-cookie']
@@ -55,6 +55,8 @@ module ScopesExtractor
       return unless resp&.code == 200 && resp.body
 
       match = resp.body&.match(/__RequestVerificationToken" type="hidden" value="(?<csrf>[\w-]+)/)
+      return unless match
+
       match[:csrf]
     end
 
