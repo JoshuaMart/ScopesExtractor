@@ -6,8 +6,6 @@ module ScopesExtractor
     LOGIN_URL = 'https://api.yeswehack.com/login'
     OTP_LOGIN_URL = 'https://api.yeswehack.com/account/totp'
 
-    private_class_method :extract_totp_token, :extract_jwt
-
     def self.authenticate(config)
       totp_token = extract_totp_token(config)
       return unless totp_token

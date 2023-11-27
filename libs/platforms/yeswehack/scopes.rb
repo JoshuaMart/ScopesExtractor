@@ -11,8 +11,6 @@ module ScopesExtractor
         executable: %w[application]
       }.freeze
 
-      private_class_method :parse_scopes, :add_scope_to_category, :normalize_urls
-
       def self.sync(program, config)
         scopes = {}
         response = HttpClient.get("https://api.yeswehack.com/programs/#{program[:slug]}", { headers: config[:headers] })

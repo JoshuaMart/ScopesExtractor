@@ -6,8 +6,6 @@ module ScopesExtractor
   module YesWeHack
     # YesWeHack Sync Programs
     module Programs
-      private_class_method :get_page_infos, :parse_programs
-
       def self.sync(results, config, page_id = 1)
         page_infos = get_page_infos(page_id, config)
         return unless page_infos
