@@ -8,14 +8,13 @@ module ScopesExtractor
     @options = { ssl_verifypeer: false, ssl_verifyhost: 0 }
 
     def self.get(url, options = {})
-      @options[:headers] = options[:headers] || {}
+      @options.merge!(options)
 
       Typhoeus.get(url, @options)
     end
 
     def self.post(url, options = {})
-      @options[:headers] = options[:headers] || { 'Content-Type' => 'application/json' }
-      @options[:body] = options[:body]
+      @options.merge!(options)
 
       Typhoeus.post(url, @options)
     end
