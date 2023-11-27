@@ -11,6 +11,11 @@ module ScopesExtractor
           email: ENV['YWH_EMAIL'],
           password: ENV['YWH_PWD'],
           otp: ENV['YWH_OTP']
+        },
+        intigriti: {
+          email: ENV['INTIGRITI_EMAIL'],
+          password: ENV['INTIGRITI_PWD'],
+          otp: ENV['INTIGRITI_OTP']
         }
       }
     end
