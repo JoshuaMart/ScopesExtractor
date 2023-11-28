@@ -18,5 +18,16 @@ describe ScopesExtractor::Intigriti do
         expect(cookie).to match(/^([\w-]){3035}$/)
       end
     end
+
+    context 'when authentication fails' do
+      before do
+        stub_request(:get, 'https://login.intigriti.com/account/login')
+          .to_return(status: 401)
+      end
+
+      it 'returns nil' do
+        expect(described_class.authenticate(config)).to be_nil
+      end
+    end
   end
 end
