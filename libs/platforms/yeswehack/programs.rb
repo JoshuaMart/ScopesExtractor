@@ -16,7 +16,7 @@ module ScopesExtractor
 
       def self.get_page_infos(page_id, config)
         response = HttpClient.get("https://api.yeswehack.com/programs?page=#{page_id}", { headers: config[:headers] })
-        return unless response&.code == 200
+        return unless response&.status == 200
 
         json = Parser.json_parse(response.body)
         return unless json

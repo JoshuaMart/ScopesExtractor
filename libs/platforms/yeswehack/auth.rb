@@ -10,19 +10,14 @@ module ScopesExtractor
       totp_token = extract_totp_token(config)
       return unless totp_token
 
-      jwt = extract_jwt(totp_token, config)
-      if jwt.nil?
-        sleep(3)
-        jwt = extract_jwt(totp_token, config)
-      end
-      jwt
+      extract_jwt(totp_token, config)
     end
 
     def self.extract_totp_token(config)
       body = { email: config[:email], password: config[:password] }.to_json
 
       response = HttpClient.post(LOGIN_URL, { body: body })
-      return unless response&.code == 200
+      return unless response&.status == 200
 
       json = Parser.json_parse(response.body)
       return unless json
@@ -35,7 +30,7 @@ module ScopesExtractor
       body = { token: totp_token, code: otp_code }.to_json
 
       response = HttpClient.post(OTP_LOGIN_URL, { body: body })
-      return unless response.code == 200
+      return unless response.status == 200
 
       json = Parser.json_parse(response.body)
       return unless json
