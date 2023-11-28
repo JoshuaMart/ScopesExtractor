@@ -6,7 +6,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Scopes do
   describe '.sync' do
     let(:program) { { slug: 'test-program' } }
     let(:config) { { headers: { 'Authorization' => 'Bearer token' } } }
-    let(:response) { double('HTTPResponse', code: 200, body: '{"scopes": [], "out_of_scope": []}') }
+    let(:response) { double('HTTPResponse', status: 200, body: '{"scopes": [], "out_of_scope": []}') }
 
     before do
       allow(ScopesExtractor::HttpClient).to receive(:get).and_return(response)
@@ -19,12 +19,12 @@ RSpec.describe ScopesExtractor::YesWeHack::Scopes do
       )
     end
 
-    it 'returns parsed scopes if response code is 200' do
+    it 'returns parsed scopes if response status is 200' do
       expect(described_class.sync(program, config)).to include('in', 'out')
     end
 
     context 'when the API response is not 200' do
-      let(:response) { double('HTTPResponse', code: 404, body: '{}') }
+      let(:response) { double('HTTPResponse', status: 404, body: '{}') }
 
       before do
         allow(ScopesExtractor::HttpClient).to receive(:get).and_return(response)
@@ -36,7 +36,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Scopes do
     end
 
     context 'when the parser returns nil' do
-      let(:response) { double('HTTPResponse', code: 200, body: 'invalid json') }
+      let(:response) { double('HTTPResponse', status: 200, body: 'invalid json') }
 
       before do
         allow(ScopesExtractor::HttpClient).to receive(:get).and_return(response)

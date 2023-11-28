@@ -31,7 +31,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Programs do
 
   describe '.get_page_infos' do
     let(:response) do
-      instance_double('Response', code: 200, body: '{"pagination": {"nb_pages": 2}, "items": ["item1", "item2"]}')
+      instance_double('Response', status: 200, body: '{"pagination": {"nb_pages": 2}, "items": ["item1", "item2"]}')
     end
 
     before do
@@ -47,7 +47,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Programs do
     end
 
     context 'when response is not successful' do
-      let(:response) { instance_double('Response', code: 404, body: '{}') }
+      let(:response) { instance_double('Response', status: 404, body: '{}') }
 
       it 'returns nil' do
         expect(described_class.get_page_infos(page_id, config)).to be_nil
