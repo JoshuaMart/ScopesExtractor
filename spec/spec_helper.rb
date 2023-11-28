@@ -3,7 +3,7 @@
 require 'webmock/rspec'
 require 'dotenv'
 
-require "simplecov"
+require 'simplecov'
 SimpleCov.start
 
 require 'simplecov-cobertura'
