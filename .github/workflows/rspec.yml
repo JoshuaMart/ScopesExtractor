@@ -21,6 +21,7 @@ jobs:
       run: |
         gem install bundler
         bundle install --jobs 4 --retry 3
+        bundle exec rspec
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
