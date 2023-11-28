@@ -18,6 +18,10 @@ jobs:
         ruby-version: '3.2.2'
 
     - name: Build and test with RSpec
+      env:
+        INTIGRITI_EMAIL: ${{ secrets.INTIGRITI_EMAIL }}
+        INTIGRITI_PWD: ${{ secrets.INTIGRITI_PWD }}
+        INTIGRITI_OTP: ${{ secrets.INTIGRITI_OTP }}
       run: |
         gem install bundler
         bundle install --jobs 4 --retry 3
