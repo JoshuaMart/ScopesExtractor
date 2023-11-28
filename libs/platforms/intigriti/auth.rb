@@ -10,29 +10,26 @@ module ScopesExtractor
     SIGNIN_OIDC_RESEARCHER_URL = 'https://app.intigriti.com/signin-oidc-researcher'
 
     def self.authenticate(config)
-      cookies = 'cookies.txt'
-      File.delete(cookies) if File.exist?(cookies)
-
-      options = { cookiefile: cookies, cookiejar: cookies }
-      csrf = fetch_csrf_token(options)
+      options = {}
+      csrf = fetch_csrf_token
       perform_login(config, csrf, options)
-
       set_cookie = oidc_requests(options)
 
       extract_web_researcher_cookie(set_cookie)
-    ensure
-      File.delete(cookies) if File.exist?(cookies)
     end
 
     def self.oidc_requests(options)
       resp = HttpClient.get(AUTH_RESEARCHER_URL, options)
-      resp = HttpClient.get(resp.headers['location'], options)
+      location = resp.headers['location'].encode('utf-8')
+      resp = HttpClient.get(location, options)
 
       prepare_oidc_body(resp.body, options)
       HttpClient.post(SIGNIN_OIDC_URL, options)
-
       resp = HttpClient.get(AUTH_RESEARCHER_URL, options)
-      resp = HttpClient.get(resp.headers['location'], options)
+
+      location = resp.headers['location'].encode('utf-8')
+      resp = HttpClient.get(location, options)
+
 
       prepare_oidc_body(resp.body, options)
       resp = HttpClient.post(SIGNIN_OIDC_RESEARCHER_URL, options)
@@ -50,9 +47,9 @@ module ScopesExtractor
       options[:body] = "code=#{code}&scope=#{scope}&state=#{state}&session_state=#{session_state}&iss=#{iss}"
     end
 
-    def self.fetch_csrf_token(options)
-      resp = HttpClient.get(LOGIN_URL, options)
-      return unless resp&.code == 200 && resp.body
+    def self.fetch_csrf_token
+      resp = HttpClient.get(LOGIN_URL)
+      return unless resp&.status == 200 && resp.body
 
       match = resp.body&.match(/__RequestVerificationToken" type="hidden" value="(?<csrf>[\w-]+)/)
       return unless match
@@ -63,7 +60,7 @@ module ScopesExtractor
     def self.perform_login(config, csrf, options)
       prepare_login_body(config, csrf, options)
       resp = HttpClient.post(LOGIN_URL, options)
-      return false unless resp&.code == 302
+      return false unless resp&.status == 302
 
       submit_totp(config, csrf, options)
     end
@@ -80,17 +77,14 @@ module ScopesExtractor
       options[:body] += "&__RequestVerificationToken=#{csrf}&Input.RememberMachine=false"
       resp = HttpClient.post(OTP_LOGIN_URL, options)
 
-      resp&.code == 302
+      resp&.status == 302
     end
 
     def self.extract_web_researcher_cookie(set_cookie_headers)
-      set_cookie_headers&.each do |cookie|
-        if (match = cookie.match(/__Host-Intigriti.Web.Researcher=(?<cookie>[\w-]+)/))
-          return match[:cookie]
-        end
-      end
+      match = set_cookie_headers.match(/__Host-Intigriti.Web.Researcher=(?<cookie>[\w-]+)/)
+      return unless match
 
-      nil
+      match[:cookie]
     end
   end
 end

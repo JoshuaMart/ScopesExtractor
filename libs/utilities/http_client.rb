@@ -1,23 +1,27 @@
 # frozen_string_literal: true
 
-require 'typhoeus'
+require 'faraday'
+require 'faraday-cookie_jar'
 
 module ScopesExtractor
   # HttpClient
   module HttpClient
-    @options = { ssl_verifypeer: false, ssl_verifyhost: 0 }
+    @client = Faraday.new do |builder|
+      builder.use :cookie_jar
+      builder.adapter Faraday.default_adapter
+    end
 
     def self.get(url, options = {})
-      @options.merge!(options)
-      @options[:body] = nil
+      headers = options[:headers]
 
-      Typhoeus.get(url, @options)
+      @client.get(url, nil, headers)
     end
 
     def self.post(url, options = {})
-      @options.merge!(options)
+      body = options[:body]
+      headers = options[:headers]
 
-      Typhoeus.post(url, @options)
+      @client.post(url, body, headers)
     end
   end
 end

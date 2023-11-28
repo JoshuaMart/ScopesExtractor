@@ -14,7 +14,7 @@ module ScopesExtractor
       def self.sync(program, config)
         scopes = {}
         response = HttpClient.get("https://api.yeswehack.com/programs/#{program[:slug]}", { headers: config[:headers] })
-        return scopes unless response&.code == 200
+        return scopes unless response&.status == 200
 
         json = Parser.json_parse(response.body)
         return unless json
