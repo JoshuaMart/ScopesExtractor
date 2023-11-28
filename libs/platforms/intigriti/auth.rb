@@ -10,6 +10,7 @@ module ScopesExtractor
     SIGNIN_OIDC_RESEARCHER_URL = 'https://app.intigriti.com/signin-oidc-researcher'
 
     def self.authenticate(config)
+      Utilities.log_warn("DEBUG : #{config[:email]}")
       options = {}
       csrf = fetch_csrf_token
       perform_login(config, csrf, options)
