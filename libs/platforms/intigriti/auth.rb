@@ -12,9 +12,12 @@ module ScopesExtractor
     def self.authenticate(config)
       options = {}
       csrf = fetch_csrf_token
-      perform_login(config, csrf, options)
-      set_cookie = oidc_requests(options)
+      return unless csrf
 
+      valid_login = perform_login(config, csrf, options)
+      return unless valid_login
+
+      set_cookie = oidc_requests(options)
       extract_web_researcher_cookie(set_cookie)
     end
 
