@@ -31,8 +31,8 @@ module ScopesExtractor
           title = program['title']
           program_info = { slug: program['slug'], private: !program['public'] }
 
-          results[title] = program_info
-          results[title]['scopes'] = Scopes.sync(program_info, config)
+          results['YesWeHack'][title] = program_info
+          results['YesWeHack'][title]['scopes'] = Scopes.sync(program_info, config)
         end
       end
     end
