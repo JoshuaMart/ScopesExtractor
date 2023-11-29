@@ -64,7 +64,7 @@ module ScopesExtractor
           normalized_urls.concat(normalize_with_tlds(match_data[1], match_data[2]))
         elsif scope.match?(%r{https?://\*})
           normalized_urls << scope.sub(%r{https?://}, '')
-        elsif scope.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}) || scope.match?(%r{^[/\w.-]+\.[a-z]+$})
+        elsif scope.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}) || scope.match?(%r{^[/\w.-]+\.[a-z]+(/.*)?})
           normalized_urls << scope
         else
           Utilities.log_warn("YesWeHack - Non-normalized scope : #{scope}")
