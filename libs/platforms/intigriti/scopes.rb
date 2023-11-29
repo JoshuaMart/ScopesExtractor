@@ -78,7 +78,6 @@ module ScopesExtractor
           endpoint
         else
           Utilities.log_warn("Intigriti - Non-normalized endpoint : #{endpoint}")
-          nil
         end
       end
 
