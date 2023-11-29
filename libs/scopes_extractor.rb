@@ -25,7 +25,9 @@ module ScopesExtractor
 
       cookie = Intigriti.authenticate(config[:intigriti])
       Utilities.log_warn('Intigriti - Authentication Failed') unless cookie
+
       config[:intigriti][:headers] = { 'Cookie' => "__Host-Intigriti.Web.Researcher=#{cookie}" }
+      Intigriti::Programs.sync(results, config[:intigriti]) if cookie
 
       File.open('extract.json', 'w') { |f| f.write(JSON.pretty_generate(results)) }
     end
