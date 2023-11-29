@@ -41,7 +41,7 @@ RSpec.describe ScopesExtractor::Intigriti::Scopes do
 
     it 'categorizes and returns parsed scopes' do
       scopes = [{ 'type' => 4, 'endpoint' => '192.168.1.0/24' }]
-      
+
       categorized_scopes = described_class.parse_scopes(scopes, in_scope)
       expect(categorized_scopes).to have_key(:cidr)
     end

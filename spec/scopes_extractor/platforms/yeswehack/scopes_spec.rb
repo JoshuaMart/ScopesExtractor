@@ -120,7 +120,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Scopes do
 
       it 'normalizes URLs that start with https://*' do
         expect(described_class.normalize_urls('https://*.domain.tld'))
-          .to eq(["*.domain.tld"])
+          .to eq(['*.domain.tld'])
       end
 
       it 'not an url' do
