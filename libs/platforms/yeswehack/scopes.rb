@@ -17,7 +17,7 @@ module ScopesExtractor
         return scopes unless response&.status == 200
 
         json = Parser.json_parse(response.body)
-        return unless json
+        return scopes unless json
 
         scopes['in'] = parse_scopes(json['scopes'], true)
         scopes['out'] = parse_scopes(json['out_of_scope'], false)
