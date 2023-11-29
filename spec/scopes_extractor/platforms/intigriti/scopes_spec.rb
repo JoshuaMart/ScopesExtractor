@@ -54,6 +54,11 @@ RSpec.describe ScopesExtractor::Intigriti::Scopes do
       normalized = described_class.normalize('http://example.com/*')
       expect(normalized).to eq('http://example.com')
     end
+
+    it 'normalizes and returns nil' do
+      normalized = described_class.normalize('Lorem Ipsum')
+      expect(normalized).to eq(nil)
+    end
   end
 
   describe '.sanitize_endpoint' do
