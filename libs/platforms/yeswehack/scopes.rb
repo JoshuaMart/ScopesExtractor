@@ -54,44 +54,36 @@ module ScopesExtractor
         category
       end
 
-      # rubocop:disable Metrics/AbcSize
-      # rubocop:disable Metrics/MethodLength
-      # rubocop:disable Metrics/CyclomaticComplexity
-      # rubocop:disable Metrics/PerceivedComplexity
       def self.normalize_urls(scope)
         normalized_urls = []
+        scope = sanitize_scope(scope)
 
-        scope = scope.split(' ')[0]
-        scope = scope[..-2] if scope.end_with?('/*')
-        scope = scope[..-2] if scope.end_with?(')/')
-
-        # Ex: (a|b|c).domain.tld
-        multi_subs = scope.match(/^\((.*)\)(.*)/)
-
-        # Ex: *.domain.(a|b|c)
-        multi_tld = scope.match(/^(.*)[\[(](.*)[\])]$/)
-
-        if multi_tld && multi_tld[1] && multi_tld[2]
-          tlds = multi_tld[2].split('|')
-          tlds.each { |tld| normalized_urls << "#{multi_tld[1]}#{tld}" }
-        elsif multi_subs && multi_subs[1] && multi_subs[2]
-          subs = multi_subs[1].split('|')
-          subs.each { |sub| normalized_urls << "#{sub}#{multi_subs[2]}" }
+        if (match_data = scope.match(/^\((.*)\)(.*)/))
+          normalized_urls.concat(normalize_with_subdomains(match_data[1], match_data[2]))
+        elsif (match_data = scope.match(/^(.*)[\[(](.*)[\])]$/))
+          normalized_urls.concat(normalize_with_tlds(match_data[1], match_data[2]))
         elsif scope.match?(%r{https?://\*})
           normalized_urls << scope.sub(%r{https?://}, '')
-        elsif !scope.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}) && !scope.match?(%r{^^[/\w.-]+$})
-          Utilities.log_warn("YesWeHack - Non-normalized scope : #{scope}")
+        elsif scope.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}) || scope.match?(%r{^^[/\w.-]+$})
           normalized_urls << scope
         else
-          normalized_urls << scope
+          Utilities.log_warn("YesWeHack - Non-normalized scope : #{scope}")
         end
 
-        normalized_urls
+        normalized_urls.uniq
       end
-      # rubocop:enable Metrics/AbcSize
-      # rubocop:enable Metrics/MethodLength
-      # rubocop:enable Metrics/CyclomaticComplexity
-      # rubocop:enable Metrics/PerceivedComplexity
+
+      def self.sanitize_scope(scope)
+        scope.split(' ')[0].gsub(%r{(/\*|\)/)$}, '')
+      end
+
+      def self.normalize_with_subdomains(subs, domain)
+        subs.split('|').map { |sub| "#{sub}#{domain}" }
+      end
+
+      def self.normalize_with_tlds(base, tlds)
+        tlds.split('|').map { |tld| "#{base}#{tld}" }
+      end
     end
   end
 end
