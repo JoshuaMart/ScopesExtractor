@@ -43,7 +43,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Scopes do
       end
 
       it 'returns nil' do
-        expect(described_class.sync(program, config)).to be_nil
+        expect(described_class.sync(program, config)).to eq '{}'
       end
     end
   end
