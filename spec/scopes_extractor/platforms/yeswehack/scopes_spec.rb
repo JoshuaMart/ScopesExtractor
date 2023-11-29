@@ -122,6 +122,11 @@ RSpec.describe ScopesExtractor::YesWeHack::Scopes do
         expect(described_class.normalize_urls('https://*.domain.tld'))
           .to eq(["*.domain.tld"])
       end
+
+      it 'not an url' do
+        expect(described_class.normalize_urls('Lorem Ipsum'))
+          .to eq([])
+      end
     end
   end
 end

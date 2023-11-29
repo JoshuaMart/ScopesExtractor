@@ -30,12 +30,20 @@ RSpec.describe ScopesExtractor::Intigriti::Scopes do
   end
 
   describe '.parse_scopes' do
-    let(:scopes) { [{ 'type' => 1, 'endpoint' => 'http://example.com' }] }
     let(:in_scope) { true }
 
     it 'categorizes and returns parsed scopes' do
+      scopes = [{ 'type' => 1, 'endpoint' => 'http://example.com' }]
+
       categorized_scopes = described_class.parse_scopes(scopes, in_scope)
       expect(categorized_scopes).to have_key(:url)
+    end
+
+    it 'categorizes and returns parsed scopes' do
+      scopes = [{ 'type' => 4, 'endpoint' => '192.168.1.0/24' }]
+      
+      categorized_scopes = described_class.parse_scopes(scopes, in_scope)
+      expect(categorized_scopes).to have_key(:cidr)
     end
   end
 
