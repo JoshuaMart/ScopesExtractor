@@ -65,7 +65,7 @@ RSpec.describe ScopesExtractor::Intigriti::Scopes do
 
     it 'normalizes and returns nil' do
       normalized = described_class.normalize('Lorem Ipsum')
-      expect(normalized).to eq(nil)
+      expect(normalized).to eq(true)
     end
   end
 

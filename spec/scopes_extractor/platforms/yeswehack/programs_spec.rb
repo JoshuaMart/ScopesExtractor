@@ -5,7 +5,7 @@ require 'spec_helper'
 RSpec.describe ScopesExtractor::YesWeHack::Programs do
   let(:config) { { headers: { 'Authorization' => 'Bearer token' } } }
   let(:page_id) { 1 }
-  let(:results) { {} }
+  let(:results) { { 'YesWeHack' => {} } }
 
   describe '.sync' do
     let(:page_infos) { { programs: %w[program1 program2], nb_pages: 1 } }
@@ -67,7 +67,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Programs do
 
     it 'parses programs and updates results' do
       described_class.parse_programs(programs, results, config)
-      expect(results['Test Program']).to eq({ slug: 'test-program', private: false, 'scopes' => nil })
+      expect(results['YesWeHack']['Test Program']).to eq({ slug: 'test-program', private: false, 'scopes' => nil })
     end
 
     context 'when a program is disabled or vdp' do
@@ -75,7 +75,7 @@ RSpec.describe ScopesExtractor::YesWeHack::Programs do
 
       it 'skips disabled or vdp programs' do
         described_class.parse_programs([disabled_program], results, config)
-        expect(results).to be_empty
+        expect(results['YesWeHack']).to be_empty
       end
     end
   end

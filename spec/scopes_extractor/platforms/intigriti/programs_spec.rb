@@ -9,7 +9,7 @@ RSpec.describe ScopesExtractor::Intigriti::Programs do
       double('HTTPResponse', status: 200,
                              body: '[{"name": "Test Program", "maxBounty": {"value": 1000}, "status": 1, "handle": "test-program", "companyHandle": "test-company"}]')
     end
-    let(:results) { {} }
+    let(:results) { { 'Intigriti' => {} }  }
 
     before do
       allow(ScopesExtractor::HttpClient).to receive(:get).with(ScopesExtractor::Intigriti::Programs::PROGRAMS_ENDPOINT,
@@ -20,7 +20,7 @@ RSpec.describe ScopesExtractor::Intigriti::Programs do
     it 'fetches and parses programs' do
       described_class.sync(results, config)
       expect(results).not_to be_empty
-      expect(results['Test Program']).to include(:slug, :enabled, :private)
+      expect(results['Intigriti']['Test Program']).to include(:slug, :enabled, :private)
     end
   end
 
@@ -30,7 +30,7 @@ RSpec.describe ScopesExtractor::Intigriti::Programs do
          'companyHandle' => 'test-company' }]
     end
     let(:config) { { headers: {} } }
-    let(:results) { {} }
+    let(:results) { { 'Intigriti' => {} } }
     let(:scoped_program_response) do
       double('HTTPResponse', status: 200, body: '{}')
     end
@@ -44,7 +44,7 @@ RSpec.describe ScopesExtractor::Intigriti::Programs do
     it 'parses program details and scopes' do
       described_class.parse_programs(programs, config, results)
       expect(results).not_to be_empty
-      expect(results['Test Program']).to include(:slug, :enabled, :private)
+      expect(results['Intigriti']['Test Program']).to include(:slug, :enabled, :private)
     end
   end
 
