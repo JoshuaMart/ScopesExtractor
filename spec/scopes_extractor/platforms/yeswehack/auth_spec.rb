@@ -15,7 +15,8 @@ describe ScopesExtractor::YesWeHack do
         config = { email: ENV['YWH_EMAIL'], password: ENV['YWH_PWD'], otp: ENV['YWH_OTP'] }
 
         jwt_token = described_class.authenticate(config)
-        expect(jwt_token).to match(/\A[\w-]+\.[\w-]+\.[\w-]+\z/)
+
+        raise "YesWeHack - Authentication failed" unless jwt_token.match?(/\A[\w-]+\.[\w-]+\.[\w-]+\z/)
       end
     end
 

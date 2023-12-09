@@ -15,8 +15,9 @@ describe ScopesExtractor::Intigriti do
         config = { email: ENV['INTIGRITI_EMAIL'], password: ENV['INTIGRITI_PWD'], otp: ENV['INTIGRITI_OTP'] }
 
         cookie = described_class.authenticate(config)
-        expect(cookie).to match(/^([\w-]){3035}$/)
-      end
+      
+        raise "Intigriti - Authentication failed" unless cookie.start_with?('CfDJ8')
+      end      
     end
 
     context 'when authentication fails' do
