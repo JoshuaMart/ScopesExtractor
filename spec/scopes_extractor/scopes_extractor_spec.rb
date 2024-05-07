@@ -12,27 +12,26 @@ RSpec.describe ScopesExtractor::Extract do
           otp: 'fake_otp'
         },
         intigriti: {
-          email: 'fake_email@example.com',
-          password: 'fake_password',
-          otp: 'fake_otp'
+          token: 'intigriti_token'
         }
       }
     end
 
     let(:jwt) { 'fake_jwt_token' }
     let(:cookie) { 'fake_cookie' }
-    let(:yeswehack_config) { { headers: { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" } } }
-    let(:intigriti_config) { { headers: { 'Cookie' => "__Host-Intigriti.Web.Researcher=#{cookie}" } } }
+    let(:yeswehack_config) { { headers: { 'Content-Type' => 'application/json', 'Authorization' => "Bearer #{jwt}" } } }
+    let(:intigriti_config) { { headers: { 'Authorization' => "Bearer #{jwt}" } } }
 
     before do
       allow(ScopesExtractor::Config).to receive(:load).and_return(fake_config)
       allow(ScopesExtractor::YesWeHack).to receive(:authenticate).and_return(jwt)
-      allow(ScopesExtractor::Intigriti).to receive(:authenticate).and_return(cookie)
+
       allow(ScopesExtractor::YesWeHack::Programs).to receive(:sync)
+      allow(ScopesExtractor::Intigriti::Programs).to receive(:sync)
       allow(File).to receive(:open).with('extract.json', 'w')
 
-      stub_request(:get, 'https://app.intigriti.com/api/core/researcher/programs')
-        .with(headers: { 'Cookie' => '__Host-Intigriti.Web.Researcher=fake_cookie' })
+      stub_request(:get, 'https://api.intigriti.com/external/researcher/v1/programs')
+        .with(headers: { 'Authorization' => 'Bearer fake_jwt_token' })
         .to_return(status: 200, body: '{}', headers: {})
     end
 
@@ -41,8 +40,9 @@ RSpec.describe ScopesExtractor::Extract do
       extractor.run
 
       expect(ScopesExtractor::YesWeHack).to have_received(:authenticate).with(extractor.config[:yeswehack])
-      expect(ScopesExtractor::Intigriti).to have_received(:authenticate).with(extractor.config[:intigriti])
+
       expect(ScopesExtractor::YesWeHack::Programs).to have_received(:sync)
+      expect(ScopesExtractor::Intigriti::Programs).to have_received(:sync)
       expect(File).to have_received(:open).with('extract.json', 'w')
     end
 

@@ -13,9 +13,7 @@ module ScopesExtractor
           otp: ENV['YWH_OTP']
         },
         intigriti: {
-          email: ENV['INTIGRITI_EMAIL'],
-          password: ENV['INTIGRITI_PWD'],
-          otp: ENV['INTIGRITI_OTP']
+          token: ENV['INTIGRITI_TOKEN']
         }
       }
     end

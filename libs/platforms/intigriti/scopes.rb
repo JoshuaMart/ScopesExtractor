@@ -1,72 +1,63 @@
 # frozen_string_literal: true
 
-require 'cgi'
-
 module ScopesExtractor
   module Intigriti
     # Intigrit Sync Scopes
     module Scopes
       CATEGORIES = {
-        url: [1],
+        url: [1, 7],
         mobile: [2, 3],
         cidr: [4],
         device: [5],
         other: [6]
       }.freeze
 
-      PROGRAMS_ENDPOINT = 'https://app.intigriti.com/api/core/researcher/programs'
+      PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs'
 
       def self.sync(program, headers)
         scopes = {}
 
-        url = prepare_scope_url(program)
-        response = HttpClient.get(url, headers)
+        url = File.join(PROGRAMS_ENDPOINT, program[:id])
+        response = HttpClient.get(url, { headers: headers })
         return scopes unless response&.status == 200
 
         json = Parser.json_parse(response.body)
         return scopes unless json
 
-        in_scopes = json['domains']&.last&.[]('content')
-        scopes['in'] = parse_scopes(in_scopes, true)
+        content = json.dig('domains', 'content')
+        return scopes unless content
 
-        out_scopes = json['outOfScopes'].last.dig('content', 'content')
-        scopes['out'] = parse_scopes(out_scopes, false)
-
-        scopes
+        parse_scopes(content)
       end
 
-      def self.prepare_scope_url(program)
-        company = CGI.escape(program[:company])
-        handle = CGI.escape(program[:handle])
-
-        File.join(PROGRAMS_ENDPOINT, company, handle)
-      end
-
-      def self.parse_scopes(scopes, in_scope)
-        categorized_scopes = {}
+      def self.parse_scopes(scopes)
+        categorized_scopes = { 'in' => {}, 'out' => {} }
         return categorized_scopes unless scopes.is_a?(Array)
 
         scopes.each do |scope|
-          category = find_category(scope, in_scope)
+          category = find_category(scope)
           next unless category
 
-          categorized_scopes[category] ||= []
-          categorized_scopes[category] << case scope['type']
-                                          when 1
-                                            normalize(scope['endpoint'])
-                                          else
-                                            scope['endpoint']
-                                          end
+          type = scope.dig('tier', 'value') == 'Out Of Scope' ? 'out' : 'in'
+          
+          categorized_scopes[type][category] ||= []
+          endpoint = case scope.dig('type', 'id')
+                     when 1 || 7
+                       normalize(scope['endpoint'])
+                     else
+                       scope['endpoint']
+                     end
+          next unless endpoint
 
-          scope['endpoint']
+          categorized_scopes[type][category] << endpoint
         end
 
         categorized_scopes
       end
 
-      def self.find_category(scope, in_scope)
-        category = CATEGORIES.find { |_key, values| values.include?(scope['type']) }&.first
-        Utilities.log_warn("Intigriti - Inexistent categories : #{scope}") if category.nil? && in_scope
+      def self.find_category(scope)
+        category = CATEGORIES.find { |_key, values| values.include?(scope.dig('type', 'id')) }&.first
+        Utilities.log_warn("Intigriti - Inexistent categories : #{scope}") if category.nil?
 
         category
       end
@@ -78,6 +69,7 @@ module ScopesExtractor
           endpoint
         else
           Utilities.log_warn("Intigriti - Non-normalized endpoint : #{endpoint}")
+          nil
         end
       end
 

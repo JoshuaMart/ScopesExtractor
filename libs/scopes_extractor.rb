@@ -23,11 +23,10 @@ module ScopesExtractor
       config[:yeswehack][:headers] = { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" }
       YesWeHack::Programs.sync(results, config[:yeswehack]) if jwt
 
-      cookie = Intigriti.authenticate(config[:intigriti])
-      Utilities.log_warn('Intigriti - Authentication Failed') unless cookie
-
-      config[:intigriti][:headers] = { 'Cookie' => "__Host-Intigriti.Web.Researcher=#{cookie}" }
-      Intigriti::Programs.sync(results, config[:intigriti]) if cookie
+      if config.dig(:intigriti, :token)
+        config[:intigriti][:headers] = { Authorization: "Bearer #{config[:intigriti][:token]}" }
+        Intigriti::Programs.sync(results, config[:intigriti]) 
+      end
 
       File.open('extract.json', 'w') { |f| f.write(JSON.pretty_generate(results)) }
     end
