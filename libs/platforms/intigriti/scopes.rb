@@ -42,10 +42,10 @@ module ScopesExtractor
           
           categorized_scopes[type][category] ||= []
           endpoint = case scope.dig('type', 'id')
-                     when 1 || 7
-                       normalize(scope['endpoint'])
+                     when 1, 7
+                        normalize(scope['endpoint'])
                      else
-                       scope['endpoint']
+                        scope['endpoint'].downcase
                      end
           next unless endpoint
 
@@ -66,7 +66,7 @@ module ScopesExtractor
         endpoint = sanitize_endpoint(endpoint)
 
         if endpoint.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}) || endpoint.match?(%r{^[/\w.-]+\.[a-z]+(/.*)?})
-          endpoint
+          endpoint.downcase
         else
           Utilities.log_warn("Intigriti - Non-normalized endpoint : #{endpoint}")
           nil
