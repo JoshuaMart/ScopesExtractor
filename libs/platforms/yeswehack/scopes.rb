@@ -60,7 +60,7 @@ module ScopesExtractor
 
         if (match_data = scope.match(/^\((.*)\)(.*)/))
           normalized_urls.concat(normalize_with_subdomains(match_data[1], match_data[2]))
-        elsif (match_data = scope.match(/^(.*)[\[(](.*)[\])]$/))
+        elsif (match_data = scope.match(/^(.*)[\[(]([\w|]+)/))
           normalized_urls.concat(normalize_with_tlds(match_data[1], match_data[2]))
         elsif scope.match?(%r{https?://\*})
           normalized_urls << scope.sub(%r{https?://}, '')
