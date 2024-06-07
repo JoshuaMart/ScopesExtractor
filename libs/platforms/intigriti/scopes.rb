@@ -65,7 +65,7 @@ module ScopesExtractor
       def self.normalize(endpoint)
         endpoint = sanitize_endpoint(endpoint)
 
-        if endpoint.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}) || endpoint.match?(%r{^[/\w.-]+\.[a-z]+(/.*)?})
+        if endpoint.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}i) || endpoint.match?(%r{^[/\w.-]+\.[a-z]+(/.*)?}i)
           endpoint.downcase
         else
           Utilities.log_warn("Intigriti - Non-normalized endpoint : #{endpoint}")
