@@ -13,10 +13,14 @@ module ScopesExtractor
 
     def initialize
       @config = Config.load
-      @results = { 'YesWeHack' => {}, 'Intigriti' => {} }
+      @results = { 'YesWeHack' => {}, 'Intigriti' => {}, 'Bugcrowd' => {} }
     end
 
     def run
+      bc_authenticated = Bugcrowd.authenticate(config[:bugcrowd])
+      Utilities.log_warn('Bugcrowd - Authentication Failed') unless bc_authenticated
+      Bugcrowd::Programs.sync(results['Bugcrowd']) if bc_authenticated
+
       jwt = YesWeHack.authenticate(config[:yeswehack])
       Utilities.log_warn('YesWeHack - Authentication Failed') unless jwt
 

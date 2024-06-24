@@ -14,6 +14,10 @@ module ScopesExtractor
         },
         intigriti: {
           token: ENV['INTIGRITI_TOKEN']
+        },
+        bugcrowd: {
+          email: ENV['BC_EMAIL'],
+          password: ENV['BC_PWD']
         }
       }
     end
