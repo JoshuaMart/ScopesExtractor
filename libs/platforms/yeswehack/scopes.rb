@@ -56,12 +56,12 @@ module ScopesExtractor
 
       def self.normalize(scope)
         normalized_scopes = []
-        scope.sub!(/https?:\/\//, '') if scope.match?(/https?:\/\/\*\./)
+        scope.sub!(%r{https?://}, '') if scope.match?(%r{https?://\*\.})
         scope = scope.split(' ').first
         scope = scope[..-2] if scope.end_with?('/*')
         scope = "*#{scope}" if scope.start_with?('.')
 
-        if (match = scope.match(/(?:https?:\/\/)?(?<prefix>\w+-)?\((?<subs>.*)\)(?<domain>.*)/))
+        if (match = scope.match(%r{(?:https?://)?(?<prefix>\w+-)?\((?<subs>.*)\)(?<domain>.*)}))
           normalized = normalize_with_subdomains(match)
           normalized_scopes.concat(normalized)
         end
@@ -75,11 +75,11 @@ module ScopesExtractor
 
         normalized_scopes.uniq!
         normalized_scopes.select do |s|
-          unless scope_valid?(s)
+          if scope_valid?(s)
+            true
+          else
             log_and_return(s)
             false
-          else
-            true
           end
         end
       end
@@ -106,7 +106,7 @@ module ScopesExtractor
       end
 
       def self.normalize_with_tlds(match)
-        return [] if match[:tlds]&.empty? || match[:base]&.empty? || match[:base].match?(/^https:\/\/(?:api-)?$/)
+        return [] if match[:tlds]&.empty? || match[:base]&.empty? || match[:base]&.match?(%r{^https://(?:api-)?$})
 
         tlds = match[:tlds]
         tlds.split('|').map { |tld| "#{match[:base]}#{tld}" }

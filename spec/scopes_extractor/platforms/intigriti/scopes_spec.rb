@@ -6,7 +6,10 @@ RSpec.describe ScopesExtractor::Intigriti::Scopes do
   describe '.sync' do
     let(:program) { { id: 'test-program' } }
     let(:headers) { { 'Authorization' => 'Bearer token' } }
-    let(:response) { double('HTTPResponse', status: 200, body: '{"domains": {"content": [{"type": {"id": 1}, "tier": {"value": "In Scope"}, "endpoint": "http://example.com"}]}}') }
+    let(:response) do
+      double('HTTPResponse', status: 200,
+                             body: '{"domains": {"content": [{"type": {"id": 1}, "tier": {"value": "In Scope"}, "endpoint": "http://example.com"}]}}')
+    end
 
     before do
       allow(ScopesExtractor::HttpClient).to receive(:get).and_return(response)
@@ -23,7 +26,7 @@ RSpec.describe ScopesExtractor::Intigriti::Scopes do
 
   describe '.parse_scopes' do
     it 'categorizes and returns parsed scopes' do
-      scopes = [{'type' => {'id' => 1}, 'tier' => {'value' => 'In Scope'}, 'endpoint' => 'http://example.com'}]
+      scopes = [{ 'type' => { 'id' => 1 }, 'tier' => { 'value' => 'In Scope' }, 'endpoint' => 'http://example.com' }]
       categorized_scopes = described_class.parse_scopes(scopes)
       expect(categorized_scopes).to have_key('in')
       expect(categorized_scopes['in']).to have_key(:url)
@@ -33,7 +36,7 @@ RSpec.describe ScopesExtractor::Intigriti::Scopes do
 
   describe '.find_category' do
     it 'finds and returns the correct category for a given scope' do
-      scope = {'type' => {'id' => 1}}
+      scope = { 'type' => { 'id' => 1 } }
       category = described_class.find_category(scope)
       expect(category).to eq(:url)
     end

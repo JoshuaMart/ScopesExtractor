@@ -39,7 +39,7 @@ module ScopesExtractor
           next unless category
 
           type = scope.dig('tier', 'value') == 'Out Of Scope' ? 'out' : 'in'
-          
+
           scopes[type][category] ||= []
           endpoint = if category == :url
                        normalize(scope['endpoint'])

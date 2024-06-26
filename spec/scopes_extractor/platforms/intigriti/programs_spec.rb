@@ -28,13 +28,14 @@ RSpec.describe ScopesExtractor::Intigriti::Programs do
   describe '.parse_programs' do
     let(:programs) do
       [{ 'id' => 'test-program', 'name' => 'Test Program', 'maxBounty' => { 'value' => 1000 }, 'status' => { 'value' => 'Active' },
-      'handle' => 'test-program', 'confidentialityLevel' => { 'id' => 3 } }]
+         'handle' => 'test-program', 'confidentialityLevel' => { 'id' => 3 } }]
     end
     let(:config) { { headers: { 'Authorization' => 'Bearer token' } } }
     let(:results) { { 'Intigriti' => {} } }
 
     before do
-      allow(ScopesExtractor::Intigriti::Scopes).to receive(:sync).with({ id: 'test-program' }, config[:headers]).and_return({})
+      allow(ScopesExtractor::Intigriti::Scopes).to receive(:sync).with({ id: 'test-program' },
+                                                                       config[:headers]).and_return({})
     end
 
     it 'parses program details and scopes' do

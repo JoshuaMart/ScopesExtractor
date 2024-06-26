@@ -14,14 +14,14 @@ module ScopesExtractor
 
     def initialize
       @config = Config.load
-      @results = { 'YesWeHack' => {}, 'Intigriti' => {}, 'Bugcrowd' => {}, 'Hackerone' => {}}
+      @results = { 'YesWeHack' => {}, 'Intigriti' => {}, 'Bugcrowd' => {}, 'Hackerone' => {} }
     end
 
     def run
       # -- HACKERONE
       basic = Base64.urlsafe_encode64(config[:hackerone][:username] + ':' + config[:hackerone][:token])
       config[:hackerone][:headers] = { Authorization: "Basic #{basic}" }
-      Hackerone::Programs.sync(results, config[:hackerone]) 
+      Hackerone::Programs.sync(results, config[:hackerone])
 
       # -- BUGCROWD
       bc_authenticated = Bugcrowd.authenticate(config[:bugcrowd])
@@ -37,7 +37,7 @@ module ScopesExtractor
 
       # -- INTIGRITI
       config[:intigriti][:headers] = { Authorization: "Bearer #{config[:intigriti][:token]}" }
-      Intigriti::Programs.sync(results, config[:intigriti]) 
+      Intigriti::Programs.sync(results, config[:intigriti])
 
       File.open('extract.json', 'w') { |f| f.write(JSON.pretty_generate(results)) }
     end

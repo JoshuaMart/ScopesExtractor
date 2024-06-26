@@ -58,7 +58,7 @@ module ScopesExtractor
 
       def self.normalize(endpoint)
         endpoint = endpoint[..-2] if endpoint.end_with?('/*')
-        endpoint.sub!(/https?:\/\//, '') if endpoint.match?(/https?:\/\/\*\./)
+        endpoint.sub!(%r{https?://}, '') if endpoint.match?(%r{https?://\*\.})
 
         scope = if !endpoint.start_with?('*.') && endpoint.include?('*.')
                   match = endpoint.match(/(?<wildcard>\*\.[\w.-]+\.\w+)/)
@@ -99,7 +99,7 @@ module ScopesExtractor
         response = HttpClient.get(url)
         return unless response&.status == 200
 
-        match = response.body.match(/changelog\/(?<changelog>[-a-f0-9]+)/)
+        match = response.body.match(%r{changelog/(?<changelog>[-a-f0-9]+)})
         return unless match
 
         url = File.join(url, 'changelog', "#{match[:changelog]}.json")
