@@ -18,6 +18,10 @@ module ScopesExtractor
         bugcrowd: {
           email: ENV['BC_EMAIL'],
           password: ENV['BC_PWD']
+        },
+        hackerone: {
+          username: ENV['H1_USERNAME'],
+          token: ENV['H1_TOKEN']
         }
       }
     end
