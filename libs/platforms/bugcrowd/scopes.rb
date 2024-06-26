@@ -58,6 +58,8 @@ module ScopesExtractor
 
       def self.normalize(endpoint)
         endpoint = endpoint[..-2] if endpoint.end_with?('/*')
+        endpoint = endpoint[..-2] if endpoint.end_with?('/') && endpoint.start_with?('*.')
+        endpoint = endpoint[1..] if endpoint.start_with?('*') && !endpoint.start_with?('*.')
         endpoint.sub!(%r{https?://}, '') if endpoint.match?(%r{https?://\*\.})
 
         scope = if !endpoint.start_with?('*.') && endpoint.include?('*.')
@@ -69,7 +71,8 @@ module ScopesExtractor
                   endpoint
                 end
 
-        if ['<', '{'].any? { |char| scope.include?(char) }
+        invalid_chars = [',', '{', '<', '[', '(', ' ']
+        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.')
           Utilities.log_warn("Bugcrowd - Non-normalized scope : #{scope}")
           return
         end

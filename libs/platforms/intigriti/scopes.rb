@@ -14,6 +14,10 @@ module ScopesExtractor
 
       PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs'
 
+      DENY = [
+        '.ripe.net'
+      ].freeze
+
       def self.sync(program, headers)
         scopes = {}
 
@@ -30,13 +34,14 @@ module ScopesExtractor
         parse_scopes(content)
       end
 
-      def self.parse_scopes(scopes)
+      def self.parse_scopes(data)
         scopes = { 'in' => {}, 'out' => {} }
-        return scopes unless scopes.is_a?(Array)
+        return scopes unless data.is_a?(Array)
 
-        scopes.each do |scope|
+        data.each do |scope|
           category = find_category(scope)
           next unless category
+          next if DENY.any? { |deny| scope['endpoint'].include?(deny) }
 
           type = scope.dig('tier', 'value') == 'Out Of Scope' ? 'out' : 'in'
 
@@ -61,19 +66,21 @@ module ScopesExtractor
         category
       end
 
-      def self.normalize(endpoint)
-        endpoint = sanitize_endpoint(endpoint)
+      def self.normalize(scope)
+        scope = sanitize_scope(scope)
+        scope.downcase!
 
-        if endpoint.match?(%r{^(https?://|\*\.)[/\w.\-?#!%:=]+$}i) || endpoint.match?(%r{^[/\w.-]+\.[a-z]+(/.*)?}i)
-          endpoint.downcase
-        else
-          Utilities.log_warn("Intigriti - Non-normalized endpoint : #{endpoint}")
-          nil
+        invalid_chars = [',', '{', '<', '[', '(', ' ']
+        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.')
+          Utilities.log_warn("Intigriti - Non-normalized scope : #{scope}")
+          return
         end
+
+        scope
       end
 
-      def self.sanitize_endpoint(endpoint)
-        endpoint.gsub('/*', '').gsub(' ', '').sub('.*', '.com').sub('.<TLD>', '.com')
+      def self.sanitize_scope(scope)
+        scope.gsub('/*', '').gsub(' ', '').sub('.*', '.com').sub('.<TLD>', '.com')
                 .sub(%r{/$}, '').sub(/\*$/, '').sub(/,$/, '')
       end
     end
