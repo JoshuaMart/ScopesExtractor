@@ -67,7 +67,9 @@ module ScopesExtractor
 
       def self.normalize(endpoint)
         endpoint = endpoint[..-2] if endpoint.end_with?('/*')
+        endpoint = endpoint[..-2] if endpoint.end_with?('/') && endpoint.start_with?('*.')
         endpoint = endpoint[..-2] if endpoint.start_with?('*') && endpoint.end_with?('/')
+        endpoint.sub('.*', '.com') if endpoint.end_with?('.*')
         endpoint.sub!(%r{https?://}, '') if endpoint.match?(%r{https?://\*\.})
 
         scope = if !endpoint.start_with?('*.') && endpoint.include?('*.')
