@@ -4,4 +4,4 @@
 .idea/
 coverage/
 extract.json
-tmp.rb
+parser.rb
