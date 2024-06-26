@@ -43,7 +43,13 @@ module ScopesExtractor
           scopes[category] ||= []
           next if DENY.any? { |deny| target['name'].include?(deny) }
 
-          endpoint = normalize(target['name'])
+          endpoint = if category == :url
+                       normalize(target['name'])
+                     else
+                       target['name']
+                     end
+          next unless endpoint
+
           scopes[category] << endpoint if endpoint
         end
 
@@ -51,15 +57,14 @@ module ScopesExtractor
       end
 
       def self.normalize(endpoint)
+        endpoint = endpoint[..-2] if endpoint.end_with?('/*')
+        endpoint.sub!(/https?:\/\//, '') if endpoint.match?(/https?:\/\/\*\./)
+
         scope = if !endpoint.start_with?('*.') && endpoint.include?('*.')
                   match = endpoint.match(/(?<wildcard>\*\.[\w.-]+\.\w+)/)
                   return unless match
 
                   match[:wildcard]
-                elsif endpoint.end_with?('/*')
-                  endpoint[..-2]
-                elsif endpoint.match?(/https?:\/\/\*\./)
-                  endpoint.sub(/https?:\/\//, '')
                 else
                   endpoint
                 end
