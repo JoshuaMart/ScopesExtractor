@@ -6,7 +6,7 @@ module ScopesExtractor
     LOGIN_URL = 'https://identity.bugcrowd.com/login'
 
     def self.authenticate(config)
-      url = LOGIN_URL + '?user_hint=researcher&returnTo=/dashboard'
+      url = "#{LOGIN_URL}?user_hint=researcher&returnTo=/dashboard"
       resp = HttpClient.get(url)
       return unless resp&.status == 307
 
@@ -39,7 +39,7 @@ module ScopesExtractor
       return unless resp&.status == 200
 
       body = Parser.json_parse(resp.body)
-      redirect_to = body['redirect_to']
+      body['redirect_to']
     end
 
     def self.prepare_body(config, challenge)
