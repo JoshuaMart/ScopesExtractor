@@ -31,8 +31,8 @@ module ScopesExtractor
       end
 
       def self.parse_scopes(scopes)
-        categorized_scopes = { 'in' => {}, 'out' => {} }
-        return categorized_scopes unless scopes.is_a?(Array)
+        scopes = { 'in' => {}, 'out' => {} }
+        return scopes unless scopes.is_a?(Array)
 
         scopes.each do |scope|
           category = find_category(scope)
@@ -40,19 +40,18 @@ module ScopesExtractor
 
           type = scope.dig('tier', 'value') == 'Out Of Scope' ? 'out' : 'in'
           
-          categorized_scopes[type][category] ||= []
-          endpoint = case scope.dig('type', 'id')
-                     when 1, 7
-                        normalize(scope['endpoint'])
+          scopes[type][category] ||= []
+          endpoint = if category == :url
+                       normalize(scope['endpoint'])
                      else
-                        scope['endpoint'].downcase
+                       scope['endpoint'].downcase
                      end
           next unless endpoint
 
-          categorized_scopes[type][category] << endpoint
+          scopes[type][category] << endpoint
         end
 
-        categorized_scopes
+        scopes
       end
 
       def self.find_category(scope)
