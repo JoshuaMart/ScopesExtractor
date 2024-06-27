@@ -19,25 +19,41 @@ module ScopesExtractor
 
     def run
       # -- HACKERONE
-      basic = Base64.urlsafe_encode64(config[:hackerone][:username] + ':' + config[:hackerone][:token])
-      config[:hackerone][:headers] = { Authorization: "Basic #{basic}" }
-      Hackerone::Programs.sync(results, config[:hackerone])
+      if config[:hackerone][:username] && config[:hackerone][:token]
+        basic = Base64.urlsafe_encode64(config[:hackerone][:username] + ':' + config[:hackerone][:token])
+        config[:hackerone][:headers] = { Authorization: "Basic #{basic}" }
+        Hackerone::Programs.sync(results, config[:hackerone])
+      else
+        Utilities.log_warn('Hackerone - Authentication parameter missing, skipped')
+      end
 
       # -- BUGCROWD
-      bc_authenticated = Bugcrowd.authenticate(config[:bugcrowd])
-      Utilities.log_warn('Bugcrowd - Authentication Failed') unless bc_authenticated
-      Bugcrowd::Programs.sync(results['Bugcrowd']) if bc_authenticated
+      if config[:bugcrowd][:email] && config[:bugcrowd][:password]
+        bc_authenticated = Bugcrowd.authenticate(config[:bugcrowd])
+        Utilities.log_warn('Bugcrowd - Authentication Failed') unless bc_authenticated
+        Bugcrowd::Programs.sync(results['Bugcrowd']) if bc_authenticated
+      else
+        Utilities.log_warn('Bugcrowd - Authentication parameter missing, skipped')
+      end
 
       # -- YESWEHACK
-      jwt = YesWeHack.authenticate(config[:yeswehack])
-      Utilities.log_warn('YesWeHack - Authentication Failed') unless jwt
+      if config[:yeswehack][:email] && config[:yeswehack][:password] && config[:yeswehack][:otp]
+        jwt = YesWeHack.authenticate(config[:yeswehack])
+        Utilities.log_warn('YesWeHack - Authentication Failed') unless jwt
 
-      config[:yeswehack][:headers] = { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" }
-      YesWeHack::Programs.sync(results, config[:yeswehack]) if jwt
+        config[:yeswehack][:headers] = { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" }
+        YesWeHack::Programs.sync(results, config[:yeswehack]) if jwt
+      else
+        Utilities.log_warn('YesWeHack - Authentication parameter missing, skipped')
+      end
 
       # -- INTIGRITI
-      config[:intigriti][:headers] = { Authorization: "Bearer #{config[:intigriti][:token]}" }
-      Intigriti::Programs.sync(results, config[:intigriti])
+      if config[:intigriti][:token]
+        config[:intigriti][:headers] = { Authorization: "Bearer #{config[:intigriti][:token]}" }
+        Intigriti::Programs.sync(results, config[:intigriti])
+      else
+        Utilities.log_warn('Intigriti - Authentication parameter missing, skipped')
+      end
 
       File.open('extract.json', 'w') { |f| f.write(JSON.pretty_generate(results)) }
     end
