@@ -10,8 +10,8 @@ require 'dotenv/load'
 
 API_URL = ENV.fetch('API_URL', nil)
 API_URLS_PATH = ENV.fetch('API_URLS_PATH', nil)
-API_WILDCARDS_PATH = ENV.fetch('API_URLS_PATH', nil)
-API_TOKEN = ENV.fetch('API_PATH', nil)
+API_WILDCARDS_PATH = ENV.fetch('API_WILDCARDS_PATH', nil)
+API_TOKEN = ENV.fetch('API_TOKEN', nil)
 SLACK_WEBHOOK = ENV.fetch('SLACK_WEBHOOK', nil)
 
 def notif(msg)
