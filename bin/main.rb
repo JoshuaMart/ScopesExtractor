@@ -20,6 +20,19 @@ def notif(msg)
   Typhoeus.post(SLACK_WEBHOOK, headers: { 'Content-Type' => 'application/json' }, body: { text: msg }.to_json)
 end
 
+def extract_domain(url)
+  host = url.start_with?('http') ? URI.parse(url)&.host : url.sub(/\/.*/, '')
+  domain = PublicSuffix.domain(host)
+
+  invalid_chars = [',', '{', '<', '[', '(', ' ', '/']
+  if invalid_chars.any? { |char| domain.include?(char) } || !domain.include?('.')
+    puts "[-] Non-normalized domain : #{domain}"
+    return
+  end
+
+  domain
+end
+
 wildcards = []
 urls = {}
 
@@ -42,8 +55,8 @@ json.each_value do |programs|
       if url.start_with?('*.')
         wildcards << url
       else
-        host = url.start_with?('http') ? URI.parse(url)&.host : url
-        domain = PublicSuffix.domain(host)
+        domain = extract_domain(url)
+        next unless domain
 
         urls[domain] = [] unless urls.key?(domain)
         urls[domain] << url
