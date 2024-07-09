@@ -58,7 +58,7 @@ p '[+] Send results'
 urls.each do |domain, urls|
   next if urls.empty?
 
-  { domain => urls }.to_json
+  body = { domain => urls }.to_json
   api_url = File.join(API_URL, '/urls?new_only=1')
   resp = Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: body)
 end
