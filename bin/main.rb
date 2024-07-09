@@ -24,7 +24,6 @@ wildcards = []
 urls = {}
 
 notif('[+] Start Scopes Extractor')
-return
 
 p '[+] Start Scopes Extractor'
 extractor = ScopesExtractor::Extract.new
