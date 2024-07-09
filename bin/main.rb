@@ -68,13 +68,13 @@ return unless API_URL && API_URLS_PATH && API_WILDCARDS_PATH && API_TOKEN
 
 p '[+] Send results'
 
+api_url = File.join(API_URL, API_WILDCARDS_PATH)
+Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: { domains: wildcards }.to_json)
+
 urls.each do |domain, urls|
   next if urls.empty?
 
   body = { domain => urls }.to_json
   api_url = File.join(API_URL, API_URLS_PATH)
-  resp = Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: body)
+  Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: body)
 end
-
-api_url = File.join(API_URL, API_WILDCARDS_PATH)
-Typhoeus.post(api_url, headers: { 'Authorization' => 'Bearer API_TOKEN' }, body: { domains: wildcards }.to_json)
