@@ -72,9 +72,9 @@ urls.each do |domain, urls|
   next if urls.empty?
 
   body = { domain => urls }.to_json
-  api_url = File.join(API_URL, '/urls?new_only=1')
+  api_url = File.join(API_URL, API_URLS_PATH)
   resp = Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: body)
 end
 
-api_url = File.join(API_URL, '/scan?new_only=1')
+api_url = File.join(API_URL, API_WILDCARDS_PATH)
 Typhoeus.post(api_url, headers: { 'Authorization' => 'Bearer API_TOKEN' }, body: { domains: wildcards }.to_json)
