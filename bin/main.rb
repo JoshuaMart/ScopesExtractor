@@ -3,6 +3,7 @@
 
 require_relative '../libs/scopes_extractor/'
 
+require 'ipaddr'
 require 'uri'
 require 'public_suffix'
 require 'typhoeus'
@@ -20,17 +21,26 @@ def notif(msg)
   Typhoeus.post(SLACK_WEBHOOK, headers: { 'Content-Type' => 'application/json' }, body: { text: msg }.to_json)
 end
 
-def extract_domain(url)
-  host = url.start_with?('http') ? URI.parse(url)&.host : url.sub(/\/.*/, '')
-  domain = PublicSuffix.domain(host)
+def extract_domain(value)
+  if value.match?(/\A\d/)
+    begin
+      IPAddr.new(value)
+      value
+    rescue IPAddr::InvalidAddressError
+      nil
+    end
+  else
+    host = value.start_with?('http') ? URI.parse(value)&.host : value.sub(/\/.*/, '')
+    domain = PublicSuffix.domain(host)
 
-  invalid_chars = [',', '{', '<', '[', '(', ' ', '/']
-  if invalid_chars.any? { |char| domain.include?(char) } || !domain.include?('.')
-    puts "[-] Non-normalized domain : #{domain}"
-    return
+    invalid_chars = [',', '{', '<', '[', '(', ' ', '/']
+    if invalid_chars.any? { |char| domain.include?(char) } || !domain.include?('.')
+      puts "[-] Non-normalized domain : #{domain}"
+      return
+    end
+
+    domain
   end
-
-  domain
 end
 
 wildcards = []
