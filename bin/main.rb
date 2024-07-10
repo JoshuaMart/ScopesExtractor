@@ -53,7 +53,7 @@ json.each_value do |programs|
 
     scopes.each do |url|
       if url.start_with?('*.')
-        wildcards << url
+        wildcards << url.sub(/\/.*/, '')
       else
         domain = extract_domain(url)
         next unless domain
@@ -66,11 +66,15 @@ json.each_value do |programs|
 end
 return unless API_URL && API_URLS_PATH && API_WILDCARDS_PATH && API_TOKEN
 
-p '[+] Send results'
+p '[+] Send wildcards'
 
 api_url = File.join(API_URL, API_WILDCARDS_PATH)
 Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: { domains: wildcards }.to_json)
 
+p '[+] Sleep ...'
+sleep(30)
+
+p '[+] Send urls'
 urls.each do |domain, urls|
   next if urls.empty?
 
