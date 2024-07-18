@@ -32,6 +32,10 @@ def extract_domain(value)
   else
     host = value.start_with?('http') ? URI.parse(value)&.host : value.sub(/\/.*/, '')
     domain = PublicSuffix.domain(host)
+    if domain.nil?
+      puts "[-] Nil domain for '#{host}'"
+      return
+    end
 
     invalid_chars = [',', '{', '<', '[', '(', ' ', '/']
     if invalid_chars.any? { |char| domain.include?(char) } || !domain.include?('.')
