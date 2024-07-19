@@ -72,7 +72,7 @@ module ScopesExtractor
                 end
 
         invalid_chars = [',', '{', '<', '[', '(', ' ']
-        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.')
+        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
           Utilities.log_warn("Bugcrowd - Non-normalized scope : #{scope}")
           return
         end
