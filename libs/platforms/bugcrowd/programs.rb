@@ -9,7 +9,7 @@ module ScopesExtractor
       PROGRAMS_ENDPOINT = 'https://bugcrowd.com/engagements.json'
 
       def self.sync(results, page_id = 1)
-        url = File.join(PROGRAMS_ENDPOINT, "?page=#{page_id}category=bug_bounty")
+        url = File.join(PROGRAMS_ENDPOINT, "?page=#{page_id}&category=bug_bounty")
         resp = HttpClient.get(url)
         return unless resp&.status == 200
 

@@ -20,7 +20,8 @@ module ScopesExtractor
         'Kohl’s entire public digital footprint that is not Out-Of-Scope(See list below)',
         '.mybigcommerce.com/',
         'Smartchain Block Explorer',
-        'Legacy Block Explorer'
+        'Legacy Block Explorer',
+        'marketplace.atlassian.com'
       ].freeze
 
       def self.sync(brief_url)
@@ -57,6 +58,7 @@ module ScopesExtractor
       end
 
       def self.normalize(endpoint)
+        endpoint.strip!
         endpoint = endpoint[..-2] if endpoint.end_with?('/*')
         endpoint = endpoint[..-2] if endpoint.end_with?('/') && endpoint.start_with?('*.')
         endpoint = endpoint[1..] if endpoint.start_with?('*') && !endpoint.start_with?('*.')
@@ -98,7 +100,7 @@ module ScopesExtractor
       end
 
       def self.targets_from_engagements(url)
-        targets = nil
+        targets = []
         response = HttpClient.get(url)
         return unless response&.status == 200
 
@@ -112,12 +114,12 @@ module ScopesExtractor
         json = Parser.json_parse(response.body)
         scopes = json.dig('data', 'scope')
         scopes&.each do |scope|
-          next unless scope['name'] == 'In Scope Targets'
+          next if scope['name'] == 'Out of scope'
 
-          targets = scope['targets']
+          targets << scope['targets']
         end
 
-        targets
+        targets.flatten
       end
 
       def self.targets_from_groups(url)
