@@ -114,7 +114,7 @@ module ScopesExtractor
         json = Parser.json_parse(response.body)
         scopes = json.dig('data', 'scope')
         scopes&.each do |scope|
-          next if scope['name'] == 'Out of scope'
+          next if ['oos', 'out of scope'].any? { |e| scope['name'].downcase.include?(e) }
 
           targets << scope['targets']
         end
