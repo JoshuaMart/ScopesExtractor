@@ -30,7 +30,13 @@ def extract_domain(value)
       nil
     end
   else
-    host = value.start_with?('http') ? URI.parse(value)&.host : value.sub(/\/.*/, '')
+    begin
+      host = value.start_with?('http') ? URI.parse(value)&.host : value.sub(/\/.*/, '')
+    rescue URI::InvalidURIError
+      p "[-] Bad URI for #{value}"
+      return
+    end
+    
     domain = PublicSuffix.domain(host)
     if domain.nil?
       puts "[-] Nil domain for '#{host}'"
