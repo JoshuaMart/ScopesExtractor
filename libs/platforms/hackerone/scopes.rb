@@ -81,7 +81,7 @@ module ScopesExtractor
                   endpoint
                 end
 
-        invalid_chars = [',', '{', '<', '[', '(', ' ']
+        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
         if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
           Utilities.log_warn("Hackerone - Non-normalized scope : #{scope}")
           return

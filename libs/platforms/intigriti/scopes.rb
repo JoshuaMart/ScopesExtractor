@@ -70,7 +70,7 @@ module ScopesExtractor
         scope = sanitize_scope(scope)
         scope.downcase!
 
-        invalid_chars = [',', '{', '<', '[', '(', ' ']
+        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
         if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
           Utilities.log_warn("Intigriti - Non-normalized scope : #{scope}")
           return

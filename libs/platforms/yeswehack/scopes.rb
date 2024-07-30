@@ -85,7 +85,7 @@ module ScopesExtractor
       end
 
       def self.scope_valid?(scope)
-        invalid_chars = [',', '{', '<', '[', '(', ' ']
+        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
         if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
           false
         else
