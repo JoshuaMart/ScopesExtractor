@@ -73,7 +73,7 @@ module ScopesExtractor
                   endpoint
                 end
 
-        invalid_chars = [',', '{', '<', '[', '(', ' ']
+        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
         if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
           Utilities.log_warn("Bugcrowd - Non-normalized scope : #{scope}")
           return
@@ -124,25 +124,25 @@ module ScopesExtractor
 
       def self.targets_from_groups(url)
         url = File.join(url, 'target_groups')
-        response = HttpClient.get(url)
+        response = HttpClient.get(url, { headers: { 'Accept' => 'application/json' }})
         return unless response&.status == 200
 
         json = Parser.json_parse(response.body)
 
-        targets_url = nil
+        targets = []
         json['groups']&.each do |group|
-          next unless group['name'] == 'In Scope Targets'
+          next unless group['in_scope']
 
           targets_url = group['targets_url']
+          url = File.join('https://bugcrowd.com/', targets_url)
+          response = HttpClient.get(url)
+          return scopes unless response&.status == 200
+
+          json = Parser.json_parse(response.body)
+          targets << json['targets']
         end
-        return unless targets_url
 
-        url = File.join('https://bugcrowd.com/', targets_url)
-        response = HttpClient.get(url)
-        return scopes unless response&.status == 200
-
-        json = Parser.json_parse(response.body)
-        json['targets']
+        targets.flatten
       end
     end
   end
