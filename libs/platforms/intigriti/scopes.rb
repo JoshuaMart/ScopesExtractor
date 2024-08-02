@@ -66,22 +66,15 @@ module ScopesExtractor
         category
       end
 
-      def self.normalize(scope)
-        scope = sanitize_scope(scope)
-        scope.downcase!
+      def self.normalize(endpoint)
+        scope = Normalizer.general(endpoint)
 
-        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
-        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
-          Utilities.log_warn("Intigriti - Non-normalized scope : #{scope}")
+        unless Normalizer.valid?(scope)
+          Utilities.log_info("Intigriti - Non-normalized scope : #{endpoint}")
           return
         end
 
         scope
-      end
-
-      def self.sanitize_scope(scope)
-        scope.gsub('/*', '').gsub(' ', '').sub('.*', '.com').sub('.<TLD>', '.com')
-                .sub(%r{/$}, '').sub(/\*$/, '').sub(/,$/, '')
       end
     end
   end

@@ -9,7 +9,9 @@ module ScopesExtractor
         mobile: %w[android ios],
         other: %w[other],
         executable: %w[application],
-        hardware: %w[hardware]
+        hardware: %w[hardware],
+        iot: %w[iot],
+        network: %w[network]
       }.freeze
 
       # TODO : Improve this
@@ -58,28 +60,14 @@ module ScopesExtractor
       end
 
       def self.normalize(endpoint)
-        endpoint.strip!
-        endpoint = endpoint[..-2] if endpoint.end_with?('/*')
-        endpoint = endpoint[..-2] if endpoint.end_with?('/') && endpoint.start_with?('*.')
-        endpoint = endpoint[1..] if endpoint.start_with?('*') && !endpoint.start_with?('*.')
-        endpoint.sub!(%r{https?://}, '') if endpoint.match?(%r{https?://\*\.})
+        scope = Normalizer.general(endpoint)
 
-        scope = if !endpoint.start_with?('*.') && endpoint.include?('*.')
-                  match = endpoint.match(/(?<wildcard>\*\.[\w.-]+\.\w+)/)
-                  return unless match
-
-                  match[:wildcard]
-                else
-                  endpoint
-                end
-
-        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
-        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
-          Utilities.log_warn("Bugcrowd - Non-normalized scope : #{scope}")
+        unless Normalizer.valid?(scope)
+          Utilities.log_info("Bugcrowd - Non-normalized scope : #{endpoint}")
           return
         end
 
-        scope.strip
+        scope
       end
 
       def self.find_category(infos)

@@ -54,12 +54,9 @@ module ScopesExtractor
         category
       end
 
-      def self.normalize(scope)
+      def self.normalize(endpoint)
         normalized_scopes = []
-        scope.sub!(%r{https?://}, '') if scope.match?(%r{https?://\*\.})
-        scope = scope.split(' ').first
-        scope = scope[..-2] if scope.end_with?('/*')
-        scope = "*#{scope}" if scope.start_with?('.')
+        scope = Normalizer.general(endpoint)
 
         if (match = scope.match(%r{(?:https?://)?(?<prefix>\w+-)?\((?<subs>.*)\)(?<domain>.*)}))
           normalized = normalize_with_subdomains(match)
@@ -75,26 +72,17 @@ module ScopesExtractor
 
         normalized_scopes.uniq!
         normalized_scopes.select do |s|
-          if scope_valid?(s)
+          if Normalizer.valid?(s)
             true
           else
-            log_and_return(s)
+            log_and_return(endpoint)
             false
           end
         end
       end
 
-      def self.scope_valid?(scope)
-        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
-        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
-          false
-        else
-          true
-        end
-      end
-
       def self.log_and_return(scope)
-        Utilities.log_warn("YesWeHack - Non-normalized scope : #{scope}")
+        Utilities.log_info("YesWeHack - Non-normalized scope : #{scope}")
         nil
       end
 

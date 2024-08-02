@@ -66,28 +66,14 @@ module ScopesExtractor
       end
 
       def self.normalize(endpoint)
-        endpoint = endpoint[..-2] if endpoint.end_with?('/*')
-        endpoint = endpoint[..-2] if endpoint.end_with?('/') && endpoint.start_with?('*.')
-        endpoint = endpoint[..-2] if endpoint.start_with?('*') && endpoint.end_with?('/')
-        endpoint.sub('.*', '.com') if endpoint.end_with?('.*')
-        endpoint.sub!(%r{https?://}, '') if endpoint.match?(%r{https?://\*\.})
+        scope = Normalizer.general(endpoint)
 
-        scope = if !endpoint.start_with?('*.') && endpoint.include?('*.')
-                  match = endpoint.match(/(?<wildcard>\*\.[\w.-]+\.\w+)/)
-                  return unless match
-
-                  match[:wildcard]
-                else
-                  endpoint
-                end
-
-        invalid_chars = [',', '{', '<', '[', '(', ' ', '%']
-        if invalid_chars.any? { |char| scope.include?(char) } || !scope.include?('.') || scope.split('.').last.size < 2
-          Utilities.log_warn("Hackerone - Non-normalized scope : #{scope}")
+        unless Normalizer.valid?(scope)
+          Utilities.log_info("Hackerone - Non-normalized scope : #{endpoint}")
           return
         end
 
-        scope.strip
+        scope
       end
     end
   end

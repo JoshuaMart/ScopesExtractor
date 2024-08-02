@@ -6,7 +6,7 @@ require_relative '../libs/scopes_extractor/'
 require 'ipaddr'
 require 'uri'
 require 'public_suffix'
-require 'typhoeus'
+require 'faraday'
 require 'dotenv/load'
 
 API_URL = ENV.fetch('API_URL', nil)
@@ -18,39 +18,20 @@ SLACK_WEBHOOK = ENV.fetch('SLACK_WEBHOOK', nil)
 def notif(msg)
   return unless SLACK_WEBHOOK
 
-  Typhoeus.post(SLACK_WEBHOOK, headers: { 'Content-Type' => 'application/json' }, body: { text: msg }.to_json)
+  Faraday.post(SLACK_WEBHOOK, { text: msg }.to_json, { 'Content-Type' => 'application/json' })
 end
 
 def extract_domain(value)
-  if value.match?(/\A\d/)
-    begin
-      IPAddr.new(value)
-      value
-    rescue IPAddr::InvalidAddressError
-      nil
-    end
+  if value.match?(/\A((?:\d{1,3}\.){3}(?:\d{1,3})\Z)/)
+    IPAddr.new(value)
+    value
   else
-    begin
-      host = value.start_with?('http') ? URI.parse(value)&.host : value.sub(/\/.*/, '')
-    rescue URI::InvalidURIError
-      p "[-] Bad URI for #{value}"
-      return
-    end
-    
-    domain = PublicSuffix.domain(host)
-    if domain.nil?
-      puts "[-] Nil domain for '#{host}'"
-      return
-    end
-
-    invalid_chars = [',', '{', '<', '[', '(', ' ', '/']
-    if invalid_chars.any? { |char| domain.include?(char) } || !domain.include?('.')
-      puts "[-] Non-normalized domain : #{domain}"
-      return
-    end
-
-    domain
+    host = value.start_with?('http') ? URI.parse(value)&.host : value
+    PublicSuffix.domain(host)
   end
+rescue IPAddr::InvalidAddressError, URI::InvalidURIError
+  p "[-] Extract domain nil for '#{value}'."
+  nil
 end
 
 wildcards = []
@@ -76,7 +57,10 @@ json.each_value do |programs|
         wildcards << url.sub(/\/.*/, '')
       else
         domain = extract_domain(url)
-        next unless domain
+        if domain.nil?
+          p "[-] Nil domain for '#{url}'."
+          next
+        end
 
         urls[domain] = [] unless urls.key?(domain)
         urls[domain] << url
@@ -89,7 +73,7 @@ return unless API_URL && API_URLS_PATH && API_WILDCARDS_PATH && API_TOKEN
 p '[+] Send wildcards'
 
 api_url = File.join(API_URL, API_WILDCARDS_PATH)
-Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: { domains: wildcards }.to_json)
+Faraday.post(api_url, { domains: wildcards }.to_json, { 'Authorization' => API_TOKEN })
 
 p '[+] Sleep ...'
 sleep(30)
@@ -98,7 +82,6 @@ p '[+] Send urls'
 urls.each do |domain, urls|
   next if urls.empty?
 
-  body = { domain => urls }.to_json
   api_url = File.join(API_URL, API_URLS_PATH)
-  Typhoeus.post(api_url, headers: { 'Authorization' => API_TOKEN }, body: body)
+  Faraday.post(api_url, { domain => urls }.to_json, { 'Authorization' => API_TOKEN })
 end

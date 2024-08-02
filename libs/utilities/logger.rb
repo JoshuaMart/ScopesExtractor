@@ -14,5 +14,9 @@ module ScopesExtractor
     def self.log_warn(message)
       logger.warn(message.yellow)
     end
+
+    def self.log_info(message)
+      logger.info(message.blue)
+    end
   end
 end
