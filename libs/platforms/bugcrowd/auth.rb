@@ -26,7 +26,7 @@ module ScopesExtractor
       return unless resp
 
       location = resp&.headers&.[]('location')
-      location == '/dashboard'
+      resp&.body&.include?('<title>Dashboard - Bugcrowd') || location == '/dashboard'
     end
 
     def self.login(config, challenge, csrf)
