@@ -9,10 +9,15 @@ require 'public_suffix'
 require 'faraday'
 require 'dotenv/load'
 
-API_URL = ENV.fetch('API_URL', nil)
-API_URLS_PATH = ENV.fetch('API_URLS_PATH', nil)
-API_WILDCARDS_PATH = ENV.fetch('API_WILDCARDS_PATH', nil)
-API_TOKEN = ENV.fetch('API_TOKEN', nil)
+RECON_URL = ENV.fetch('RECON_URL', nil)
+RECON_TOKEN = ENV.fetch('RECON_TOKEN', nil)
+RECON_AUTH_TYPE = ENV.fetch('RECON_AUTH_TYPE', nil)
+
+FINGERPRINTER_URL = ENV.fetch('FINGERPRINTER_URL', nil)
+RECON_CALLBACK_URL = ENV.fetch('RECON_CALLBACK_URL', nil)
+FINGERPRINTER_TOKEN = ENV.fetch('FINGERPRINTER_TOKEN', nil)
+FINGERPRINTER_AUTH_TYPE = ENV.fetch('FINGERPRINTER_AUTH_TYPE', nil)
+
 SLACK_WEBHOOK = ENV.fetch('SLACK_WEBHOOK', nil)
 
 def notif(msg)
@@ -26,10 +31,24 @@ def extract_domain(value)
     IPAddr.new(value)
     value
   else
-    host = value.start_with?('http') ? URI.parse(value)&.host : value
+    host = if value.start_with?('http')
+             URI.parse(value)&.host
+           else
+             URI.parse("http://#{value}")&.host
+           end
+
     PublicSuffix.domain(host)
   end
 rescue IPAddr::InvalidAddressError, URI::InvalidURIError
+  p "[-] Extract domain nil for '#{value}'."
+  nil
+end
+
+def extract_wildcard(value)
+  domain = value[2..]
+  PublicSuffix.domain(domain)
+  domain
+rescue IPAddr::InvalidAddressError
   p "[-] Extract domain nil for '#{value}'."
   nil
 end
@@ -54,7 +73,13 @@ json.each_value do |programs|
 
     scopes.each do |url|
       if url.start_with?('*.')
-        wildcards << url.sub(/\/.*/, '')
+        domain = extract_wildcard(url)
+        if domain.nil?
+          p "[-] Nil domain for '#{url}'."
+          next
+        end
+
+        wildcards << domain
       else
         domain = extract_domain(url)
         if domain.nil?
@@ -68,20 +93,26 @@ json.each_value do |programs|
     end
   end
 end
-return unless API_URL && API_URLS_PATH && API_WILDCARDS_PATH && API_TOKEN
 
-p '[+] Send wildcards'
+if RECON_URL && RECON_TOKEN && RECON_AUTH_TYPE
+  p '[+] Send wildcards'
 
-api_url = File.join(API_URL, API_WILDCARDS_PATH)
-Faraday.post(api_url, { domains: wildcards }.to_json, { 'Authorization' => API_TOKEN })
+  headers = { 'Content-Type' => 'application/json', 'Authorization' => "#{RECON_AUTH_TYPE} #{RECON_TOKEN}" }
+  body = { domains: wildcards }.to_json
+  Faraday.post(RECON_URL, body, headers)
+end
 
-p '[+] Sleep ...'
-sleep(30)
+if FINGERPRINTER_URL && FINGERPRINTER_TOKEN && FINGERPRINTER_AUTH_TYPE && RECON_CALLBACK_URL
+  p '[+] Send urls'
+  urls.each do |domain, domain_urls|
+    next if domain_urls.empty?
 
-p '[+] Send urls'
-urls.each do |domain, urls|
-  next if urls.empty?
+    headers = { 'Content-Type' => 'application/json', 'Authorization' => "#{FINGERPRINTER_AUTH_TYPE} #{FINGERPRINTER_TOKEN}" }
+    body = {
+      targets: domain_urls,
+      callback_url: RECON_CALLBACK_URL
+    }.to_json
 
-  api_url = File.join(API_URL, API_URLS_PATH)
-  Faraday.post(api_url, { domain => urls }.to_json, { 'Authorization' => API_TOKEN })
+    Faraday.post(FINGERPRINTER_URL, body, headers)
+  end
 end
