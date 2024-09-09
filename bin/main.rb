@@ -45,6 +45,8 @@ rescue IPAddr::InvalidAddressError, URI::InvalidURIError
 end
 
 def extract_wildcard(value)
+  return if value.include?('/')
+
   domain = value[2..]
   PublicSuffix.domain(domain)
   domain
@@ -97,9 +99,17 @@ end
 if RECON_URL && RECON_TOKEN && RECON_AUTH_TYPE
   p '[+] Send wildcards'
 
+  conn = Faraday.new do |faraday|
+    faraday.options.timeout = 120  # Timeout en secondes
+  end
+  
   headers = { 'Content-Type' => 'application/json', 'Authorization' => "#{RECON_AUTH_TYPE} #{RECON_TOKEN}" }
   body = { domains: wildcards }.to_json
-  Faraday.post(RECON_URL, body, headers)
+  
+  response = conn.post(RECON_URL) do |req|
+    req.headers = headers
+    req.body = body
+  end
 end
 
 if FINGERPRINTER_URL && FINGERPRINTER_TOKEN && FINGERPRINTER_AUTH_TYPE && RECON_CALLBACK_URL
