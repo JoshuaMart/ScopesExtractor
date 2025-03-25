@@ -5,3 +5,4 @@
 extract.json
 Gemfile.lock
 libs/db/db.json
+/coverage
