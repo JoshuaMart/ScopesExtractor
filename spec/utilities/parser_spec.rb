@@ -72,14 +72,14 @@ RSpec.describe ScopesExtractor::Parser do
 
     context 'with invalid IP addresses' do
       it 'returns false and logs a warning' do
-          invalid_ip = '256.256.256.256'
-          expect(described_class.valid_ip?(invalid_ip)).to be false
-        end
+        invalid_ip = '256.256.256.256'
+        expect(described_class.valid_ip?(invalid_ip)).to be false
+      end
 
-        it 'returns false for non-IP strings' do
-          invalid_ip = 'not-an-ip'
-          expect(described_class.valid_ip?(invalid_ip)).to be false
-        end
+      it 'returns false for non-IP strings' do
+        invalid_ip = 'not-an-ip'
+        expect(described_class.valid_ip?(invalid_ip)).to be false
+      end
     end
   end
 

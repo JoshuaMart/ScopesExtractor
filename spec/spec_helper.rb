@@ -7,7 +7,7 @@ WebMock.disable_net_connect!(allow_localhost: true)
 
 RSpec.configure do |config|
   config.before(:each) do
-    stub_request(:post, /discord\.com\/api\/webhooks/)
+    stub_request(:post, %r{discord\.com/api/webhooks})
   end
 
   config.expect_with :rspec do |expectations|
