@@ -1,5 +1,13 @@
 # frozen_string_literal: true
 
+require 'simplecov'
+require 'simplecov-lcov'
+
+SimpleCov::Formatter::LcovFormatter.config.output_directory = 'coverage'
+SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true
+
+SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
+
 require 'webmock/rspec'
 require_relative '../libs/scopes_extractor'
 
