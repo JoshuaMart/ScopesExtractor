@@ -35,9 +35,6 @@ jobs:
       - name: Run tests
         run: bundle exec rake
 
-      - name: Ensure coverage file exists
-        run: ls -la coverage
-
       - name: Rename coverage file
         run: mv coverage/Interactsh-Library.lcov coverage/lcov.info
         if: success()
