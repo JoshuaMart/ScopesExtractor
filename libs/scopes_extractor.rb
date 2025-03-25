@@ -236,7 +236,7 @@ module ScopesExtractor
     # Syncs data from Immunefi platform
     # @return [void]
     def immunefi_sync
-      # Immunefi::Programs.sync(results['Immunefi'])
+      Immunefi::Programs.sync(results['Immunefi'])
     end
   end
 end
