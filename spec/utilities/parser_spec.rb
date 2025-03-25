@@ -50,7 +50,7 @@ RSpec.describe ScopesExtractor::Parser do
     context 'with invalid JSON' do
       it 'returns nil and logs a warning' do
         invalid_json = '{"broken": "json'
-        # TODO expect(described_class.json_parse(invalid_json)).to be_nil
+        expect(described_class.json_parse(invalid_json)).to be_nil
       end
     end
   end
