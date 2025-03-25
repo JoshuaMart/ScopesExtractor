@@ -36,7 +36,7 @@ jobs:
         run: bundle exec rake
 
       - name: Rename coverage file
-        run: mv coverage/Interactsh-Library.lcov coverage/lcov.info
+        run: mv coverage/ScopesExtractor.lcov coverage/lcov.info
         if: success()
 
       - name: Publish code coverage
