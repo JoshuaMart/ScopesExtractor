@@ -1,6 +1,11 @@
+AllCops:
+  NewCops: enable
+
 Metrics/BlockLength:
   Exclude:
-    - 'spec/**/*'
+    - "spec/**/*"
 
 Metrics/MethodLength:
-  Max: 20
+  Max: 15
+  Exclude:
+    - "libs/platforms/config.rb"
