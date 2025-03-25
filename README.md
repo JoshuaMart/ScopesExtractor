@@ -1,10 +1,11 @@
-# Scopes Extractor
+![Image](https://github.com/user-attachments/assets/8fa9dd2a-04c8-48d4-a0d7-6057c102436c)
 
 A tool for monitoring bug bounty programs across multiple platforms to track scope changes.
 
 [![Ruby](https://img.shields.io/badge/Ruby-3.4.2-red.svg)](https://www.ruby-lang.org/en/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![codeclimate](https://api.codeclimate.com/v1/badges/713b3c783fe46abaca0e/maintainability)](https://codeclimate.com/github/JoshuaMart/ScopesExtractor/maintainability/)
 
 ## 📖 Overview
 
