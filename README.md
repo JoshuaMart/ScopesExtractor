@@ -89,6 +89,7 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:4567
 | `YWH_EMAIL` | YesWeHack email | `""` |
 | `YWH_PWD` | YesWeHack password | `""` |
 | `YWH_OTP` | YesWeHack OTP secret | `""` |
+| `INTIGRITI_TOKEN` | Intigriti API Token | `""` |
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 
