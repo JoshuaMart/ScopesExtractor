@@ -17,6 +17,8 @@ module ScopesExtractor
       normalized_scopes = case platform
                           when 'YesWeHack'
                             YesWeHack.normalization(scope)
+                          when 'Intigriti'
+                            Intigriti.normalization(scope)
                           else
                             []
                           end

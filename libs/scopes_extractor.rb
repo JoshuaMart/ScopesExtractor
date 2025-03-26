@@ -13,7 +13,7 @@ module ScopesExtractor
   # from multiple platforms, handling notifications when changes are detected.
   class Extract
     # List of supported bug bounty platforms
-    PLATFORMS = %w[Immunefi YesWeHack].freeze
+    PLATFORMS = %w[Immunefi YesWeHack Intigriti].freeze
 
     attr_accessor :config, :results
 
@@ -98,6 +98,7 @@ module ScopesExtractor
 
       yeswehack_sync
       immunefi_sync
+      intigriti_sync
 
       compare_and_notify(current_data, results) unless current_data.empty?
 
@@ -237,6 +238,21 @@ module ScopesExtractor
     # @return [void]
     def immunefi_sync
       Immunefi::Programs.sync(results['Immunefi'])
+    end
+
+    # Checks if Intigriti is configured with required credentials
+    # @return [Boolean] True if YesWeHack is configured, false otherwise
+    def intigriti_configured?
+      config.dig(:intigriti, :token)
+    end
+
+    # Syncs data from YesWeHack platform
+    # @return [void]
+    def intigriti_sync
+      return unless intigriti_configured?
+
+      config[:intigriti][:headers] = { Authorization: "Bearer #{config.dig(:intigriti, :token)}" }
+      Intigriti::Programs.sync(results['Intigriti'], config[:intigriti])
     end
   end
 end

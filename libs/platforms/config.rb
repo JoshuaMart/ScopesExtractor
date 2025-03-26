@@ -15,6 +15,9 @@ module ScopesExtractor
           password: ENV.fetch('YWH_PWD', nil),
           otp: ENV.fetch('YWH_OTP', nil)
         },
+        intigriti: {
+          token: ENV.fetch('INTIGRITI_TOKEN', nil)
+        },
         discord: {
           message_webhook: ENV.fetch('DISCORD_WEBHOOK', nil),
           logs_webhook: ENV.fetch('DISCORD_LOGS_WEBHOOK', nil),

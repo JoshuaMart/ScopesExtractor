@@ -15,6 +15,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
 
 - 🔍 Monitors multiple bug bounty platforms (YesWeHack, Immunefi)
 - 🔄 Detects changes in program scopes
+- 📏 Normalizes scope formats for better consistency (e.g., domain.(tld|xyz) becomes domain.tld and domain.xyz)
 - 🚨 Sends notifications to Discord webhooks
 - 🔌 Offers an API mode for querying data
 - 🔄 Supports automatic synchronization with configurable intervals
@@ -97,7 +98,6 @@ You can configure pattern exclusions in `config/exclusions.yml` to filter out sp
 
 ## 📝 TODO
 
-- [ ] Intigriti Synchronisation
 - [ ] Hackerone Synchronisation
 - [ ] Bugcrowd Synchronisation
 
