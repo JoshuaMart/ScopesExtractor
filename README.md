@@ -42,7 +42,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
    ```
 
 3. Configure your `.env` file with:
-   - YesWeHack credentials (if applicable)
+   - YesWeHack, Intigriti credentials (if applicable)
    - Discord webhook URLs
    - API settings
    - Synchronization options
