@@ -3,6 +3,7 @@
 require 'json'
 require 'rotp'
 require 'logger'
+require 'base64'
 
 Dir[File.join(__dir__, 'platforms', '**', '*.rb')].sort.each { |file| require file }
 Dir[File.join(__dir__, 'utilities', '**', '*.rb')].sort.each { |file| require file }
@@ -13,7 +14,7 @@ module ScopesExtractor
   # from multiple platforms, handling notifications when changes are detected.
   class Extract
     # List of supported bug bounty platforms
-    PLATFORMS = %w[Immunefi YesWeHack Intigriti].freeze
+    PLATFORMS = %w[Immunefi YesWeHack Intigriti Hackerone].freeze
 
     attr_accessor :config, :results
 
@@ -99,6 +100,7 @@ module ScopesExtractor
       yeswehack_sync
       immunefi_sync
       intigriti_sync
+      hackerone_sync
 
       compare_and_notify(current_data, results) unless current_data.empty?
 
@@ -246,13 +248,30 @@ module ScopesExtractor
       config.dig(:intigriti, :token)
     end
 
-    # Syncs data from YesWeHack platform
+    # Syncs data from Intigriti platform
     # @return [void]
     def intigriti_sync
       return unless intigriti_configured?
 
       config[:intigriti][:headers] = { Authorization: "Bearer #{config.dig(:intigriti, :token)}" }
       Intigriti::Programs.sync(results['Intigriti'], config[:intigriti])
+    end
+
+    # Checks if Hackerone is configured with required credentials
+    # @return [Boolean] True if Hackerone is configured, false otherwise
+    def hackerone_configured?
+      config.dig(:hackerone, :username) && config.dig(:hackerone, :token)
+    end
+
+    # Syncs data from Hackerone platform
+    # @return [void]
+    def hackerone_sync
+      return unless hackerone_configured?
+
+      basic = Base64.urlsafe_encode64("#{config[:hackerone][:username]}:#{config[:hackerone][:token]}")
+      config[:hackerone][:headers] = { Authorization: "Basic #{basic}" }
+
+      Hackerone::Programs.sync(results['Hackerone'], config[:hackerone])
     end
   end
 end

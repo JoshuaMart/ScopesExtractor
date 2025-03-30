@@ -18,6 +18,10 @@ module ScopesExtractor
         intigriti: {
           token: ENV.fetch('INTIGRITI_TOKEN', nil)
         },
+        hackerone: {
+          username: ENV.fetch('H1_USERNAME', nil),
+          token: ENV.fetch('H1_TOKEN', nil)
+        },
         discord: {
           message_webhook: ENV.fetch('DISCORD_WEBHOOK', nil),
           logs_webhook: ENV.fetch('DISCORD_LOGS_WEBHOOK', nil),

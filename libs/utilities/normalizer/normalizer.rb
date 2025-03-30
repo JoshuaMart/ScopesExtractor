@@ -19,6 +19,8 @@ module ScopesExtractor
                             YesWeHack.normalization(scope)
                           when 'Intigriti'
                             Intigriti.normalization(scope)
+                          when 'Hackerone'
+                            [scope]
                           else
                             []
                           end

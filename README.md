@@ -42,7 +42,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
    ```
 
 3. Configure your `.env` file with:
-   - YesWeHack, Intigriti credentials (if applicable)
+   - YesWeHack, Intigriti, Hackerone credentials (if applicable)
    - Discord webhook URLs
    - API settings
    - Synchronization options
@@ -90,6 +90,8 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:4567
 | `YWH_PWD` | YesWeHack password | `""` |
 | `YWH_OTP` | YesWeHack OTP secret | `""` |
 | `INTIGRITI_TOKEN` | Intigriti API Token | `""` |
+| `H1_USERNAME` | Hackerone username | `""` |
+| `H1_TOKEN` | Hackerone API Token | `""` |
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 
@@ -99,7 +101,6 @@ You can configure pattern exclusions in `config/exclusions.yml` to filter out sp
 
 ## 📝 TODO
 
-- [ ] Hackerone Synchronisation
 - [ ] Bugcrowd Synchronisation
 
 ## 📜 License
