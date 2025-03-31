@@ -10,32 +10,61 @@ module ScopesExtractor
     # @return [Hash] A hash containing application configuration
     def self.load
       {
-        yeswehack: {
+        yeswehack: yeswehack_config,
+        intigriti: intigriti_config,
+        hackerone: hackerone_config,
+        discord: discord_config,
+        api: api_config,
+        sync: sync_config
+      }
+    end
+
+    # Private class methods for configuration segments
+    class << self
+      private
+
+      def yeswehack_config
+        {
           email: ENV.fetch('YWH_EMAIL', nil),
           password: ENV.fetch('YWH_PWD', nil),
           otp: ENV.fetch('YWH_OTP', nil)
-        },
-        intigriti: {
+        }
+      end
+
+      def intigriti_config
+        {
           token: ENV.fetch('INTIGRITI_TOKEN', nil)
-        },
-        hackerone: {
+        }
+      end
+
+      def hackerone_config
+        {
           username: ENV.fetch('H1_USERNAME', nil),
           token: ENV.fetch('H1_TOKEN', nil)
-        },
-        discord: {
+        }
+      end
+
+      def discord_config
+        {
           message_webhook: ENV.fetch('DISCORD_WEBHOOK', nil),
           logs_webhook: ENV.fetch('DISCORD_LOGS_WEBHOOK', nil),
           headers: { 'Content-Type' => 'application/json' }
-        },
-        api: {
+        }
+      end
+
+      def api_config
+        {
           enabled: ENV.fetch('API_MODE', false),
           key: ENV.fetch('API_KEY', nil)
-        },
-        sync: {
+        }
+      end
+
+      def sync_config
+        {
           auto: ENV.fetch('AUTO_SYNC', false),
           delay: ENV.fetch('SYNC_DELAY', 10_800)
         }
-      }
+      end
     end
   end
 end
