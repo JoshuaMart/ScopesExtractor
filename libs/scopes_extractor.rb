@@ -14,7 +14,7 @@ module ScopesExtractor
   # from multiple platforms, handling notifications when changes are detected.
   class Extract
     # List of supported bug bounty platforms
-    PLATFORMS = %w[Immunefi YesWeHack Intigriti Hackerone].freeze
+    PLATFORMS = %w[Immunefi YesWeHack Intigriti Hackerone Bugcrowd].freeze
 
     attr_accessor :config, :results
 
@@ -97,10 +97,11 @@ module ScopesExtractor
       Utilities.log_info('Start synchronisation')
       current_data = DB.load
 
-      yeswehack_sync
-      immunefi_sync
-      intigriti_sync
-      hackerone_sync
+      # yeswehack_sync
+      # immunefi_sync
+      # intigriti_sync
+      # hackerone_sync
+      bugcrowd_sync
 
       Utilities::ScopeComparator.compare_and_notify(current_data, results, PLATFORMS) unless current_data.empty?
 
@@ -176,6 +177,23 @@ module ScopesExtractor
       config[:hackerone][:headers] = { Authorization: "Basic #{basic}" }
 
       Hackerone::Programs.sync(results['Hackerone'], config[:hackerone])
+    end
+
+    # Checks if Bugcrowd is configured with required credentials
+    # @return [Boolean] True if Hackerone is configured, false otherwise
+    def bugcrowd_configured?
+      config.dig(:bugcrowd, :email) && config.dig(:bugcrowd, :password)
+    end
+
+    # Syncs data from Bugcrowd platform
+    # @return [void]
+    def bugcrowd_sync
+      return unless bugcrowd_configured?
+
+      bc_authenticated = Bugcrowd.authenticate(config[:bugcrowd])
+      Discord.log_warn('Bugcrowd - Authentication Failed') unless bc_authenticated
+
+      Bugcrowd::Programs.sync(results['Bugcrowd']) if bc_authenticated
     end
   end
 end

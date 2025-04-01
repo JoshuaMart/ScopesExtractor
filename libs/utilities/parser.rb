@@ -49,7 +49,7 @@ module ScopesExtractor
       # @param value [String] The URI to validate
       # @return [Boolean] True if the value is a valid URI, false otherwise
       def valid_uri?(value)
-        return false if exclusions.include?(value)
+        return false if exclusions.any? { |exclusion| value.include?(exclusion) }
 
         url = value.start_with?('http') ? value : "http://#{value.sub('*.', '')}"
 

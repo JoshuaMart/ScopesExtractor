@@ -21,6 +21,8 @@ module ScopesExtractor
                             Intigriti.normalization(scope)
                           when 'Hackerone'
                             [scope]
+                          when 'Bugcrowd'
+                            Bugcrowd.normalization(scope)
                           else
                             []
                           end

@@ -13,6 +13,7 @@ module ScopesExtractor
         yeswehack: yeswehack_config,
         intigriti: intigriti_config,
         hackerone: hackerone_config,
+        bugcrowd: bugcrowd_config,
         discord: discord_config,
         api: api_config,
         sync: sync_config
@@ -41,6 +42,13 @@ module ScopesExtractor
         {
           username: ENV.fetch('H1_USERNAME', nil),
           token: ENV.fetch('H1_TOKEN', nil)
+        }
+      end
+
+      def bugcrowd_config
+        {
+          email: ENV.fetch('BC_EMAIL', nil),
+          password: ENV.fetch('BC_PWD', nil)
         }
       end
 

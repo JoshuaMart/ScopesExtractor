@@ -13,7 +13,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
 
 ## ✨ Features
 
-- 🔍 Monitors multiple bug bounty platforms (YesWeHack, Immunefi)
+- 🔍 Monitors multiple bug bounty platforms (YesWeHack, Immunefi, Hackerone & Bugcrowd)
 - 🔄 Detects changes in program scopes
 - 📏 Normalizes scope formats for better consistency (e.g., domain.(tld|xyz) becomes domain.tld and domain.xyz)
 - 🚨 Sends notifications to Discord webhooks
@@ -42,7 +42,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
    ```
 
 3. Configure your `.env` file with:
-   - YesWeHack, Intigriti, Hackerone credentials (if applicable)
+   - YesWeHack, Intigriti, Hackerone and Bugcrowd credentials (if applicable)
    - Discord webhook URLs
    - API settings
    - Synchronization options
@@ -92,6 +92,8 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:4567
 | `INTIGRITI_TOKEN` | Intigriti API Token | `""` |
 | `H1_USERNAME` | Hackerone username | `""` |
 | `H1_TOKEN` | Hackerone API Token | `""` |
+| `BC_EMAIL` | Bugcrowd email | `""` |
+| `BC_PWD` | Bugcrowd password | `""` |
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 
@@ -101,7 +103,8 @@ You can configure pattern exclusions in `config/exclusions.yml` to filter out sp
 
 ## 📝 TODO
 
-- [ ] Bugcrowd Synchronisation
+- [ ] Improve Bugcrowd normalization
+- [ ] Improve YesWeHack normalization
 
 ## 📜 License
 
