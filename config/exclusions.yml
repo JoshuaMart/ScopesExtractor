@@ -1,2 +1,3 @@
 exclusions:
-  - "https//monidentifiant.sncf"
+  # Bugcrowd
+  - "█"
