@@ -3,14 +3,14 @@
 module ScopesExtractor
   # Bugcrowd platform authentication utilities
   module Bugcrowd
-    LOGIN_URL = 'https://identity.bugcrowd.com/login'
+    BASE_URL = 'https://identity.bugcrowd.com'
     DASHBOARD_URL = '/dashboard'
 
     # Authenticates with Bugcrowd
     # @param config [Hash] Configuration containing email and password
     # @return [Boolean] True if authentication is successful, false otherwise
     def self.authenticate(config)
-      url = "#{LOGIN_URL}?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
+      url = "#{BASE_URL}/login?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
       resp = HttpClient.get(url)
       return false unless valid_response?(resp, 200)
 
@@ -28,23 +28,42 @@ module ScopesExtractor
     # @param csrf [String] CSRF token
     # @return [String, nil] Redirect URL if login successful, nil otherwise
     def self.login(config, csrf)
-      options = {
-        headers: { 'X-Csrf-Token' => csrf, 'Origin' => 'https://identity.bugcrowd.com' },
-        body: prepare_body(config)
-      }
+      options = prepare_request(config, csrf, false)
+      resp = HttpClient.post("#{BASE_URL}/login", options)
+      return nil unless valid_response?(resp, 422)
 
-      resp = HttpClient.post(LOGIN_URL, options)
+      options = prepare_request(config, csrf, true)
+      resp = HttpClient.post("#{BASE_URL}/auth/otp-challenge", options)
       return nil unless valid_response?(resp, 200)
 
       body = Parser.json_parse(resp.body)
       body['redirect_to']
     end
 
-    # Prepares request body for login
+    # Prepare request options for login
     # @param config [Hash] Configuration containing email and password
+    # @param with_otp [Boolean] body request with or without otp_code
+    # @return [Hash]
+    def self.prepare_request(config, csrf, with_otp)
+      {
+        headers: { 'X-Csrf-Token' => csrf, 'Origin' => 'https://identity.bugcrowd.com' },
+        body: prepare_body(config, with_otp)
+      }
+    end
+
+    # Prepare request body for login
+    # @param config [Hash] Configuration containing email and password
+    # @param with_otp [Boolean] body request with or without otp_code
     # @return [String] Encoded request body
-    def self.prepare_body(config)
-      "username=#{CGI.escape(config[:email])}&password=#{CGI.escape(config[:password])}&user_type=RESEARCHER"
+    def self.prepare_body(config, with_otp)
+      body = "username=#{CGI.escape(config[:email])}&password=#{CGI.escape(config[:password])}&user_type=RESEARCHER"
+
+      if with_otp
+        otp_code = ROTP::TOTP.new(config[:otp]).now
+        body += "&otp_code=#{otp_code}"
+      end
+
+      body
     end
 
     # Extracts CSRF token from response headers

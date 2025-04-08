@@ -182,7 +182,7 @@ module ScopesExtractor
     # Checks if Bugcrowd is configured with required credentials
     # @return [Boolean] True if Hackerone is configured, false otherwise
     def bugcrowd_configured?
-      config.dig(:bugcrowd, :email) && config.dig(:bugcrowd, :password)
+      config.dig(:bugcrowd, :email) && config.dig(:bugcrowd, :password) && config.dig(:bugcrowd, :otp)
     end
 
     # Syncs data from Bugcrowd platform

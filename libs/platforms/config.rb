@@ -48,7 +48,8 @@ module ScopesExtractor
       def bugcrowd_config
         {
           email: ENV.fetch('BC_EMAIL', nil),
-          password: ENV.fetch('BC_PWD', nil)
+          password: ENV.fetch('BC_PWD', nil),
+          otp: ENV.fetch('BC_OTP', nil)
         }
       end
 

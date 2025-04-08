@@ -94,6 +94,7 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:4567
 | `H1_TOKEN` | Hackerone API Token | `""` |
 | `BC_EMAIL` | Bugcrowd email | `""` |
 | `BC_PWD` | Bugcrowd password | `""` |
+| `BC_OTP` | Bugcrowd OTP secret | `""` |
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 
