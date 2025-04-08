@@ -97,10 +97,10 @@ module ScopesExtractor
       Utilities.log_info('Start synchronisation')
       current_data = DB.load
 
-      # yeswehack_sync
-      # immunefi_sync
-      # intigriti_sync
-      # hackerone_sync
+      yeswehack_sync
+      immunefi_sync
+      intigriti_sync
+      hackerone_sync
       bugcrowd_sync
 
       Utilities::ScopeComparator.compare_and_notify(current_data, results, PLATFORMS) unless current_data.empty?
