@@ -16,7 +16,8 @@ module ScopesExtractor
         bugcrowd: bugcrowd_config,
         discord: discord_config,
         api: api_config,
-        sync: sync_config
+        sync: sync_config,
+        history: history_config
       }
     end
 
@@ -72,6 +73,12 @@ module ScopesExtractor
         {
           auto: ENV.fetch('AUTO_SYNC', false),
           delay: ENV.fetch('SYNC_DELAY', 10_800)
+        }
+      end
+
+      def history_config
+        {
+          retention_days: ENV.fetch('HISTORY_RETENTION_DAYS', 30).to_i
         }
       end
     end
