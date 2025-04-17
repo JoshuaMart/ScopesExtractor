@@ -44,9 +44,17 @@ module ScopesExtractor
       server.start
     end
 
+    # Gets recent changes from the history
+    # @param hours [Integer] Number of hours to look back (default: 48)
+    # @param filters [Hash] Optional filters for the changes (platform, program, change_type)
+    # @return [Array] Array of recent changes matching the criteria
+    def get_recent_changes(hours = 48, filters = {})
+      DB.get_recent_changes(hours, filters)
+    end
+
     private
 
-    # Processes an API request by verifying the API key in the header and returning the current data in JSON.
+    # Processes an API request by verifying the API key in the header and returning the appropriate data in JSON.
     #
     # @param req [WEBrick::HTTPRequest] The incoming HTTP request object.
     # @param res [WEBrick::HTTPResponse] The HTTP response object that will be returned.
@@ -56,7 +64,26 @@ module ScopesExtractor
       res.content_type = 'application/json'
 
       if api_key == config.dig(:api, :key)
-        res.body = DB.load.to_json
+        # Extract path and query parameters
+        path = req.path
+        query = req.query || {}
+        
+        if path.start_with?('/changes')
+          # Extract the hours parameter from the query string, default to 48
+          hours = (query['hours'] || 48).to_i
+          
+          # Extract optional filters
+          filters = {}
+          filters[:platform] = query['platform'] if query['platform']
+          filters[:change_type] = query['type'] if query['type']
+          filters[:program] = query['program'] if query['program']
+          
+          # Return recent changes with filters
+          res.body = get_recent_changes(hours, filters).to_json
+        else
+          # Default route - return current state
+          res.body = DB.load.to_json
+        end
       else
         res.status = 401
         res.body = { error: 'Unauthorized' }.to_json
