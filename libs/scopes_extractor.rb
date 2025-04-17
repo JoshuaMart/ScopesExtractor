@@ -63,31 +63,64 @@ module ScopesExtractor
       api_key = req.header['x-api-key']&.first
       res.content_type = 'application/json'
 
-      if api_key == config.dig(:api, :key)
-        # Extract path and query parameters
-        path = req.path
-        query = req.query || {}
-        
-        if path.start_with?('/changes')
-          # Extract the hours parameter from the query string, default to 48
-          hours = (query['hours'] || 48).to_i
-          
-          # Extract optional filters
-          filters = {}
-          filters[:platform] = query['platform'] if query['platform']
-          filters[:change_type] = query['type'] if query['type']
-          filters[:program] = query['program'] if query['program']
-          
-          # Return recent changes with filters
-          res.body = get_recent_changes(hours, filters).to_json
-        else
-          # Default route - return current state
-          res.body = DB.load.to_json
-        end
+      return unauthorized_response(res) unless valid_api_key?(api_key)
+
+      path = req.path
+      query = req.query || {}
+
+      if path.start_with?('/changes')
+        handle_changes_request(res, query)
       else
-        res.status = 401
-        res.body = { error: 'Unauthorized' }.to_json
+        handle_default_request(res)
       end
+    end
+
+    # Validates if the provided API key matches the configured key.
+    #
+    # @param api_key [String, nil] The API key from the request header.
+    # @return [Boolean] True if the API key is valid, false otherwise.
+    def valid_api_key?(api_key)
+      api_key == config.dig(:api, :key)
+    end
+
+    # Sends an unauthorized response with 401 status code.
+    #
+    # @param res [WEBrick::HTTPResponse] The HTTP response object to be modified.
+    # @return [void]
+    def unauthorized_response(res)
+      res.status = 401
+      res.body = { error: 'Unauthorized' }.to_json
+    end
+
+    # Handles requests to the /changes endpoint, applying appropriate filters.
+    #
+    # @param res [WEBrick::HTTPResponse] The HTTP response object to be modified.
+    # @param query [Hash] The query parameters from the request.
+    # @return [void]
+    def handle_changes_request(res, query)
+      hours = (query['hours'] || 48).to_i
+      filters = extract_filters(query)
+      res.body = get_recent_changes(hours, filters).to_json
+    end
+
+    # Extracts relevant filters from the query parameters.
+    #
+    # @param query [Hash] The query parameters from the request.
+    # @return [Hash] A hash containing only the non-nil filter values.
+    def extract_filters(query)
+      {
+        platform: query['platform'],
+        change_type: query['type'],
+        program: query['program']
+      }.compact
+    end
+
+    # Handles the default API request by returning the current state.
+    #
+    # @param res [WEBrick::HTTPResponse] The HTTP response object to be modified.
+    # @return [void]
+    def handle_default_request(res)
+      res.body = DB.load.to_json
     end
 
     # Synchronizes the bug bounty platforms.
