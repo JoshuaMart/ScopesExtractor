@@ -11,10 +11,10 @@ module ScopesExtractor
     # @param config [Hash] Configuration containing credentials
     # @return [String, nil] JWT token if authentication is successful, nil otherwise
     def self.authenticate(config)
-      totp_token = extract_totp_token(config)
-      return unless totp_token
+      response = extract_totp_token(config)
+      return response if response[:error]
 
-      extract_jwt(totp_token, config)
+      extract_jwt(response[:totp], config)
     end
 
     # Extracts a TOTP token by authenticating with email and password
@@ -24,12 +24,12 @@ module ScopesExtractor
       body = { email: config[:email], password: config[:password] }.to_json
 
       response = HttpClient.post(LOGIN_URL, { body: body })
-      return unless response&.status == 200
+      return { error: 'Invalid login or password' } unless response&.status == 200
 
       json = Parser.json_parse(response.body)
-      return unless json
+      return { error: 'Invalid response' } unless json
 
-      json['totp_token']
+      { totp: json['totp_token'] }
     end
 
     # Extracts a JWT token by authenticating with a TOTP token and OTP code
@@ -41,12 +41,12 @@ module ScopesExtractor
       body = { token: totp_token, code: otp_code }.to_json
 
       response = HttpClient.post(OTP_LOGIN_URL, { body: body })
-      return unless response.status == 200
+      return { error: 'Invalid OTP' } unless response.status == 200
 
       json = Parser.json_parse(response.body)
-      return unless json
+      return { error: 'Invalid response' } unless json
 
-      json['token']
+      { jwt: json['token'] }
     end
   end
 end

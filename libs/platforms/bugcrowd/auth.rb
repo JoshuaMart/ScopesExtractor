@@ -12,15 +12,15 @@ module ScopesExtractor
     def self.authenticate(config)
       url = "#{BASE_URL}/login?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
       resp = HttpClient.get(url)
-      return false unless valid_response?(resp, 200)
+      return { error: "Invalid Response - #{resp.status}" } unless valid_response?(resp, 200)
 
       csrf = extract_csrf(resp)
-      return false unless csrf
+      return { error: "No Login CSRF - #{resp.status}" } unless csrf
 
-      redirect_to = login(config, csrf)
-      return false unless redirect_to
+      response = login(config, csrf)
+      return response if response[:error]
 
-      check_authentication_success(redirect_to)
+      check_authentication_success(response[:redirect_to])
     end
 
     # Handles login request
@@ -30,14 +30,14 @@ module ScopesExtractor
     def self.login(config, csrf)
       options = prepare_request(config, csrf, false)
       resp = HttpClient.post("#{BASE_URL}/login", options)
-      return nil unless valid_response?(resp, 422)
+      return { error: 'Invalid login or password' } unless valid_response?(resp, 422)
 
       options = prepare_request(config, csrf, true)
       resp = HttpClient.post("#{BASE_URL}/auth/otp-challenge", options)
-      return nil unless valid_response?(resp, 200)
+      return { error: 'Invalid OTP code' } unless valid_response?(resp, 200)
 
       body = Parser.json_parse(resp.body)
-      body['redirect_to']
+      { redirect_to: body['redirect_to'] }
     end
 
     # Prepare request options for login
@@ -104,10 +104,12 @@ module ScopesExtractor
     # @return [Boolean] True if authenticated successfully, false otherwise
     def self.check_authentication_success(redirect_to)
       resp = follow_redirects(HttpClient.get(redirect_to), 302, 303, 307)
-      return false unless resp
+      return { error: 'Error during follow redirect flow' } unless resp
 
       location = resp&.headers&.[]('location')
-      resp&.body&.include?('<title>Dashboard - Bugcrowd') || location == DASHBOARD_URL
+      success = resp&.body&.include?('<title>Dashboard - Bugcrowd') || location == DASHBOARD_URL
+
+      { success: success }
     end
 
     # Validates HTTP response

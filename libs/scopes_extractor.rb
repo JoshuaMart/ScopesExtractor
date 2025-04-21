@@ -194,11 +194,14 @@ module ScopesExtractor
     def yeswehack_sync
       return unless yeswehack_configured?
 
-      jwt = YesWeHack.authenticate(config[:yeswehack])
-      Discord.log_warn('YesWeHack - Authentication Failed') unless jwt
-
-      config[:yeswehack][:headers] = { 'Content-Type' => 'application/json', Authorization: "Bearer #{jwt}" }
-      YesWeHack::Programs.sync(results['YesWeHack'], config[:yeswehack]) if jwt
+      authentication = YesWeHack.authenticate(config[:yeswehack])
+      if authentication[:error]
+        Discord.log_warn("YesWeHack - Authentication Failed with error '#{authenticate[:error]}'.")
+      else
+        config[:yeswehack][:headers] =
+          { 'Content-Type' => 'application/json', Authorization: "Bearer #{authentication[:jwt]}" }
+        YesWeHack::Programs.sync(results['YesWeHack'], config[:yeswehack])
+      end
     end
 
     # Syncs data from Immunefi platform
@@ -250,10 +253,12 @@ module ScopesExtractor
     def bugcrowd_sync
       return unless bugcrowd_configured?
 
-      bc_authenticated = Bugcrowd.authenticate(config[:bugcrowd])
-      Discord.log_warn('Bugcrowd - Authentication Failed') unless bc_authenticated
-
-      Bugcrowd::Programs.sync(results['Bugcrowd']) if bc_authenticated
+      authentication = Bugcrowd.authenticate(config[:bugcrowd])
+      if authentication[:error]
+        Discord.log_warn("Bugcrowd - Authentication Failed with error '#{authentication[:error]}'.")
+      else
+        Bugcrowd::Programs.sync(results['Bugcrowd'])
+      end
     end
   end
 end
