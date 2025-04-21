@@ -8,7 +8,7 @@ module ScopesExtractor
         url: %w[URL WILDCARD IP_ADDRESS API],
         cidr: %w[CIDR],
         mobile: %w[GOOGLE_PLAY_APP_ID OTHER_APK APPLE_STORE_APP_ID TESTFLIGHT OTHER_IPA],
-        other: %w[OTHER],
+        other: %w[OTHER AWS_CLOUD_CONFIG],
         executable: %w[DOWNLOADABLE_EXECUTABLES WINDOWS_APP_STORE_APP_ID],
         hardware: %w[HARDWARE],
         ai: %w[AI_MODEL],
