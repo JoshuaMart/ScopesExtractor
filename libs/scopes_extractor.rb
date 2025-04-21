@@ -196,7 +196,7 @@ module ScopesExtractor
 
       authentication = YesWeHack.authenticate(config[:yeswehack])
       if authentication[:error]
-        Discord.log_warn("YesWeHack - Authentication Failed with error '#{authenticate[:error]}'.")
+        Discord.log_warn("YesWeHack - Authentication Failed with error '#{authentication[:error]}'.")
       else
         config[:yeswehack][:headers] =
           { 'Content-Type' => 'application/json', Authorization: "Bearer #{authentication[:jwt]}" }
