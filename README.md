@@ -21,6 +21,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
 - 🔄 Supports automatic synchronization with configurable intervals
 - 🔐 Authentication with platforms including OTP support
 - 💾 Persistent storage of program data in JSON format
+- 📊 Historical tracking of changes with retention policy
 
 ## 🛠️ Installation
 
@@ -46,6 +47,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
    - Discord webhook URLs
    - API settings
    - Synchronization options
+   - History retention policy
 
 4. Build the Docker image:
    ```bash
@@ -59,21 +61,40 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
 Run the application in classic mode (no API):
 
 ```bash
-docker run --mount type=bind,source="$(pwd)/libs/db/db.json",target=/app/libs/db/db.json scopes
+docker run --mount type=bind,source="$(pwd)/libs/db/db.json",target=/app/libs/db/db.json --mount type=bind,source="$(pwd)/libs/db/history.json",target=/app/libs/db/history.json scopes
 ```
 
 ### API Mode
 
-Run the application in API mode to expose an HTTP endpoint for querying the data:
+Run the application in API mode to expose HTTP endpoints for querying the data:
 
 ```bash
-docker run -p 4567:4567 --mount type=bind,source="$(pwd)/libs/db/db.json",target=/app/libs/db/db.json scopes
+docker run -p 4567:4567 --mount type=bind,source="$(pwd)/libs/db/db.json",target=/app/libs/db/db.json --mount type=bind,source="$(pwd)/libs/db/history.json",target=/app/libs/db/history.json scopes
 ```
 
 When in API mode, you can query the data by sending a request to the endpoint with your configured API key:
 
 ```bash
+# Get current program data
 curl -H "X-API-Key: your_api_key_here" http://localhost:4567
+
+# Get recent changes (last 48 hours by default)
+curl -H "X-API-Key: your_api_key_here" http://localhost:4567/changes
+
+# Get changes from the last 24 hours
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=24"
+
+# Filter changes by platform
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?platform=YesWeHack"
+
+# Filter by change type (add_program, remove_program, add_scope, remove_scope)
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?type=add_scope"
+
+# Filter by program name
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?program=ProgramName"
+
+# Combine filters
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&platform=Hackerone&type=add_scope"
 ```
 
 ## ⚙️ Configuration
@@ -86,6 +107,7 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:4567
 | `API_KEY` | API key for authentication | `""` |
 | `AUTO_SYNC` | Enable/disable automatic synchronization | `false` |
 | `SYNC_DELAY` | Delay between synchronizations (in seconds) | `10800` |
+| `HISTORY_RETENTION_DAYS` | Number of days to retain change history | `30` |
 | `YWH_EMAIL` | YesWeHack email | `""` |
 | `YWH_PWD` | YesWeHack password | `""` |
 | `YWH_OTP` | YesWeHack OTP secret | `""` |
@@ -101,6 +123,12 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:4567
 ### Exclusions
 
 You can configure pattern exclusions in `config/exclusions.yml` to filter out specific scopes.
+
+## 📊 Change History
+
+ScopesExtractor now tracks all changes (program and scope additions/removals) with timestamps. This history is automatically managed with a configurable retention policy to avoid excessive growth. By default, changes are kept for 30 days.
+
+You can query recent changes through the API to see what has changed in the last few hours or days, which is useful for keeping track of bug bounty program changes even if you missed the Discord notifications.
 
 ## 📝 TODO
 

@@ -36,7 +36,10 @@ module ScopesExtractor
             new_scopes = info['scopes'] || {}
             compare_scopes(new_scopes, old_scopes, title, platform)
           else
+            # New program discovered
             Discord.new_program(platform, title, info['slug'], info['private'])
+            # Also record in history
+            DB.save_change(platform, title, 'add_program', nil, nil, title)
           end
         end
       end
@@ -48,7 +51,11 @@ module ScopesExtractor
       # @return [void]
       def self.process_removed_programs(old_programs, new_programs, platform)
         old_programs.each_key do |title|
-          Discord.removed_program(platform, title) unless new_programs.key?(title)
+          next if new_programs.key?(title)
+
+          Discord.removed_program(platform, title)
+          # Also record in history
+          DB.save_change(platform, title, 'remove_program', nil, nil, title)
         end
       end
 
@@ -77,9 +84,18 @@ module ScopesExtractor
       def self.detect_added_scopes(new_scope_groups, old_scope_groups, context)
         new_scope_groups.each do |category, scopes_array|
           scopes_array.each do |scope|
-            unless old_scope_groups[category]&.include?(scope)
-              Discord.new_scope(context.platform, context.program_title, scope, category, context.in_scope?)
-            end
+            next if old_scope_groups[category]&.include?(scope)
+
+            Discord.new_scope(context.platform, context.program_title, scope, category, context.in_scope?)
+            # Also record in history
+            DB.save_change(
+              context.platform,
+              context.program_title,
+              'add_scope',
+              context.scope_type,
+              category,
+              scope
+            )
           end
         end
       end
@@ -92,9 +108,18 @@ module ScopesExtractor
       def self.detect_removed_scopes(new_scope_groups, old_scope_groups, context)
         old_scope_groups.each do |category, scopes_array|
           scopes_array.each do |scope|
-            unless new_scope_groups[category]&.include?(scope)
-              Discord.removed_scope(context.platform, context.program_title, scope, category, context.in_scope?)
-            end
+            next if new_scope_groups[category]&.include?(scope)
+
+            Discord.removed_scope(context.platform, context.program_title, scope, category, context.in_scope?)
+            # Also record in history
+            DB.save_change(
+              context.platform,
+              context.program_title,
+              'remove_scope',
+              context.scope_type,
+              category,
+              scope
+            )
           end
         end
       end
