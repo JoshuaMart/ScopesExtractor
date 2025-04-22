@@ -120,20 +120,33 @@ curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&p
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 
-### Exclusions
+### 📊 Exclusions
 
 You can configure pattern exclusions in `config/exclusions.yml` to filter out specific scopes.
 
-## 📊 Change History
+## FAQ
 
-ScopesExtractor now tracks all changes (program and scope additions/removals) with timestamps. This history is automatically managed with a configurable retention policy to avoid excessive growth. By default, changes are kept for 30 days.
+<details>
+  <summary>Intigriti - Failed to fetch program ... 403</summary>
 
-You can query recent changes through the API to see what has changed in the last few hours or days, which is useful for keeping track of bug bounty program changes even if you missed the Discord notifications.
+  Programs must be manually accepted on the Intigriti website in order to be able to consult them.
+</details>
 
-## 📝 TODO
+<details>
+  <summary>Error : Invalid OTP code</summary>
 
-- [ ] Improve Bugcrowd normalization
-- [ ] Improve YesWeHack normalization
+  The most likely reason is that your server's time is not correct, so the generated OTP code is not correct either.
+</details>
+
+<details>
+  <summary>Change History Informations</summary>
+
+  ScopesExtractor now tracks all changes (program and scope additions/removals) with timestamps. This history is automatically managed with a configurable retention policy to avoid excessive growth. By default, changes are kept for 30 days.
+
+  You can query recent changes through the API (only) to see what has changed in the last few hours or days, which is useful for keeping track of bug bounty program changes even if you missed the Discord notifications.
+
+  The changes reflect what is detected by ScopesExtractor (addition/removal of scopes and programs) and not the modifications indicated directly on the program page of each platform.
+</details>
 
 ## 📜 License
 
