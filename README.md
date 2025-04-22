@@ -124,7 +124,7 @@ curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&p
 
 You can configure pattern exclusions in `config/exclusions.yml` to filter out specific scopes.
 
-## FAQ
+## ✋ FAQ
 
 <details>
   <summary>Intigriti - Failed to fetch program ... 403</summary>
