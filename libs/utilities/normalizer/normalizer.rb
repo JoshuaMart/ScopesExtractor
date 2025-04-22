@@ -51,7 +51,7 @@ module ScopesExtractor
 
       # Replace certain patterns and remove unwanted trailing characters
       value = value.sub('.*', '.com')
-                   .sub('.<TLD>', '.com')
+                   .sub(/\.<TLD>/i, '.com')
 
       # Add "*" at the beginning if the string starts with a dot
       value = "*#{value}" if value.start_with?('.')
