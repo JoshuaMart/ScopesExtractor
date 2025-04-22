@@ -6,7 +6,7 @@ module ScopesExtractor
   module Intigriti
     # Intigrit Sync Programs
     module Programs
-      PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs'
+      PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs?limit=500&statusId=3'
 
       def self.sync(results, config)
         response = HttpClient.get(PROGRAMS_ENDPOINT, { headers: config[:headers] })
@@ -31,7 +31,7 @@ module ScopesExtractor
       end
 
       def self.skip_program?(program)
-        !program['maxBounty']['value'].positive? || program.dig('status', 'value') == 'Suspended'
+        !program['maxBounty']['value'].positive?
       end
 
       def self.program_info(program)
