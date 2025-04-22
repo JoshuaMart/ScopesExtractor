@@ -12,7 +12,7 @@ module ScopesExtractor
     def self.authenticate(config)
       url = "#{BASE_URL}/login?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
       resp = HttpClient.get(url)
-      return { error: "Invalid Response - #{resp.status}" } unless valid_response?(resp, 200)
+      return { error: login_error(resp) } unless valid_response?(resp, 100)
 
       csrf = extract_csrf(resp)
       return { error: "No Login CSRF - #{resp.status}" } unless csrf
@@ -21,6 +21,14 @@ module ScopesExtractor
       return response if response[:error]
 
       check_authentication_success(response[:redirect_to])
+    end
+
+    # Build error message for login page access request
+    # @return [String]
+    def self.login_error(resp)
+      message = "Invalid base login response - #{resp.status}"
+      message += "\n\nResponse Headers:```\n#{resp.headers}\n```"
+      message
     end
 
     # Handles login request
