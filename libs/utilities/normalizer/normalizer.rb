@@ -20,7 +20,7 @@ module ScopesExtractor
                           when 'Intigriti'
                             Intigriti.normalization(scope)
                           when 'Hackerone'
-                            [scope]
+                            Hackerone.normalization(scope)
                           when 'Bugcrowd'
                             Bugcrowd.normalization(scope)
                           else
