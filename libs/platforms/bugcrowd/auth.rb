@@ -12,7 +12,7 @@ module ScopesExtractor
     def self.authenticate(config)
       url = "#{BASE_URL}/login?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
       resp = HttpClient.get(url)
-      return { error: login_error(resp) } unless valid_response?(resp, 100)
+      return { error: login_error(resp) } unless valid_response?(resp, 200)
 
       csrf = extract_csrf(resp)
       return { error: "No Login CSRF - #{resp.status}" } unless csrf
