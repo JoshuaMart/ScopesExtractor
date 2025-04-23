@@ -21,6 +21,9 @@ module ScopesExtractor
       headers = options[:headers]
 
       @client.get(url, nil, headers)
+    rescue Faraday::TimeoutError
+      Discord.log_warn("HTTP timeout when requesting URL '#{url}'")
+      nil
     end
 
     # Performs an HTTP POST request
@@ -32,6 +35,9 @@ module ScopesExtractor
       headers = options[:headers]
 
       @client.post(url, body, headers)
+    rescue Faraday::TimeoutError
+      Discord.log_warn("HTTP timeout when requesting URL '#{url}'")
+      nil
     end
   end
 end
