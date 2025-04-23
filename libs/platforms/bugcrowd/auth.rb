@@ -11,7 +11,7 @@ module ScopesExtractor
     # @return [Boolean] True if authentication is successful, false otherwise
     def self.authenticate(config)
       url = "#{BASE_URL}/login?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
-      resp = HttpClient.get(url)
+      resp = follow_redirects(HttpClient.get(url), 303)
       return { error: login_error(resp) } unless valid_response?(resp, 200)
 
       csrf = extract_csrf(resp)
