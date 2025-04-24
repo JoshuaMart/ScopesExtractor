@@ -43,7 +43,7 @@ module ScopesExtractor
       # @return [Hash, nil] Parsed JSON data or nil if extraction fails
       def self.extract_json(program, response)
         unless response&.status == 200
-          Discord.log_warn("Immunefi - Failed to fetch program #{program[:slug]} - #{response.status}")
+          Discord.log_warn("Immunefi - Failed to fetch program #{program[:slug]} - #{response&.status}")
           return nil
         end
 
