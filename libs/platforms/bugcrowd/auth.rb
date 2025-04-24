@@ -10,6 +10,7 @@ module ScopesExtractor
     # @param config [Hash] Configuration containing email and password
     # @return [Boolean] True if authentication is successful, false otherwise
     def self.authenticate(config)
+      HttpClient.clear_cookie_jar
       url = "#{BASE_URL}/login?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
       resp = HttpClient.get(url, { follow_location: true })
       return { error: login_error(resp) } unless valid_response?(resp, 200)
@@ -103,7 +104,7 @@ module ScopesExtractor
       resp = HttpClient.get(redirect_to, { follow_location: true })
       return { error: 'Error during follow redirect flow' } unless resp
 
-      success = is_authenticated?(resp)
+      success = authenticated?(resp)
       { success: success }
     end
 

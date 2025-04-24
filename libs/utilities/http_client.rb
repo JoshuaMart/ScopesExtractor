@@ -9,6 +9,16 @@ module ScopesExtractor
     Typhoeus::Config.user_agent = 'curl/8.7.1'
     @cookie_jar = File.join(__dir__, '../db/cookies.txt')
 
+    # Clears the cookie jar file by either truncating if it exists or creating a new empty file
+    # @return [Boolean] True if cookie jar was successfully cleared
+    def self.clear_cookie_jar
+      File.truncate(@cookie_jar, 0) if File.exist?(@cookie_jar)
+      true
+    rescue StandardError => e
+      Discord.log_warn("Error clearing cookie jar: #{e.message}")
+      false
+    end
+
     # Common request options used for both GET and POST requests
     # @param method [Symbol] HTTP method (:get or :post)
     # @param options [Hash] Request-specific options
