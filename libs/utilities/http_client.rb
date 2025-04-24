@@ -24,6 +24,9 @@ module ScopesExtractor
     rescue Faraday::TimeoutError
       Discord.log_warn("HTTP timeout when requesting URL '#{url}'")
       nil
+    rescue Faraday::SSLError
+      Discord.log_warn("SSL Error when requesting URL '#{url}'")
+      nil
     end
 
     # Performs an HTTP POST request
@@ -37,6 +40,9 @@ module ScopesExtractor
       @client.post(url, body, headers)
     rescue Faraday::TimeoutError
       Discord.log_warn("HTTP timeout when requesting URL '#{url}'")
+      nil
+    rescue Faraday::SSLError
+      Discord.log_warn("SSL Error when requesting URL '#{url}'")
       nil
     end
   end
