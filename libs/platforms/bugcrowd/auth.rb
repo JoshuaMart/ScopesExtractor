@@ -11,11 +11,12 @@ module ScopesExtractor
     # @return [Boolean] True if authentication is successful, false otherwise
     def self.authenticate(config)
       url = "#{BASE_URL}/login?user_hint=researcher&returnTo=#{DASHBOARD_URL}"
-      resp = follow_redirects(HttpClient.get(url), 303)
+      resp = HttpClient.get(url, { follow_location: true })
       return { error: login_error(resp) } unless valid_response?(resp, 200)
+      return { success: true } if authenticated?(resp)
 
       csrf = extract_csrf(resp)
-      return { error: "No Login CSRF - #{resp.status}" } unless csrf
+      return { error: "No Login CSRF - #{resp.code}" } unless csrf
 
       response = login(config, csrf)
       return response if response[:error]
@@ -26,7 +27,7 @@ module ScopesExtractor
     # Build error message for login page access request
     # @return [String]
     def self.login_error(resp)
-      message = "Invalid base login response - #{resp.status}"
+      message = "Invalid base login response - #{resp.code}"
       message += "\n\nResponse Headers:```\n#{resp.headers}\n```"
       message
     end
@@ -85,39 +86,30 @@ module ScopesExtractor
       cookies = headers['set-cookie']
       return nil unless cookies
 
-      match = cookies.match(%r{csrf-token=(?<csrf>[\w+/]+)})
-      match ? match[:csrf] : nil
-    end
+      match = nil
+      cookies.each do |cookie|
+        next if match
 
-    # Follows HTTP redirects until reaching dashboard or a non-redirect status
-    # @param response [HTTP::Response] Initial HTTP response
-    # @param expected_statuses [Array<Integer>] List of status codes to consider as redirects
-    # @return [HTTP::Response, nil] Final response or nil if redirection failed
-    def self.follow_redirects(response, *expected_statuses)
-      current_response = response
-
-      while expected_statuses.include?(current_response&.status)
-        location = current_response&.headers&.[]('location')
-        return nil unless location
-        return current_response if location == DASHBOARD_URL
-
-        current_response = HttpClient.get(location)
+        match = cookie.match(%r{csrf-token=(?<csrf>[\w+/]+)})
       end
 
-      current_response
+      match ? match[:csrf] : nil
     end
 
     # Checks if authentication was successful by following redirects
     # @param redirect_to [String] URL to redirect to after login
     # @return [Boolean] True if authenticated successfully, false otherwise
     def self.check_authentication_success(redirect_to)
-      resp = follow_redirects(HttpClient.get(redirect_to), 302, 303, 307)
+      resp = HttpClient.get(redirect_to, { follow_location: true })
       return { error: 'Error during follow redirect flow' } unless resp
 
-      location = resp&.headers&.[]('location')
-      success = resp&.body&.include?('<title>Dashboard - Bugcrowd') || location == DASHBOARD_URL
-
+      success = is_authenticated?(resp)
       { success: success }
+    end
+
+    def self.authenticated?(resp)
+      location = resp&.headers&.[]('location')
+      resp&.body&.include?('<title>Dashboard - Bugcrowd') || location == DASHBOARD_URL
     end
 
     # Validates HTTP response
@@ -125,7 +117,7 @@ module ScopesExtractor
     # @param expected_status [Integer] Expected HTTP status code
     # @return [Boolean] True if response is valid, false otherwise
     def self.valid_response?(resp, expected_status)
-      !resp.nil? && resp.status == expected_status
+      !resp.nil? && resp.code == expected_status
     end
   end
 end

@@ -24,7 +24,7 @@ module ScopesExtractor
       body = { email: config[:email], password: config[:password] }.to_json
 
       response = HttpClient.post(LOGIN_URL, { body: body })
-      return { error: 'Invalid login or password' } unless response&.status == 200
+      return { error: 'Invalid login or password' } unless response&.code == 200
 
       json = Parser.json_parse(response.body)
       return { error: 'Invalid response' } unless json
@@ -41,7 +41,7 @@ module ScopesExtractor
       body = { token: totp_token, code: otp_code }.to_json
 
       response = HttpClient.post(OTP_LOGIN_URL, { body: body })
-      return { error: 'Invalid OTP' } unless response.status == 200
+      return { error: 'Invalid OTP' } unless response.code == 200
 
       json = Parser.json_parse(response.body)
       return { error: 'Invalid response' } unless json

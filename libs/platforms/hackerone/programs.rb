@@ -38,11 +38,11 @@ module ScopesExtractor
       def self.get_programs_infos(page_id, config)
         url = PROGRAMS_ENDPOINT + "?page%5Bnumber%5D=#{page_id}"
         response = HttpClient.get(url, { headers: config[:headers] })
-        if response&.status == 429
+        if response&.code == 429
           sleep 65 # Rate limit
           programs_infos(page_id)
         end
-        return unless response.status == 200
+        return unless response.code == 200
 
         json = Parser.json_parse(response.body)
         return unless json

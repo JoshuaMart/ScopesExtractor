@@ -1,49 +1,57 @@
 # frozen_string_literal: true
 
-require 'faraday'
-require 'faraday-cookie_jar'
+require 'typhoeus'
 
 module ScopesExtractor
   # HttpClient module provides a simplified interface for making HTTP requests
   # with cookie support and consistent error handling
   module HttpClient
-    # Initialize Faraday client with cookie jar support
-    @client = Faraday.new do |builder|
-      builder.use :cookie_jar
-      builder.adapter Faraday.default_adapter
+    Typhoeus::Config.user_agent = 'curl/8.7.1'
+    @cookie_jar = File.join(__dir__, '../db/cookies.txt')
+
+    # Common request options used for both GET and POST requests
+    # @param method [Symbol] HTTP method (:get or :post)
+    # @param options [Hash] Request-specific options
+    # @return [Hash] Combined request options
+    def self.build_request_options(method, options = {})
+      {
+        method: method,
+        headers: options[:headers] || {},
+        followlocation: options[:follow_location] || false,
+        timeout: 30, # Default timeout
+        cookiefile: @cookie_jar,
+        cookiejar: @cookie_jar,
+        body: options[:body] # Will be nil for GET requests
+      }.compact
+    end
+
+    # Performs an HTTP request
+    # @param method [Symbol] HTTP method to use
+    # @param url [String] The URL to request
+    # @param options [Hash] Request options including headers and body
+    # @return [Typhoeus::Response, nil] Response object if successful
+    def self.request(method, url, options = {})
+      request_options = build_request_options(method, options)
+      Typhoeus::Request.new(url, request_options).run
+    rescue StandardError => e
+      Discord.log_warn("HTTP error when requesting URL '#{url}': #{e.message}")
+      nil
     end
 
     # Performs an HTTP GET request
     # @param url [String] The URL to request
     # @param options [Hash] Request options including headers
-    # @return [Faraday::Response, nil] Response object if successful
+    # @return [Typhoeus::Response, nil] Response object if successful
     def self.get(url, options = {})
-      headers = options[:headers]
-
-      @client.get(url, nil, headers)
-    rescue Faraday::TimeoutError
-      Discord.log_warn("HTTP timeout when requesting URL '#{url}'")
-      nil
-    rescue Faraday::SSLError
-      Discord.log_warn("SSL Error when requesting URL '#{url}'")
-      nil
+      request(:get, url, options)
     end
 
     # Performs an HTTP POST request
     # @param url [String] The URL to request
     # @param options [Hash] Request options including body and headers
-    # @return [Faraday::Response, nil] Response object if successful
+    # @return [Typhoeus::Response, nil] Response object if successful
     def self.post(url, options = {})
-      body = options[:body]
-      headers = options[:headers]
-
-      @client.post(url, body, headers)
-    rescue Faraday::TimeoutError
-      Discord.log_warn("HTTP timeout when requesting URL '#{url}'")
-      nil
-    rescue Faraday::SSLError
-      Discord.log_warn("SSL Error when requesting URL '#{url}'")
-      nil
+      request(:post, url, options)
     end
   end
 end

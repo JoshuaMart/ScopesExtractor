@@ -243,7 +243,7 @@ module ScopesExtractor
       # @param response [HTTP::Response] HTTP response to validate
       # @return [Boolean] True if response is valid, false otherwise
       def self.valid_response?(response)
-        !response.nil? && response.status == 200
+        !response.nil? && response.code == 200
       end
     end
   end

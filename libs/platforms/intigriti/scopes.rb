@@ -36,8 +36,8 @@ module ScopesExtractor
       # @param response [Faraday::Response] HTTP response
       # @return [Hash, nil] Parsed JSON data or nil if extraction fails
       def self.extract_json(program, response)
-        unless response&.status == 200
-          Discord.log_warn("Intigriti - Failed to fetch program #{program[:id]} - #{response&.status}")
+        unless response&.code == 200
+          Discord.log_warn("Intigriti - Failed to fetch program #{program[:id]} - #{response&.code}")
           return nil
         end
 

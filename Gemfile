@@ -5,10 +5,9 @@ source 'https://rubygems.org'
 gem 'base64'
 gem 'colorize'
 gem 'dotenv'
-gem 'faraday'
-gem 'faraday-cookie_jar'
 gem 'nokogiri'
 gem 'rotp'
+gem 'typhoeus'
 gem 'webrick'
 
 group :development, :test do

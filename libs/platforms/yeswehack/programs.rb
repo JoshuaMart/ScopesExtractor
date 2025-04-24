@@ -27,7 +27,7 @@ module ScopesExtractor
       # @return [Hash, nil] Hash containing page count and programs, or nil on failure
       def self.get_page_infos(page_id, config)
         response = HttpClient.get("#{PROGRAMS_URL}?page=#{page_id}", { headers: config[:headers] })
-        return unless response&.status == 200
+        return unless response&.code == 200
 
         json = Parser.json_parse(response.body)
         return unless json

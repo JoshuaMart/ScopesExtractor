@@ -88,7 +88,7 @@ module ScopesExtractor
     # @param res [WEBrick::HTTPResponse] The HTTP response object to be modified.
     # @return [void]
     def unauthorized_response(res)
-      res.status = 401
+      res.code = 401
       res.body = { error: 'Unauthorized' }.to_json
     end
 
@@ -254,7 +254,7 @@ module ScopesExtractor
       return unless bugcrowd_configured?
 
       authentication = Bugcrowd.authenticate(config[:bugcrowd])
-      if authentication[:error]
+      if authentication[:error] || !authentication[:success]
         Discord.log_warn("Bugcrowd - Authentication Failed with error : #{authentication[:error]}")
       else
         Bugcrowd::Programs.sync(results['Bugcrowd'])

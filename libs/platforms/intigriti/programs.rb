@@ -10,7 +10,7 @@ module ScopesExtractor
 
       def self.sync(results, config)
         response = HttpClient.get(PROGRAMS_ENDPOINT, { headers: config[:headers] })
-        return unless response&.status == 200
+        return unless response&.code == 200
 
         data = Parser.json_parse(response.body)
         return unless data

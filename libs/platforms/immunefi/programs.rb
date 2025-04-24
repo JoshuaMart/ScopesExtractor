@@ -22,7 +22,7 @@ module ScopesExtractor
       # @return [String, nil] HTML content of the bug bounty page or nil if request fails
       def self.programs_page
         response = HttpClient.get('https://immunefi.com/bug-bounty/')
-        return unless response&.status == 200
+        return unless response&.code == 200
 
         response.body
       end
