@@ -88,7 +88,7 @@ module ScopesExtractor
     # @param res [WEBrick::HTTPResponse] The HTTP response object to be modified.
     # @return [void]
     def unauthorized_response(res)
-      res.code = 401
+      res.status = 401
       res.body = { error: 'Unauthorized' }.to_json
     end
 
