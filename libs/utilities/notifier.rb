@@ -19,6 +19,13 @@ module ScopesExtractor
       notify('⚠️ WARNING', message, 16_771_899, :logs_webhook)
     end
 
+    # Sends a warning log message to Discord
+    # @param message [String] Warning message to send
+    # @return [void]
+    def self.log_error(message)
+      notify('⚠️ ERROR', message, 14_549_051, :logs_webhook)
+    end
+
     # Sends an informational log message to Discord
     # @param message [String] Info message to send
     # @return [void]
