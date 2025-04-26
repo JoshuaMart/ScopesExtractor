@@ -139,6 +139,9 @@ module ScopesExtractor
             delay = config.dig(:sync, :delay)&.to_i
             Utilities.log_info("Sleep #{delay}")
             sleep(delay)
+          rescue => e
+            Discord.log_error("Error during sync_platform : #{e}")
+            sleep(delay)
           end
         end
       else
