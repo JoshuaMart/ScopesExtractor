@@ -21,7 +21,7 @@ module ScopesExtractor
       def self.sync(program, headers)
         scopes = { 'in' => {}, 'out' => {} }
 
-        response = HttpClient.get("#{PROGRAMS_ENDPOINT}/#{program[:id]}", { headers: headers })
+        response = HttpClient.get("#{PROGRAMS_ENDPOINT}/#{program['id']}", { headers: headers })
 
         json = extract_json(program, response)
         return scopes unless json
@@ -37,19 +37,19 @@ module ScopesExtractor
       # @return [Hash, nil] Parsed JSON data or nil if extraction fails
       def self.extract_json(program, response)
         unless response&.code == 200
-          Discord.log_warn("Intigriti - Failed to fetch program #{program[:id]} - #{response&.code}")
+          Discord.log_warn("Intigriti - Failed to fetch program #{program['name']} - #{response&.code}")
           return nil
         end
 
         json = Parser.json_parse(response.body)
         unless json
-          Discord.log_warn("Intigriti - Failed to parse JSON for program #{program[:slug]}")
+          Discord.log_warn("Intigriti - Failed to parse JSON for program #{program['handle']}")
           return nil
         end
 
         json = json.dig('domains', 'content')
         unless json
-          Discord.log_warn("Intigriti - No content for program #{program[:slug]}")
+          Discord.log_warn("Intigriti - No content for program #{program['handle']}")
           return nil
         end
 
