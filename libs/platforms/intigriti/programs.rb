@@ -26,7 +26,7 @@ module ScopesExtractor
           name = program['name']
 
           results[name] = program_info(program)
-          results[name][:scopes] = Scopes.sync({ id: program['id'] }, config[:headers])
+          results[name][:scopes] = Scopes.sync(program, config[:headers])
         end
       end
 
