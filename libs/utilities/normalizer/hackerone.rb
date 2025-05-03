@@ -11,6 +11,9 @@ module ScopesExtractor
       def self.normalization(value)
         value = value.strip
 
+        value = value.sub('.*', '.com')
+                     .sub(/\.\(TLD\)/i, '.com')
+
         if value.include?(',')
           value.split(',')
         else

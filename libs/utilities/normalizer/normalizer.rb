@@ -49,10 +49,6 @@ module ScopesExtractor
       # Remove protocol (http:// or https://) if string matches the pattern
       value = value.sub(%r{https?://}, '') if value.match?(%r{https?://\*\.})
 
-      # Replace certain patterns and remove unwanted trailing characters
-      value = value.sub('.*', '.com')
-                   .sub(/\.<TLD>/i, '.com')
-
       # Add "*" at the beginning if the string starts with a dot
       value = "*#{value}" if value.start_with?('.')
 
