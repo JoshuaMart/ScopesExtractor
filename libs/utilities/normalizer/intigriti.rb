@@ -10,7 +10,9 @@ module ScopesExtractor
       # @return [Array<String>] List of normalized domain scopes
       def self.normalization(value)
         value = value.strip
-        value.sub!(/^\*(\s\.|\.?\s)/, '*.')
+        value = value.sub(/^\*(\s\.|\.?\s)/, '*.')
+                     .sub('.*', '.com')
+                     .sub(/\.<TLD>/i, '.com')
 
         if value.include?(' / ')
           normalize_with_slash(value)

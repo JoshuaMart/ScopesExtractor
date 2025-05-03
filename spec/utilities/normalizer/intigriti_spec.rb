@@ -50,5 +50,13 @@ RSpec.describe ScopesExtractor::Normalizer::Intigriti do
         end
       end
     end
+
+    context 'domain.<TLD>' do
+      it 'returns domain.com' do
+        input = 'domain.<TLD>'
+        expected = ['domain.com']
+        expect(described_class.normalization(input)).to eq(expected)
+      end
+    end
   end
 end
