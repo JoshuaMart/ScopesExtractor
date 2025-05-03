@@ -14,6 +14,7 @@ module ScopesExtractor
         intigriti: intigriti_config,
         hackerone: hackerone_config,
         bugcrowd: bugcrowd_config,
+        immunefi: immunefi_config,
         discord: discord_config,
         api: api_config,
         sync: sync_config,
@@ -27,6 +28,7 @@ module ScopesExtractor
 
       def yeswehack_config
         {
+          enabled: ENV.fetch('YWH_SYNC', false),
           email: ENV.fetch('YWH_EMAIL', nil),
           password: ENV.fetch('YWH_PWD', nil),
           otp: ENV.fetch('YWH_OTP', nil)
@@ -35,12 +37,14 @@ module ScopesExtractor
 
       def intigriti_config
         {
+          enabled: ENV.fetch('INTIGRITI_SYNC', false),
           token: ENV.fetch('INTIGRITI_TOKEN', nil)
         }
       end
 
       def hackerone_config
         {
+          enabled: ENV.fetch('H1_SYNC', false),
           username: ENV.fetch('H1_USERNAME', nil),
           token: ENV.fetch('H1_TOKEN', nil)
         }
@@ -48,9 +52,16 @@ module ScopesExtractor
 
       def bugcrowd_config
         {
+          enabled: ENV.fetch('BC_SYNC', false),
           email: ENV.fetch('BC_EMAIL', nil),
           password: ENV.fetch('BC_PWD', nil),
           otp: ENV.fetch('BC_OTP', nil)
+        }
+      end
+
+      def immunefi_config
+        {
+          enabled: ENV.fetch('IMMUNEFI_SYNC', false)
         }
       end
 

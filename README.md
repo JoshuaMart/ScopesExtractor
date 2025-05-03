@@ -108,15 +108,20 @@ curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&p
 | `AUTO_SYNC` | Enable/disable automatic synchronization | `false` |
 | `SYNC_DELAY` | Delay between synchronizations (in seconds) | `10800` |
 | `HISTORY_RETENTION_DAYS` | Number of days to retain change history | `30` |
+| `YWH_SYNC` | Enable YesWeHack synchronization | `false` |
 | `YWH_EMAIL` | YesWeHack email | `""` |
 | `YWH_PWD` | YesWeHack password | `""` |
 | `YWH_OTP` | YesWeHack OTP secret | `""` |
+| `INTIGRITI_SYNC` | Enable Intigriti synchronization | `false` |
 | `INTIGRITI_TOKEN` | Intigriti API Token | `""` |
+| `H1_SYNC` | Enable Hackerone synchronization | `false` |
 | `H1_USERNAME` | Hackerone username | `""` |
 | `H1_TOKEN` | Hackerone API Token | `""` |
+| `BC_SYNC` | Enable Bugcrowd synchronization | `false` |
 | `BC_EMAIL` | Bugcrowd email | `""` |
 | `BC_PWD` | Bugcrowd password | `""` |
 | `BC_OTP` | Bugcrowd OTP secret | `""` |
+| `IMMUNEFI_SYNC` | Enable Immunefi synchronization | `false` |
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 

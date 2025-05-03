@@ -139,7 +139,7 @@ module ScopesExtractor
             delay = config.dig(:sync, :delay)&.to_i
             Utilities.log_info("Sleep #{delay}")
             sleep(delay)
-          rescue => e
+          rescue StandardError => e
             Discord.log_error("Error during sync_platform : #{e}")
             sleep(delay)
           end
@@ -189,7 +189,9 @@ module ScopesExtractor
     # Checks if YesWeHack is configured with required credentials
     # @return [Boolean] True if YesWeHack is configured, false otherwise
     def yeswehack_configured?
-      config.dig(:yeswehack, :email) && config.dig(:yeswehack, :password) && config.dig(:yeswehack, :otp)
+      return false if config.dig(:yeswehack, :enabled) == 'false'
+
+      !!(config.dig(:yeswehack, :email) && config.dig(:yeswehack, :password) && config.dig(:yeswehack, :otp))
     end
 
     # Syncs data from YesWeHack platform
@@ -207,15 +209,25 @@ module ScopesExtractor
       end
     end
 
+    # Checks if Immunefi is configured
+    # @return [Boolean] True if Immunefi is configured, false otherwise
+    def immunefi_configured?
+      config.dig(:immunefi, :enabled) != 'false'
+    end
+
     # Syncs data from Immunefi platform
     # @return [void]
     def immunefi_sync
+      return unless immunefi_configured?
+
       Immunefi::Programs.sync(results['Immunefi'])
     end
 
     # Checks if Intigriti is configured with required credentials
     # @return [Boolean] True if YesWeHack is configured, false otherwise
     def intigriti_configured?
+      return false if config.dig(:intigriti, :enabled) == 'false'
+
       config.dig(:intigriti, :token)
     end
 
@@ -231,6 +243,8 @@ module ScopesExtractor
     # Checks if Hackerone is configured with required credentials
     # @return [Boolean] True if Hackerone is configured, false otherwise
     def hackerone_configured?
+      return false if config.dig(:hackerone, :enabled) == 'false'
+
       config.dig(:hackerone, :username) && config.dig(:hackerone, :token)
     end
 
@@ -248,6 +262,8 @@ module ScopesExtractor
     # Checks if Bugcrowd is configured with required credentials
     # @return [Boolean] True if Hackerone is configured, false otherwise
     def bugcrowd_configured?
+      return false if config.dig(:bugcrowd, :enabled) == 'false'
+
       config.dig(:bugcrowd, :email) && config.dig(:bugcrowd, :password) && config.dig(:bugcrowd, :otp)
     end
 
