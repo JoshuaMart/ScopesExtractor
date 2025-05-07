@@ -59,6 +59,9 @@ module ScopesExtractor
     # @param in_scope [Boolean] Whether the scope is in-scope (true) or out-of-scope (false)
     # @return [void]
     def self.new_scope(platform, program, value, category, in_scope)
+      # Do not send notifications for non-URL scopes if option is disabled
+      return if category != 'url' && !config[:notify_non_url_scopes]
+
       notify('🆕 New scope', "In #{platform} - Program '#{program}': #{scope_label(value, category, in_scope)} added",
              65_280)
     end
