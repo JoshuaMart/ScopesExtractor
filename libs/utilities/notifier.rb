@@ -100,7 +100,12 @@ module ScopesExtractor
       embed = { title: title, description: description, color: color }
       body = { embeds: [embed] }.to_json
 
-      HttpClient.post(config[webhook], { headers: config[:headers], body: body })
+      resp = HttpClient.post(config[webhook], { headers: config[:headers], body: body })
+
+      ratelimit_remaining = resp.headers['x-ratelimit-remaining']&.to_i
+      ratelimit_reset_after = resp.headers['x-ratelimit-reset-after']&.to_i
+
+      sleep(ratelimit_reset_after) if ratelimit_remaining.zero?
     end
   end
 end
