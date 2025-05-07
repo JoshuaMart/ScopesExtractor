@@ -72,6 +72,8 @@ module ScopesExtractor
       end
 
       def self.valid_scope?(scope)
+        return false if scope.dig('tier', 'value') == 'No Bounty'
+
         category = find_category(scope)
         return false unless category
         return false if DENY.any? { |deny| scope['endpoint'].include?(deny) }

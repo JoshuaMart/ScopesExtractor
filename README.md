@@ -132,6 +132,12 @@ You can configure pattern exclusions in `config/exclusions.yml` to filter out sp
 ## ✋ FAQ
 
 <details>
+  <summary>Some programs are missing</summary>
+
+  VDPs and scopes without bounty not included
+</details>
+
+<details>
   <summary>Intigriti - Failed to fetch program ... 403</summary>
 
   Programs must be manually accepted on the Intigriti website in order to be able to consult them.
