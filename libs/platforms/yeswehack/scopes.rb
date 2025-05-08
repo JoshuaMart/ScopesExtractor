@@ -6,7 +6,7 @@ module ScopesExtractor
     module Scopes
       # Mapping of YesWeHack scope types to standardized categories
       CATEGORIES = {
-        url: %w[web-application api ip-address],
+        web: %w[web-application api ip-address],
         mobile: %w[mobile-application mobile-application-android mobile-application-ios],
         source_code: %w[],
         other: %w[other],
@@ -71,13 +71,13 @@ module ScopesExtractor
         scopes
       end
 
-      # Adds a scope to the appropriate category, with normalization for URLs
+      # Adds a scope to the appropriate category, with normalization for web scopes
       # @param scopes [Hash] Scopes hash to add to
       # @param category [Symbol] Category to add the scope to
       # @param infos [Hash] Scope information
       # @return [void]
       def self.add_scope_to_category(scopes, category, infos)
-        if category == :url
+        if category == :web
           Normalizer.run('YesWeHack', infos['scope'])&.each { |url| scopes[category] << url }
         else
           scopes[category] << infos['scope']

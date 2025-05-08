@@ -5,7 +5,7 @@ module ScopesExtractor
     # Intigrit Sync Scopes
     module Scopes
       CATEGORIES = {
-        url: [1, 7],
+        web: [1, 7],
         mobile: [2, 3],
         cidr: [4],
         device: [5],
@@ -86,7 +86,7 @@ module ScopesExtractor
       end
 
       def self.add_scope(scopes, type, category, scope)
-        if category == :url && type == 'in'
+        if category == :web && type == 'in'
           Normalizer.run('Intigriti', scope['endpoint'])&.each { |url| scopes[type][category] << url }
         else
           scopes[type][category] << scope['endpoint'].downcase

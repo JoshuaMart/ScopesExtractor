@@ -6,7 +6,7 @@ module ScopesExtractor
     module Scopes
       # Mapping of Bugcrowd scope types to standardized categories
       CATEGORIES = {
-        url: %w[website api],
+        web: %w[website api],
         mobile: %w[android ios],
         other: %w[other],
         executable: %w[application],
@@ -50,13 +50,13 @@ module ScopesExtractor
         scopes
       end
 
-      # Adds a scope to the appropriate category, with normalization for URLs
+      # Adds a scope to the appropriate category, with normalization for web scopes
       # @param scopes [Hash] Scopes hash to add to
       # @param category [Symbol] Category to add the scope to
       # @param target [Hash] Target information
       # @return [void]
       def self.add_scope_to_category(scopes, category, target)
-        if category == :url
+        if category == :web
           Normalizer.run('Bugcrowd', target['name'])&.each { |url| scopes[category] << url }
         else
           scopes[category] << target['name']

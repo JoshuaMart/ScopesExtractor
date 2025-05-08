@@ -5,7 +5,7 @@ module ScopesExtractor
     # Hackerone Sync Scopes
     module Scopes
       CATEGORIES = {
-        url: %w[URL WILDCARD IP_ADDRESS API],
+        web: %w[URL WILDCARD IP_ADDRESS API],
         cidr: %w[CIDR],
         mobile: %w[GOOGLE_PLAY_APP_ID OTHER_APK APPLE_STORE_APP_ID TESTFLIGHT OTHER_IPA],
         other: %w[OTHER AWS_CLOUD_CONFIG],
@@ -51,13 +51,13 @@ module ScopesExtractor
         scopes
       end
 
-      # Adds a scope to the appropriate category, with normalization for URLs
+      # Adds a scope to the appropriate category, with normalization for web scopes
       # @param scopes [Hash] Scopes hash to add to
       # @param category [Symbol] Category to add the scope to
       # @param infos [Hash] Scope information
       # @return [void]
       def self.add_scope_to_category(scopes, category, infos)
-        if category == :url
+        if category == :web
           Normalizer.run('Hackerone', infos['asset_identifier'])&.each { |url| scopes[category] << url }
         else
           scopes[category] << infos['asset_identifier']
