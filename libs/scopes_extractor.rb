@@ -186,6 +186,34 @@ module ScopesExtractor
       config.dig(:sync, :auto)&.downcase == 'true'
     end
 
+    # Helper method to handle authentication retries
+    # @param platform [String] Platform name for logging
+    # @param max_retries [Integer] Maximum number of retry attempts
+    # @param retry_delay [Integer] Delay in seconds between retry attempts
+    # @yield [Block] Block executing the authentication and returning a hash with :error or :success
+    # @return [Hash, nil] Authentication result or nil if all attempts fail
+    def with_authentication_retry(platform, max_retries: 2, retry_delay: 30)
+      retries = 0
+
+      loop do
+        result = yield
+
+        return result unless result[:error] || (result.key?(:success) && !result[:success])
+
+        error_msg = result[:error] || 'Unknown error'
+        Discord.log_warn("#{platform} - Authentication Failed with error: #{error_msg}")
+
+        retries += 1
+        if retries >= max_retries
+          Discord.log_warn("#{platform} - Max retries (#{max_retries}) reached. Giving up.")
+          return nil
+        end
+
+        Discord.log_info("#{platform} - Retrying in #{retry_delay} seconds... (Attempt #{retries}/#{max_retries})")
+        sleep(retry_delay)
+      end
+    end
+
     # Checks if YesWeHack is configured with required credentials
     # @return [Boolean] True if YesWeHack is configured, false otherwise
     def yeswehack_configured?
@@ -199,14 +227,16 @@ module ScopesExtractor
     def yeswehack_sync
       return unless yeswehack_configured?
 
-      authentication = YesWeHack.authenticate(config[:yeswehack])
-      if authentication[:error]
-        Discord.log_warn("YesWeHack - Authentication Failed with error : #{authentication[:error]}")
-      else
-        config[:yeswehack][:headers] =
-          { 'Content-Type' => 'application/json', Authorization: "Bearer #{authentication[:jwt]}" }
-        YesWeHack::Programs.sync(results['YesWeHack'], config[:yeswehack])
+      auth_result = with_authentication_retry('YesWeHack') do
+        YesWeHack.authenticate(config[:yeswehack])
       end
+      return unless auth_result
+
+      config[:yeswehack][:headers] = {
+        'Content-Type' => 'application/json',
+        Authorization: "Bearer #{auth_result[:jwt]}"
+      }
+      YesWeHack::Programs.sync(results['YesWeHack'], config[:yeswehack])
     end
 
     # Checks if Immunefi is configured
@@ -272,12 +302,12 @@ module ScopesExtractor
     def bugcrowd_sync
       return unless bugcrowd_configured?
 
-      authentication = Bugcrowd.authenticate(config[:bugcrowd])
-      if authentication[:error] || !authentication[:success]
-        Discord.log_warn("Bugcrowd - Authentication Failed with error : #{authentication[:error]}")
-      else
-        Bugcrowd::Programs.sync(results['Bugcrowd'])
+      auth_result = with_authentication_retry('Bugcrowd') do
+        Bugcrowd.authenticate(config[:bugcrowd])
       end
+      return unless auth_result
+
+      Bugcrowd::Programs.sync(results['Bugcrowd'])
     end
   end
 end
