@@ -35,7 +35,7 @@ module ScopesExtractor
         programs = extract_programs(html)
 
         programs.each do |program|
-          sleep(0.9) # Avoid rate limit
+          sleep(1) # Avoid rate limit
           title = program['project']
 
           program_info = { slug: program['id'], private: false }
