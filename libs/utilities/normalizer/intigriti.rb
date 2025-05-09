@@ -9,7 +9,6 @@ module ScopesExtractor
       # @param value [String] The raw domain scope string
       # @return [Array<String>] List of normalized domain scopes
       def self.normalization(value)
-        value = value.strip
         value = value.sub(/^\*(\s\.|\.?\s)/, '*.')
                      .sub('.*', '.com')
                      .sub(/\.<TLD>/i, '.com')

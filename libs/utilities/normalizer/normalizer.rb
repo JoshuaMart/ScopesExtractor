@@ -44,6 +44,7 @@ module ScopesExtractor
     # @param value [String] The scope value to normalize
     # @return [String] The normalized scope value
     def self.global_normalization(value)
+      value = value.strip
       value = global_end_strip(value)
 
       # Remove protocol (http:// or https://) if string matches the pattern

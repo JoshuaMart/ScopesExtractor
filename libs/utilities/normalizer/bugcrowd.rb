@@ -9,8 +9,6 @@ module ScopesExtractor
       # @param value [String] The raw domain scope string
       # @return [Array<String>] List of normalized domain scopes
       def self.normalization(value)
-        value = value.strip
-
         if value.include?(' - ')
           [normalize_with_dash(value)]
         else
