@@ -69,7 +69,7 @@ module ScopesExtractor
         {
           message_webhook: ENV.fetch('DISCORD_WEBHOOK', nil),
           logs_webhook: ENV.fetch('DISCORD_LOGS_WEBHOOK', nil),
-          notify_non_web_scopes: ENV.fetch('NOTIFY_NON_WEB_SCOPES', 'false').downcase == 'true',
+          notify_categories: ENV.fetch('NOTIFY_CATEGORIES', 'all'),
           headers: { 'Content-Type' => 'application/json' }
         }
       end

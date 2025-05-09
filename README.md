@@ -122,7 +122,7 @@ curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&p
 | `BC_PWD` | Bugcrowd password | `""` |
 | `BC_OTP` | Bugcrowd OTP secret | `""` |
 | `IMMUNEFI_SYNC` | Enable Immunefi synchronization | `false` |
-| `NOTIFY_NON_WEB_SCOPES` | Notification for scope categories other than web | `false` |
+| `NOTIFY_CATEGORIES` | Scopes categories for which notifications are sent | `all` |
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 

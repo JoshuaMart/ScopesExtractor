@@ -59,8 +59,8 @@ module ScopesExtractor
     # @param in_scope [Boolean] Whether the scope is in-scope (true) or out-of-scope (false)
     # @return [void]
     def self.new_scope(platform, program, value, category, in_scope)
-      # Do not send notifications for non-URL scopes if option is disabled
-      return if category != 'web' && !config[:notify_non_web_scopes]
+      # Do not send notifications for disabled categories
+      return unless config[:notify_categories] == 'all' || config[:notify_categories].split(',').include?(category)
 
       notify('🆕 New scope', "In #{platform} - Program '#{program}': #{scope_label(value, category, in_scope)} added",
              65_280)
@@ -74,8 +74,8 @@ module ScopesExtractor
     # @param in_scope [Boolean] Whether the scope is in-scope (true) or out-of-scope (false)
     # @return [void]
     def self.removed_scope(platform, program, value, category, in_scope)
-      # Do not send notifications for non web scopes if option is disabled
-      return if category != 'web' && !config[:notify_non_web_scopes]
+      # Do not send notifications for disabled categories
+      return unless config[:notify_categories] == 'all' || config[:notify_categories].split(',').include?(category)
 
       notify('🗑 Scope removed',
              "In #{platform} - Program '#{program}': #{scope_label(value, category, in_scope)} removed", 16_711_680)
