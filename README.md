@@ -93,6 +93,9 @@ curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?type=add_s
 # Filter by program name
 curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?program=ProgramName"
 
+# Filter by category
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?category=web"
+
 # Combine filters
 curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&platform=Hackerone&type=add_scope"
 ```

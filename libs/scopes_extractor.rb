@@ -111,7 +111,8 @@ module ScopesExtractor
       {
         platform: query['platform'],
         change_type: query['type'],
-        program: query['program']
+        program: query['program'],
+        category: query['category']
       }.compact
     end
 
