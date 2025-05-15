@@ -218,12 +218,21 @@ module ScopesExtractor
       # @param resource_type [String] Description of what's being fetched for logging
       # @return [HTTP::Response, nil] Response object or nil if request failed
       def self.fetch_with_logging(url, resource_type)
-        response = HttpClient.get(url)
-        unless valid_response?(response)
-          Discord.log_warn("Bugcrowd - Failed to fetch #{resource_type}: #{url}")
-          return nil
+        retries = 0
+        max_retries = 2
+
+        loop do
+          response = HttpClient.get(url)
+          return response if valid_response?(response)
+
+          retries += 1
+          if retries <= max_retries
+            sleep 3 # Sleep for 3 seconds before retrying
+          else
+            Discord.log_warn("Bugcrowd - Failed to fetch #{resource_type}: #{url} after #{max_retries} retries")
+            return nil
+          end
         end
-        response
       end
 
       # Helper method for parsing JSON with error logging
