@@ -108,7 +108,7 @@ module ScopesExtractor
       ratelimit_remaining = resp.headers['x-ratelimit-remaining']&.to_i
       ratelimit_reset_after = resp.headers['x-ratelimit-reset-after']&.to_i
 
-      sleep(ratelimit_reset_after) if ratelimit_remaining.zero?
+      sleep(ratelimit_reset_after) if ratelimit_remaining&.zero?
     end
   end
 end
