@@ -2,26 +2,24 @@
 
 require 'ipaddr'
 require 'uri'
-require 'yaml'
+require_relative '../platforms/config'
 
 module ScopesExtractor
   # Parser module provides utilities for parsing and validating various data formats
   # including JSON, IP addresses, and URIs
   module Parser
     class << self
-      # Loads the exclusions from the YAML file
-      # Uses memoization to avoid loading the file multiple times
+      # Loads the parser configuration
+      # Uses memoization to avoid loading the config multiple times
+      # @return [Hash] Parser configuration options including exclusions
+      def parser_config
+        @parser_config ||= Config.load[:parser]
+      end
+
+      # Gets exclusions from parser config
       # @return [Array<String>] List of exclusion patterns
       def exclusions
-        @exclusions ||= begin
-          config_path = File.join(File.dirname(__FILE__), '..', '..', 'config', 'exclusions.yml')
-          if File.exist?(config_path)
-            config = YAML.safe_load(File.read(config_path))
-            config['exclusions'] || []
-          else
-            []
-          end
-        end
+        parser_config[:exclusions]
       end
 
       # Parses a JSON string into a Ruby object
@@ -55,7 +53,7 @@ module ScopesExtractor
 
         !!URI.parse(url)&.host
       rescue URI::InvalidURIError
-        Discord.log_warn("Bad URI for '#{value}'")
+        Discord.log_warn("Bad URI for '#{value}'") if parser_config[:notify_uri_errors]
         false
       end
     end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'dotenv/load'
+require 'yaml'
 
 module ScopesExtractor
   # Config class manages application configuration loaded from environment variables
@@ -18,7 +19,8 @@ module ScopesExtractor
         discord: discord_config,
         api: api_config,
         sync: sync_config,
-        history: history_config
+        history: history_config,
+        parser: parser_config
       }
     end
 
@@ -92,6 +94,23 @@ module ScopesExtractor
         {
           retention_days: ENV.fetch('HISTORY_RETENTION_DAYS', 30).to_i
         }
+      end
+
+      def parser_config
+        {
+          notify_uri_errors: ENV.fetch('NOTIFY_URI_ERRORS', 'true').downcase == 'true',
+          exclusions: load_exclusions
+        }
+      end
+
+      def load_exclusions
+        config_path = File.join(File.dirname(__FILE__), '..', '..', 'config', 'exclusions.yml')
+        if File.exist?(config_path)
+          config = YAML.safe_load(File.read(config_path))
+          config['exclusions'] || []
+        else
+          []
+        end
       end
     end
   end
