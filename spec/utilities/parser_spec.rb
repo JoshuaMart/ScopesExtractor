@@ -3,32 +3,56 @@
 require 'spec_helper'
 
 RSpec.describe ScopesExtractor::Parser do
-  describe '.exclusions' do
-    context 'when exclusions.yml does not exist' do
-      before do
-        allow(File).to receive(:exist?).and_return(false)
-
-        # Reset memoized value
-        described_class.instance_variable_set(:@exclusions, nil)
-      end
-
-      it 'returns an empty array' do
-        expect(described_class.exclusions).to eq([])
-      end
+  describe '.parser_config' do
+    before do
+      # Reset memoized value
+      described_class.instance_variable_set(:@parser_config, nil)
     end
 
-    context 'when exclusions.yml exists but has no exclusions key' do
-      let(:yaml_content) { { 'other_key' => ['value'] } }
-      let(:yaml_path) { File.join(File.dirname(__FILE__), '..', '..', 'config', 'exclusions.yml') }
+    it 'loads parser configuration from Config' do
+      expect(ScopesExtractor::Config).to receive(:load).and_return(
+        parser: {
+          notify_uri_errors: true,
+          exclusions: ['test.com']
+        }
+      )
+      
+      config = described_class.parser_config
+      expect(config[:notify_uri_errors]).to be true
+      expect(config[:exclusions]).to eq(['test.com'])
+    end
 
-      before do
-        allow(File).to receive(:exist?).with(anything).and_call_original
-        allow(File).to receive(:exist?).with(yaml_path).and_return(true)
-        allow(File).to receive(:read).with(yaml_path).and_return(yaml_content.to_yaml)
+    it 'memoizes the configuration' do
+      expect(ScopesExtractor::Config).to receive(:load).once.and_return(
+        parser: { notify_uri_errors: false, exclusions: [] }
+      )
+      
+      # Call twice, should only load once
+      described_class.parser_config
+      described_class.parser_config
+    end
+  end
 
-        # Reset memoized value
-        described_class.instance_variable_set(:@exclusions, nil)
-      end
+  describe '.exclusions' do
+    before do
+      # Reset memoized value
+      described_class.instance_variable_set(:@parser_config, nil)
+    end
+
+    it 'returns exclusions from parser config' do
+      allow(described_class).to receive(:parser_config).and_return(
+        { exclusions: ['excluded1.com', 'excluded2.com'] }
+      )
+      
+      expect(described_class.exclusions).to eq(['excluded1.com', 'excluded2.com'])
+    end
+
+    it 'returns empty array when no exclusions configured' do
+      allow(described_class).to receive(:parser_config).and_return(
+        { exclusions: [] }
+      )
+      
+      expect(described_class.exclusions).to eq([])
     end
   end
 
@@ -50,6 +74,7 @@ RSpec.describe ScopesExtractor::Parser do
     context 'with invalid JSON' do
       it 'returns nil and logs a warning' do
         invalid_json = '{"broken": "json'
+        expect(ScopesExtractor::Discord).to receive(:log_warn).with("JSON parsing error : #{invalid_json}")
         expect(described_class.json_parse(invalid_json)).to be_nil
       end
     end
@@ -73,11 +98,13 @@ RSpec.describe ScopesExtractor::Parser do
     context 'with invalid IP addresses' do
       it 'returns false and logs a warning' do
         invalid_ip = '256.256.256.256'
+        expect(ScopesExtractor::Discord).to receive(:log_warn).with("Bad IPAddr for '#{invalid_ip}'")
         expect(described_class.valid_ip?(invalid_ip)).to be false
       end
 
       it 'returns false for non-IP strings' do
         invalid_ip = 'not-an-ip'
+        expect(ScopesExtractor::Discord).to receive(:log_warn).with("Bad IPAddr for '#{invalid_ip}'")
         expect(described_class.valid_ip?(invalid_ip)).to be false
       end
     end
@@ -85,7 +112,7 @@ RSpec.describe ScopesExtractor::Parser do
 
   describe '.valid_uri?' do
     before do
-      # Mock exclusions method to return test values
+      # Mock the parser_config and exclusions methods
       allow(described_class).to receive(:exclusions).and_return(['excluded.com'])
     end
 
@@ -112,9 +139,32 @@ RSpec.describe ScopesExtractor::Parser do
         expect(described_class.valid_uri?('excluded.com')).to be false
       end
 
-      it 'returns false and logs a warning for invalid URIs' do
-        invalid_uri = 'http://exa mple.com'
-        expect(described_class.valid_uri?(invalid_uri)).to be false
+      context 'when notifications are enabled' do
+        before do
+          allow(described_class).to receive(:parser_config).and_return(
+            { notify_uri_errors: true }
+          )
+        end
+
+        it 'returns false and logs a warning for invalid URIs' do
+          invalid_uri = 'http://exa mple.com'
+          expect(ScopesExtractor::Discord).to receive(:log_warn).with("Bad URI for '#{invalid_uri}'")
+          expect(described_class.valid_uri?(invalid_uri)).to be false
+        end
+      end
+
+      context 'when notifications are disabled' do
+        before do
+          allow(described_class).to receive(:parser_config).and_return(
+            { notify_uri_errors: false }
+          )
+        end
+
+        it 'returns false but does not log a warning for invalid URIs' do
+          invalid_uri = 'http://exa mple.com'
+          expect(ScopesExtractor::Discord).not_to receive(:log_warn)
+          expect(described_class.valid_uri?(invalid_uri)).to be false
+        end
       end
     end
   end
