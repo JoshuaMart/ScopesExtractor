@@ -18,9 +18,8 @@ module ScopesExtractor
       PROGRAMS_ENDPOINT = 'https://api.hackerone.com/v1/hackers/programs'
 
       def self.sync(program, config)
-        url = File.join(PROGRAMS_ENDPOINT, program[:slug])
-        response = HttpClient.get(url, { headers: config[:headers] })
-        return unless response&.code == 200
+        response = fetch_program(program, config)
+        return unless response
 
         json = Parser.json_parse(response.body)
         return unless json
@@ -32,6 +31,20 @@ module ScopesExtractor
           'in' => parse_scopes(data),
           'out' => {} # TODO
         }
+      end
+
+      def self.fetch_program(program, config, retry_count = 0)
+        url = File.join(PROGRAMS_ENDPOINT, program[:slug])
+        response = HttpClient.get(url, { headers: config[:headers] })
+        return response if response&.code == 200
+
+        if retry_count < 3
+          sleep(5)
+          fetch_program(program, config, retry_count + 1)
+        else
+          Discord.log_warn("Hackerone - Unable to fetch program: #{program[:slug]}")
+          return
+        end
       end
 
       def self.parse_scopes(targets)
