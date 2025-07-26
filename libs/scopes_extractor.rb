@@ -52,6 +52,14 @@ module ScopesExtractor
       DB.get_recent_changes(hours, filters)
     end
 
+    # Gets all wildcard domains from current programs
+    # @param filters [Hash] Optional filters (platform, program)
+    # @return [Array] Array of wildcard domains with metadata
+    def get_wildcards(filters = {})
+      current_data = DB.load
+      extract_wildcards(current_data, filters)
+    end
+
     private
 
     # Processes an API request by verifying the API key in the header and returning the appropriate data in JSON.
@@ -70,6 +78,8 @@ module ScopesExtractor
 
       if path.start_with?('/changes')
         handle_changes_request(res, query)
+      elsif path.start_with?('/wildcards')
+        handle_wildcards_request(res, query)
       else
         handle_default_request(res)
       end
@@ -103,6 +113,16 @@ module ScopesExtractor
       res.body = get_recent_changes(hours, filters).to_json
     end
 
+    # Handles requests to the /wildcards endpoint, applying appropriate filters.
+    #
+    # @param res [WEBrick::HTTPResponse] The HTTP response object to be modified.
+    # @param query [Hash] The query parameters from the request.
+    # @return [void]
+    def handle_wildcards_request(res, query)
+      filters = extract_wildcard_filters(query)
+      res.body = get_wildcards(filters).to_json
+    end
+
     # Extracts relevant filters from the query parameters.
     #
     # @param query [Hash] The query parameters from the request.
@@ -114,6 +134,56 @@ module ScopesExtractor
         program: query['program'],
         category: query['category']
       }.compact
+    end
+
+    # Extracts relevant filters for wildcard requests from the query parameters.
+    #
+    # @param query [Hash] The query parameters from the request.
+    # @return [Hash] A hash containing only the non-nil filter values.
+    def extract_wildcard_filters(query)
+      {
+        platform: query['platform'],
+        program: query['program']
+      }.compact
+    end
+
+    # Extracts wildcard domains from program data
+    #
+    # @param data [Hash] The program data to search through
+    # @param filters [Hash] Optional filters to apply (platform, program)
+    # @return [Array] Array of wildcard entries with metadata
+    def extract_wildcards(data, filters = {})
+      wildcards = []
+
+      data.each do |platform, programs|
+        # Apply platform filter if specified
+        next if filters[:platform] && platform != filters[:platform]
+
+        programs.each do |program_name, program_data|
+          # Apply program filter if specified
+          next if filters[:program] && program_name != filters[:program]
+
+          # Extract wildcards from in-scope web targets
+          scopes = program_data['scopes'] || {}
+          in_scopes = scopes['in'] || {}
+          web_scopes = in_scopes['web'] || []
+
+          web_scopes.each do |scope|
+            next unless scope.start_with?('*.')
+
+            wildcards << {
+              'domain' => scope,
+              'platform' => platform,
+              'program' => program_name,
+              'slug' => program_data['slug'],
+              'private' => program_data['private'] || false
+            }
+          end
+        end
+      end
+
+      # Sort by domain for consistent output
+      wildcards.sort_by { |w| w['domain'] }
     end
 
     # Handles the default API request by returning the current state.

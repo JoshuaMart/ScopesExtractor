@@ -5,7 +5,7 @@ A tool for monitoring bug bounty programs across multiple platforms to track sco
 [![Ruby](https://img.shields.io/badge/Ruby-3.4.2-red.svg)](https://www.ruby-lang.org/en/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![codeclimate](https://api.codeclimate.com/v1/badges/713b3c783fe46abaca0e/maintainability)](https://codeclimate.com/github/JoshuaMart/ScopesExtractor/maintainability/)
+[![Maintainability](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor/maintainability.svg)](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor)
 
 ## 📖 Overview
 
@@ -98,6 +98,15 @@ curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?category=w
 
 # Combine filters
 curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&platform=Hackerone&type=add_scope"
+
+# Get all wildcard domains (*.example.com)
+curl -H "X-API-Key: your_api_key_here" http://localhost:4567/wildcards
+
+# Get wildcards from specific platform
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/wildcards?platform=YesWeHack"
+
+# Get wildcards from specific program
+curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/wildcards?program=ProgramName"
 ```
 
 ## ⚙️ Configuration
