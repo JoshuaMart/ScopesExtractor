@@ -16,7 +16,7 @@ RSpec.describe ScopesExtractor::Parser do
           exclusions: ['test.com']
         }
       )
-      
+
       config = described_class.parser_config
       expect(config[:notify_uri_errors]).to be true
       expect(config[:exclusions]).to eq(['test.com'])
@@ -26,7 +26,7 @@ RSpec.describe ScopesExtractor::Parser do
       expect(ScopesExtractor::Config).to receive(:load).once.and_return(
         parser: { notify_uri_errors: false, exclusions: [] }
       )
-      
+
       # Call twice, should only load once
       described_class.parser_config
       described_class.parser_config
@@ -43,7 +43,7 @@ RSpec.describe ScopesExtractor::Parser do
       allow(described_class).to receive(:parser_config).and_return(
         { exclusions: ['excluded1.com', 'excluded2.com'] }
       )
-      
+
       expect(described_class.exclusions).to eq(['excluded1.com', 'excluded2.com'])
     end
 
@@ -51,7 +51,7 @@ RSpec.describe ScopesExtractor::Parser do
       allow(described_class).to receive(:parser_config).and_return(
         { exclusions: [] }
       )
-      
+
       expect(described_class.exclusions).to eq([])
     end
   end
