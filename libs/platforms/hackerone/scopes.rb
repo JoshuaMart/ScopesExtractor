@@ -43,7 +43,7 @@ module ScopesExtractor
           fetch_program(program, config, retry_count + 1)
         else
           Discord.log_warn("Hackerone - Unable to fetch program: #{program[:slug]}")
-          return
+          nil
         end
       end
 
