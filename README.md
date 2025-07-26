@@ -162,6 +162,8 @@ You can configure pattern exclusions in `config/exclusions.yml` to filter out sp
   You can query recent changes through the API (only) to see what has changed in the last few hours or days, which is useful for keeping track of bug bounty program changes even if you missed the Discord notifications.
 
   The changes reflect what is detected by ScopesExtractor (addition/removal of scopes and programs) and not the modifications indicated directly on the program page of each platform.
+
+  When a program is removed, the complete scope information that was present at the time of removal is preserved in the history. This allows you to see exactly what scopes were lost when a program disappeared from a platform.
 </details>
 
 ## 📜 License

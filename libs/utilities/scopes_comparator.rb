@@ -50,12 +50,13 @@ module ScopesExtractor
       # @param platform [String] The platform name
       # @return [void]
       def self.process_removed_programs(old_programs, new_programs, platform)
-        old_programs.each_key do |title|
+        old_programs.each do |title, program_data|
           next if new_programs.key?(title)
 
           Discord.removed_program(platform, title)
-          # Also record in history
-          DB.save_change(platform, title, 'remove_program', nil, nil, title)
+          # Also record in history with scopes data
+          scopes = program_data['scopes'] || {}
+          DB.save_change(platform, title, 'remove_program', nil, nil, title, scopes)
         end
       end
 

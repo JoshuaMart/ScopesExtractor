@@ -48,8 +48,9 @@ module ScopesExtractor
     # @param scope_type [String, nil] Scope type ('in' or 'out') for scope changes, nil for program changes
     # @param category [String, nil] Category for scope changes, nil for program changes
     # @param value [String] Value of scope or program name
+    # @param scopes [Hash, nil] Optional scopes data for removed programs
     # @return [Integer] Number of bytes written to the file
-    def self.save_change(platform, program, change_type, scope_type, category, value)
+    def self.save_change(platform, program, change_type, scope_type, category, value, scopes = nil)
       history = load_history
 
       # Create a new entry
@@ -62,6 +63,9 @@ module ScopesExtractor
         'category' => category,
         'value' => value
       }
+
+      # Add scopes if provided (typically for removed programs)
+      entry['scopes'] = scopes if scopes
 
       history << entry
 
