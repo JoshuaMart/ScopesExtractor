@@ -18,12 +18,12 @@ module ScopesExtractor
         '.ripe.net'
       ].freeze
 
-      def self.sync(program, headers)
+      def self.sync(program, config)
         scopes = { 'in' => {}, 'out' => {} }
 
-        response = HttpClient.get("#{PROGRAMS_ENDPOINT}/#{program['id']}", { headers: headers })
+        response = HttpClient.get("#{PROGRAMS_ENDPOINT}/#{program['id']}", { headers: config[:headers] })
 
-        json = extract_json(program, response)
+        json = extract_json(program, response, config)
         return scopes unless json
 
         parse_scopes(json, scopes)
@@ -34,10 +34,16 @@ module ScopesExtractor
       # Extracts JSON data from the HTTP response
       # @param program [Hash] Program information hash containing id
       # @param response [Faraday::Response] HTTP response
+      # @param config [Hash] Configuration hash
       # @return [Hash, nil] Parsed JSON data or nil if extraction fails
-      def self.extract_json(program, response)
+      def self.extract_json(program, response, config)
         unless response&.code == 200
-          Discord.log_warn("Intigriti - Failed to fetch program #{program['name']} - #{response&.code}")
+          # Skip Discord notification for 403 errors if the config option is disabled
+          should_skip_403 = response&.code == 403 && config.dig(:parser, :notify_intigriti_403_errors) == false
+
+          unless should_skip_403
+            Discord.log_warn("Intigriti - Failed to fetch program #{program['name']} - #{response&.code}")
+          end
           return nil
         end
 

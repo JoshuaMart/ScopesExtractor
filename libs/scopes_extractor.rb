@@ -338,7 +338,7 @@ module ScopesExtractor
       return unless intigriti_configured?
 
       config[:intigriti][:headers] = { Authorization: "Bearer #{config.dig(:intigriti, :token)}" }
-      Intigriti::Programs.sync(results['Intigriti'], config[:intigriti])
+      Intigriti::Programs.sync(results['Intigriti'], config)
     end
 
     # Checks if Hackerone is configured with required credentials

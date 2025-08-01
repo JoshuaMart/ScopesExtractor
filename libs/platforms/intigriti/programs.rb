@@ -9,7 +9,7 @@ module ScopesExtractor
       PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs?limit=500&statusId=3'
 
       def self.sync(results, config)
-        response = HttpClient.get(PROGRAMS_ENDPOINT, { headers: config[:headers] })
+        response = HttpClient.get(PROGRAMS_ENDPOINT, { headers: config[:intigriti][:headers] })
         return unless response&.code == 200
 
         data = Parser.json_parse(response.body)
@@ -26,7 +26,7 @@ module ScopesExtractor
           name = program['name']
 
           results[name] = program_info(program)
-          results[name][:scopes] = Scopes.sync(program, config[:headers])
+          results[name][:scopes] = Scopes.sync(program, config)
         end
       end
 

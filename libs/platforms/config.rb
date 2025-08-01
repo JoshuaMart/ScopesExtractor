@@ -99,6 +99,7 @@ module ScopesExtractor
       def parser_config
         {
           notify_uri_errors: ENV.fetch('NOTIFY_URI_ERRORS', 'true').downcase == 'true',
+          notify_intigriti_403_errors: ENV.fetch('NOTIFY_INTIGRITI_403_ERRORS', 'true').downcase == 'true',
           exclusions: load_exclusions
         }
       end

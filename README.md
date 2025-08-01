@@ -138,6 +138,7 @@ curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/wildcards?program=
 | `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
 | `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
 | `NOTIFY_URI_ERRORS` | Send a notification for scope parsing errors | `true` |
+| `NOTIFY_INTIGRITI_403_ERRORS` | Send Discord notifications for Intigriti program fetch errors (set to false to skip 403 errors) | `true` |
 
 ### 📊 Exclusions
 
@@ -154,7 +155,7 @@ You can configure pattern exclusions in `config/exclusions.yml` to filter out sp
 <details>
   <summary>Intigriti - Failed to fetch program ... 403</summary>
 
-  Programs must be manually accepted on the Intigriti website in order to be able to consult them.
+  Programs must be manually accepted on the Intigriti website in order to be able to consult them. You can set `NOTIFY_INTIGRITI_403_ERRORS=false` to skip Discord notifications for these 403 errors while still receiving notifications for other types of fetch errors.
 </details>
 
 <details>
