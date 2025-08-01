@@ -1,5 +1,25 @@
 # Changelog
 
+## Version 1.3.0 - Enhanced Notification Control
+
+### 🆕 New Features
+
+#### Granular Control for Intigriti 403 Error Notifications
+
+Introducing fine-grained control over Discord notifications for Intigriti program fetch errors, specifically targeting 403 status codes.
+
+**New Configuration Variable:**
+- `NOTIFY_INTIGRITI_403_ERRORS` - Controls Discord notifications for Intigriti 403 errors (default: `true`)
+
+**Behavior:**
+- **When `true` (default):** All Intigriti fetch errors (403, 404, 500, etc.) trigger Discord notifications
+- **When `false`:** Only 403 errors are silenced, other error codes still trigger notifications
+
+**Use Case:**
+Intigriti returns 403 errors for programs that haven't been manually accepted on their website. This option allows you to reduce notification noise from these expected 403 errors while maintaining visibility on actual technical issues.
+
+---
+
 ## Version 1.2.0 - Wildcards Endpoint
 
 ### 🆕 New Features
