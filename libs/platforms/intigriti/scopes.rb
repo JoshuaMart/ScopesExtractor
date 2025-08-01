@@ -21,7 +21,7 @@ module ScopesExtractor
       def self.sync(program, config)
         scopes = { 'in' => {}, 'out' => {} }
 
-        response = HttpClient.get("#{PROGRAMS_ENDPOINT}/#{program['id']}", { headers: config[:headers] })
+        response = HttpClient.get("#{PROGRAMS_ENDPOINT}/#{program['id']}", { headers: config[:intigriti][:headers] })
 
         json = extract_json(program, response, config)
         return scopes unless json
