@@ -2,7 +2,7 @@
 
 module ScopesExtractor
   module Intigriti
-    # Intigrit Sync Scopes
+    # Intigriti Sync Scopes
     module Scopes
       CATEGORIES = {
         web: [1, 7],
@@ -13,43 +13,87 @@ module ScopesExtractor
       }.freeze
 
       PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs'
+      RETRY_MAX   = 3
+      RETRY_DELAY = 30
 
-      DENY = [
-        '.ripe.net'
-      ].freeze
+      DENY = ['.ripe.net'].freeze
 
       def self.sync(program, config)
         scopes = { 'in' => {}, 'out' => {} }
 
-        response = HttpClient.get("#{PROGRAMS_ENDPOINT}/#{program['id']}", { headers: config[:intigriti][:headers] })
+        url = "#{PROGRAMS_ENDPOINT}/#{program['id']}"
+        response = get_with_retry(url, config, program['name'])
 
-        json = extract_json(program, response, config)
+        return scopes unless response
+
+        json = extract_json(program, response)
         return scopes unless json
 
         parse_scopes(json, scopes)
-
         scopes
       end
 
-      # Extracts JSON data from the HTTP response
-      # @param program [Hash] Program information hash containing id
-      # @param response [Faraday::Response] HTTP response
-      # @param config [Hash] Configuration hash
-      # @return [Hash, nil] Parsed JSON data or nil if extraction fails
-      def self.extract_json(program, response, config)
-        unless response&.code == 200
-          # Skip Discord notification for 403 errors if the config option is disabled
-          should_skip_403 = response&.code == 403 && config.dig(:parser, :notify_intigriti_403_errors) == false
+      def self.get_with_retry(url, config, program_name)
+        headers = config.dig(:intigriti, :headers) || {}
+        response = try_request_with_retries(url, headers)
 
-          unless should_skip_403
-            Discord.log_warn("Intigriti - Failed to fetch program #{program['name']} - #{response&.code}")
-          end
-          return nil
+        return nil unless response_success?(response, config, program_name)
+
+        response
+      rescue StandardError => e
+        Discord.log_warn(
+          "Intigriti - Exception while fetching #{url}: #{e.class}: #{e.message}"
+        )
+        nil
+      end
+
+      def self.try_request_with_retries(url, headers)
+        attempts = 0
+        response = HttpClient.get(url, { headers: headers })
+
+        while retry_needed?(response) && attempts < RETRY_MAX
+          attempts += 1
+          Discord.log_warn(
+            "Intigriti - #{response.code} for #{url}. Retry #{attempts}/" \
+            "#{RETRY_MAX} in #{RETRY_DELAY}s"
+          )
+          sleep RETRY_DELAY
+          response = HttpClient.get(url, { headers: headers })
         end
+
+        response
+      end
+
+      def self.retry_needed?(response)
+        response&.code.to_i.between?(500, 599)
+      end
+
+      def self.response_success?(response, config, program_name)
+        return true if response&.code == 200
+
+        skip403 = skip_403_error?(response, config)
+        unless skip403
+          Discord.log_warn(
+            "Intigriti - Failed to fetch program #{program_name || '(unknown)'} " \
+            "- #{response&.code}"
+          )
+        end
+        false
+      end
+
+      def self.skip_403_error?(response, config)
+        notify_403_errors = config.dig(:parser, :notify_intigriti_403_errors)
+        response&.code == 403 && notify_403_errors == false
+      end
+
+      def self.extract_json(program, response)
+        return nil unless response&.body
 
         json = Parser.json_parse(response.body)
         unless json
-          Discord.log_warn("Intigriti - Failed to parse JSON for program #{program['handle']}")
+          Discord.log_warn(
+            "Intigriti - Failed to parse JSON for program #{program['handle']}"
+          )
           return nil
         end
 
@@ -69,10 +113,10 @@ module ScopesExtractor
           next unless valid_scope?(scope)
 
           category = find_category(scope)
+          next unless category
+
           type = determine_scope_type(scope)
-
           scopes[type][category] ||= []
-
           add_scope(scopes, type, category, scope)
         end
       end
@@ -82,7 +126,10 @@ module ScopesExtractor
 
         category = find_category(scope)
         return false unless category
-        return false if DENY.any? { |deny| scope['endpoint'].include?(deny) }
+
+        endpoint = scope['endpoint'].to_s
+        return false if endpoint.empty?
+        return false if DENY.any? { |deny| endpoint.include?(deny) }
 
         true
       end
@@ -92,17 +139,21 @@ module ScopesExtractor
       end
 
       def self.add_scope(scopes, type, category, scope)
+        endpoint = scope['endpoint'].to_s
+        return if endpoint.empty?
+
         if category == :web && type == 'in'
-          Normalizer.run('Intigriti', scope['endpoint'])&.each { |url| scopes[type][category] << url }
+          Normalizer.run('Intigriti', endpoint)&.each do |url|
+            scopes[type][category] << url
+          end
         else
-          scopes[type][category] << scope['endpoint'].downcase
+          scopes[type][category] << endpoint.downcase
         end
       end
 
       def self.find_category(scope)
         category = CATEGORIES.find { |_key, values| values.include?(scope.dig('type', 'id')) }&.first
         Utilities.log_warn("Intigriti - Inexistent categories : #{scope}") if category.nil?
-
         category
       end
     end

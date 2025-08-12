@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 1.4.0 - Intigriti Retry Mechanism
+
+### 🆕 New Features
+
+#### Automatic Retry Mechanism for Intigriti Program Fetch
+
+Added a retry system to improve resilience when fetching Intigriti program scopes.
+
+**Behavior:**
+- Automatically retries failed requests for **5xx server errors** up to 3 times (`RETRY_MAX`)
+- Waits 30 seconds between each retry (`RETRY_DELAY`)
+- Logs retry attempts to Discord with attempt count and delay
+- Aborts retries on non-5xx errors or after reaching the retry limit
+
+**Use Case:**
+Helps mitigate temporary network or Intigriti API outages by automatically retrying before raising an alert, reducing false-positive failure notifications.
+
 ## Version 1.3.0 - Enhanced Notification Control
 
 ### 🆕 New Features
