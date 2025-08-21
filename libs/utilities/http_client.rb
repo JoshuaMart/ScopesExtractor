@@ -35,17 +35,42 @@ module ScopesExtractor
       }.compact
     end
 
-    # Performs an HTTP request
+    # Performs an HTTP request with automatic retry for specific error conditions
     # @param method [Symbol] HTTP method to use
     # @param url [String] The URL to request
-    # @param options [Hash] Request options including headers and body
+    # @param options [Hash] Request options including headers, body, max_retries, and retry_delay
     # @return [Typhoeus::Response, nil] Response object if successful
     def self.request(method, url, options = {})
+      max_retries = options[:max_retries] || 3
+      retry_delay = options[:retry_delay] || 30
+      attempts = 0
+
       request_options = build_request_options(method, options)
-      Typhoeus::Request.new(url, request_options).run
+      response = Typhoeus::Request.new(url, request_options).run
+
+      while retry_needed?(response) && attempts < max_retries
+        attempts += 1
+        Discord.log_warn(
+          "HTTP #{response&.code || 'error'} for #{url}. Retry #{attempts}/" \
+          "#{max_retries} in #{retry_delay}s"
+        )
+        sleep retry_delay
+        response = Typhoeus::Request.new(url, request_options).run
+      end
+
+      response
     rescue StandardError => e
       Discord.log_warn("HTTP error when requesting URL '#{url}': #{e.message}")
       nil
+    end
+
+    # Determines if a retry is needed based on response status
+    # @param response [Typhoeus::Response, nil] The HTTP response
+    # @return [Boolean] True if retry is needed
+    def self.retry_needed?(response)
+      return true if response.nil? || [0, 400].include?(response.code) || response.code.between?(500, 599)
+
+      false
     end
 
     # Performs an HTTP GET request

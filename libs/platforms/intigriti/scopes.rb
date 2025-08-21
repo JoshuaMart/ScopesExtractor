@@ -13,9 +13,6 @@ module ScopesExtractor
       }.freeze
 
       PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs'
-      RETRY_MAX   = 3
-      RETRY_DELAY = 30
-
       DENY = ['.ripe.net'].freeze
 
       def self.sync(program, config)
@@ -35,7 +32,7 @@ module ScopesExtractor
 
       def self.get_with_retry(url, config, program_name)
         headers = config.dig(:intigriti, :headers) || {}
-        response = try_request_with_retries(url, headers)
+        response = HttpClient.get(url, { headers: headers })
 
         return nil unless response_success?(response, config, program_name)
 
@@ -45,27 +42,6 @@ module ScopesExtractor
           "Intigriti - Exception while fetching #{url}: #{e.class}: #{e.message}"
         )
         nil
-      end
-
-      def self.try_request_with_retries(url, headers)
-        attempts = 0
-        response = HttpClient.get(url, { headers: headers })
-
-        while retry_needed?(response) && attempts < RETRY_MAX
-          attempts += 1
-          Discord.log_warn(
-            "Intigriti - #{response.code} for #{url}. Retry #{attempts}/" \
-            "#{RETRY_MAX} in #{RETRY_DELAY}s"
-          )
-          sleep RETRY_DELAY
-          response = HttpClient.get(url, { headers: headers })
-        end
-
-        response
-      end
-
-      def self.retry_needed?(response)
-        response&.code.to_i.between?(500, 599)
       end
 
       def self.response_success?(response, config, program_name)

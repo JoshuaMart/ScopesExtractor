@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 1.5.0 - HTTP Client Retry
+
+### 🔄 Modifications
+
+#### Centralized HTTP Retry Mechanism
+
+Refactored the HTTP retry logic from platform-specific implementations to a centralized system in `HttpClient`.
+
+**Changes:**
+- **Moved retry logic** from `Intigriti::Scopes.try_request_with_retries` to `HttpClient.request`
+- **Enhanced retry conditions** to include status codes: 0 (connection errors), 400 (Bad Request), and 5xx (server errors)
+- **Configurable parameters** via `max_retries` (default: 3) and `retry_delay` (default: 30s) options
+- **Unified logging** format across all HTTP requests with retry attempt details
+
+---
+
 ## Version 1.4.0 - Intigriti Retry Mechanism
 
 ### 🆕 New Features
