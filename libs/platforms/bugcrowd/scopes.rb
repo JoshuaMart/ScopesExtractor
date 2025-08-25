@@ -6,7 +6,7 @@ module ScopesExtractor
     module Scopes
       # Mapping of Bugcrowd scope types to standardized categories
       CATEGORIES = {
-        web: %w[website api],
+        web: %w[website api ip_address],
         mobile: %w[android ios],
         other: %w[other],
         executable: %w[application],
