@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.6.0 - Fix Program Status Change Detection
+
+### 🐛 Bug Fixes
+
+#### Resolved Bad Program Deletions
+
+Fixed an issue where programs with status changes (e.g., `open` → `closed`) were not properly detected during synchronization.
+
+---
+
 ## Version 1.5.0 - HTTP Client Retry
 
 ### 🔄 Modifications
