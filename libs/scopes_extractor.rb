@@ -231,6 +231,9 @@ module ScopesExtractor
       Utilities.log_info('Start synchronisation')
       current_data = DB.load
 
+      # Clear results before each sync to avoid accumulation of stale program data
+      PLATFORMS.each { |platform| @results[platform] = {} }
+
       yeswehack_sync
       immunefi_sync
       intigriti_sync
