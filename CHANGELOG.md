@@ -1,5 +1,18 @@
 # Changelog
 
+## Version 1.7.0 - HackerOne Pagination Optimization
+
+### 🔄 Modifications
+
+#### Migrated to Structured Scopes Endpoint with Pagination
+
+Improved HackerOne scope fetching by migrating from the legacy program endpoint to the dedicated structured scopes endpoint with full pagination support.
+
+**Changes:**
+- **Endpoint Migration**: Switched from `/v1/hackers/programs/{slug}` to `/v1/hackers/programs/{slug}/structured_scopes`
+
+---
+
 ## Version 1.6.0 - Fix Program Status Change Detection
 
 ### 🐛 Bug Fixes
