@@ -18,33 +18,53 @@ module ScopesExtractor
       PROGRAMS_ENDPOINT = 'https://api.hackerone.com/v1/hackers/programs'
 
       def self.sync(program, config)
-        response = fetch_program(program, config)
-        return unless response
-
-        json = Parser.json_parse(response.body)
-        return unless json
-
-        data = json.dig('relationships', 'structured_scopes', 'data')
-        return unless data
+        all_scopes = fetch_all_scopes(program, config)
+        return unless all_scopes
 
         {
-          'in' => parse_scopes(data),
+          'in' => parse_scopes(all_scopes),
           'out' => {} # TODO
         }
       end
 
-      def self.fetch_program(program, config, retry_count = 0)
-        url = File.join(PROGRAMS_ENDPOINT, program[:slug])
-        response = HttpClient.get(url, { headers: config[:headers] })
-        return response if response&.code == 200
+      def self.fetch_all_scopes(program, config)
+        all_scopes = []
+        page_number = 1
 
-        if retry_count < 3
-          sleep(5)
-          fetch_program(program, config, retry_count + 1)
-        else
-          Discord.log_warn("Hackerone - Unable to fetch program: #{program[:slug]}")
-          nil
+        loop do
+          page_data = fetch_scopes_page(program, config, page_number)
+          return nil unless page_data
+
+          all_scopes.concat(page_data[:scopes])
+          break unless page_data[:has_next]
+
+          page_number += 1
         end
+
+        all_scopes
+      end
+
+      def self.fetch_scopes_page(program, config, page_number)
+        url = build_scopes_url(program[:slug], page_number)
+        response = HttpClient.get(url, { headers: config[:headers] })
+
+        unless response&.code == 200
+          Discord.log_warn("Hackerone - Unable to fetch scopes page #{page_number} for program #{program[:slug]}")
+          return nil
+        end
+
+        json = Parser.json_parse(response.body)
+        return nil unless json&.dig('data')
+
+        {
+          scopes: json['data'],
+          has_next: json.dig('links', 'next')
+        }
+      end
+
+      def self.build_scopes_url(slug, page_number)
+        File.join(PROGRAMS_ENDPOINT, slug,
+                  "structured_scopes?page[size]=100&page[number]=#{page_number}")
       end
 
       def self.parse_scopes(targets)
