@@ -1,5 +1,30 @@
 # Changelog
 
+## Version 1.8.0 - Scope Category Detection & Parser Improvements
+
+### 🆕 New Features
+
+#### Centralized Scope Category Detection
+
+Introduced a new `ScopeCategoryDetector` utility module to centralize and standardize category detection across all platforms.
+
+**Features:**
+- **Unified Logic**: Eliminates code duplication across platform-specific scope modules
+
+### 🐛 Bug Fixes
+
+#### Fixed Invalid Wildcard Pattern Validation
+
+Resolved an issue where invalid wildcard patterns were incorrectly accepted during scope normalization.
+
+**Example of invalid patterns now rejected:**
+- `abcd-*.domain.tld` (wildcard in the middle of domain)
+- `https://*abcd.domain.tld` (wildcard immediately after protocol)
+
+**Valid patterns still accepted:**
+- `*.example.com` (standard wildcard subdomain)
+- `https://*.example.com` (wildcard subdomain with protocol)
+
 ## Version 1.7.0 - HackerOne Pagination Optimization
 
 ### 🔄 Modifications
