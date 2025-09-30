@@ -104,16 +104,7 @@ module ScopesExtractor
         category = CATEGORIES.find { |_key, values| values.include?(infos['asset_type']) }&.first
         Discord.log_warn("Hackerone - Unknown category: #{infos}") if category.nil?
 
-        category = :source_code if source_code?(infos['asset_identifier'])
-
-        category
-      end
-
-      # Determines if a scope is a source code repository
-      # @param scope [String] Scope value
-      # @return [Boolean] True if the scope is a GitHub repository
-      def self.source_code?(scope)
-        scope&.start_with?('https://github.com/')
+        ScopeCategoryDetector.adjust_category(category, infos['asset_identifier'])
       end
     end
   end

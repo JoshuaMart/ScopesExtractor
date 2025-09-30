@@ -70,16 +70,7 @@ module ScopesExtractor
         category = CATEGORIES.find { |_key, values| values.include?(target['category']) }&.first
         Utilities.log_warn("Bugcrowd - Unknown category: #{target}") if category.nil?
 
-        category = :source_code if source_code?(target['name'])
-
-        category
-      end
-
-      # Determines if a scope is a source code repository
-      # @param scope [String] Scope value
-      # @return [Boolean] True if the scope is a GitHub repository
-      def self.source_code?(scope)
-        scope&.start_with?('https://github.com/')
+        ScopeCategoryDetector.adjust_category(category, target['name'])
       end
 
       # Extracts targets from Bugcrowd program brief URL

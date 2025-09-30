@@ -130,7 +130,9 @@ module ScopesExtractor
       def self.find_category(scope)
         category = CATEGORIES.find { |_key, values| values.include?(scope.dig('type', 'id')) }&.first
         Utilities.log_warn("Intigriti - Inexistent categories : #{scope}") if category.nil?
-        category
+
+        endpoint = scope['endpoint'].to_s
+        ScopeCategoryDetector.adjust_category(category, endpoint)
       end
     end
   end

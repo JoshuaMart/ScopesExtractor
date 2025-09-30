@@ -12,7 +12,9 @@ module ScopesExtractor
         web: %w[websites_and_applications],
         contracts: %w[smart_contract],
         blockchain: %w[blockchain_dlt],
-        source_code: %w[]
+        source_code: %w[],
+        mobile: %w[],
+        other: %w[]
       }.freeze
 
       # Synchronizes scope information for an Immunefi program
@@ -101,10 +103,7 @@ module ScopesExtractor
         category = CATEGORIES.find { |_key, values| values.include?(infos['type']) }&.first
         Discord.log_warn("Immunefi - Unknown category: #{infos}") if category.nil?
 
-        # Special handling for GitHub repositories
-        category = :source_code if category == :web && infos['url']&.start_with?('https://github.com/')
-
-        category
+        ScopeCategoryDetector.adjust_category(category, infos['url'])
       end
     end
   end
