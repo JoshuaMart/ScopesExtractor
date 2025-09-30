@@ -106,13 +106,15 @@ RSpec.describe ScopesExtractor::ScopeCategoryDetector do
       end
 
       it 'returns :source_code for Atlassian Marketplace URLs' do
-        expect(described_class.adjust_category(:other, 'https://marketplace.atlassian.com/apps/1234')).to eq(:source_code)
+        expect(described_class.adjust_category(:other,
+                                               'https://marketplace.atlassian.com/apps/1234')).to eq(:source_code)
       end
     end
 
     context 'with mobile app store URLs' do
       it 'returns :mobile for Google Play Store URLs' do
-        expect(described_class.adjust_category(:web, 'https://play.google.com/store/apps/details?id=com.example')).to eq(:mobile)
+        expect(described_class.adjust_category(:web,
+                                               'https://play.google.com/store/apps/details?id=com.example')).to eq(:mobile)
       end
 
       it 'returns :mobile for iTunes URLs' do
@@ -126,7 +128,8 @@ RSpec.describe ScopesExtractor::ScopeCategoryDetector do
 
     context 'with Chrome Web Store URLs' do
       it 'returns :other for Chrome Web Store URLs' do
-        expect(described_class.adjust_category(:web, 'https://chromewebstore.google.com/detail/extension/abcdefgh')).to eq(:other)
+        expect(described_class.adjust_category(:web,
+                                               'https://chromewebstore.google.com/detail/extension/abcdefgh')).to eq(:other)
       end
     end
 
