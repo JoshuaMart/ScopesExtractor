@@ -128,9 +128,32 @@ RSpec.describe ScopesExtractor::Parser do
       end
     end
 
-    context 'with a wildcard' do
-      it 'returns true for valid wildcard without scheme' do
+    context 'with wildcard URIs' do
+      it 'returns true for valid *.domain.com pattern' do
         expect(described_class.valid_uri?('*.example.com')).to be true
+      end
+
+      context 'with invalid wildcard patterns' do
+        before do
+          allow(described_class).to receive(:parser_config).and_return(
+            { notify_uri_errors: true }
+          )
+        end
+
+        it 'returns false and logs a warning for wildcards in the middle' do
+          expect(ScopesExtractor::Discord).to receive(:log_warn).with("Bad URI for 'xhomeapi-*.codebig2.net'")
+          expect(described_class.valid_uri?('xhomeapi-*.codebig2.net')).to be false
+        end
+
+        it 'returns false and logs a warning for wildcards after protocol' do
+          expect(ScopesExtractor::Discord).to receive(:log_warn).with("Bad URI for 'https://*racing.fanduel.com'")
+          expect(described_class.valid_uri?('https://*racing.fanduel.com')).to be false
+        end
+
+        it 'returns false and logs a warning for wildcard at the end' do
+          expect(ScopesExtractor::Discord).to receive(:log_warn).with("Bad URI for 'example.*'")
+          expect(described_class.valid_uri?('example.*')).to be false
+        end
       end
     end
 

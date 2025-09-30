@@ -68,7 +68,8 @@ module ScopesExtractor
       value = value[0..-2] if value.end_with?('/') && value.start_with?('*.')
 
       # Remove first character if the string starts with "*" but not "*."
-      value[1..] if value.start_with?('*') && !value.start_with?('*.')
+      value = value[1..] if value.start_with?('*') && !value.start_with?('*.')
+
       value
     end
   end
