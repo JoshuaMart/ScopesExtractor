@@ -45,10 +45,12 @@ module ScopesExtractor
     # @return [String] The normalized scope value
     def self.global_normalization(value)
       value = value.strip
-      value = global_end_strip(value)
 
       # Remove protocol (http:// or https://) if string matches the pattern
       value = value.sub(%r{https?://}, '') if value.match?(%r{https?://\*\.})
+
+      # Removes special characters from the end of a scope value
+      value = global_end_strip(value)
 
       # Add "*" at the beginning if the string starts with a dot
       value = "*#{value}" if value.start_with?('.')
@@ -57,7 +59,6 @@ module ScopesExtractor
       value.downcase
     end
 
-    # Removes special characters from the end of a scope value
     # @param value [String] The scope value to process
     # @return [String] The processed scope value
     def self.global_end_strip(value)
