@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 1.9.0 - Improve Domain Normalization
+
+### 🔄 Modifications
+
+#### Updated Protocol Removal for Wildcard Domains
+
+**Changes:**
+- Protocol removal now happens **before** `global_end_strip` to ensure proper normalization
+
+**Example:**
+```ruby
+# Before:
+'https://*.domain.tld/' → 'https://*.domain.tld' (incorrect)
+
+# After:
+'https://*.domain.tld/' → '*.domain.tld' (correct)
+'*.domain.tld/' → '*.domain.tld' (correct)
+```
+
+---
+
 ## Version 1.8.0 - Scope Category Detection & Parser Improvements
 
 ### 🆕 New Features
