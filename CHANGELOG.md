@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.10.0 - YesWeHack Scopes
+
+### 🔄 Modifications
+
+#### Update YesWeHack Scopes Categories
+
+Add `wildcard` category to scopes
+
 ## Version 1.9.0 - Improve Domain Normalization
 
 ### 🔄 Modifications
