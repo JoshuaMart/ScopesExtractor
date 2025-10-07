@@ -6,7 +6,7 @@ module ScopesExtractor
     module Scopes
       # Mapping of YesWeHack scope types to standardized categories
       CATEGORIES = {
-        web: %w[web-application api ip-address],
+        web: %w[web-application api ip-address wildcard],
         mobile: %w[mobile-application mobile-application-android mobile-application-ios],
         source_code: %w[],
         other: %w[other],
