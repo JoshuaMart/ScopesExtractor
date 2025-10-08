@@ -8,7 +8,7 @@ module ScopesExtractor
       CATEGORIES = {
         web: %w[web-application api ip-address wildcard],
         mobile: %w[mobile-application mobile-application-android mobile-application-ios],
-        source_code: %w[],
+        source_code: %w[open-source],
         other: %w[other],
         executable: %w[application]
       }.freeze
