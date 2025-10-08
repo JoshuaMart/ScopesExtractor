@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.10.1 - YesWeHack Scopes
+
+### 🔄 Modifications
+
+#### Update YesWeHack Scopes Categories
+
+Add `open-source` category to scopes
+
 ## Version 1.10.0 - YesWeHack Scopes
 
 ### 🔄 Modifications
