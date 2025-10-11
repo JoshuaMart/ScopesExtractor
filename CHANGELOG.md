@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 1.11.0 - Fix Type Casting Bug
+
+### 🐛 Bug Fixes
+
+#### Fixed NoMethodError on Boolean Values
+
+Resolved a type casting issue where calling `.downcase` on boolean values caused a `NoMethodError`.
+The environment variables from `.env` are always strings (e.g., `"true"`, `"false"`) while the default values in `ENV.fetch` were booleans (e.g., `false`, `true`)
+
 ## Version 1.10.1 - YesWeHack Scopes
 
 ### 🔄 Modifications
