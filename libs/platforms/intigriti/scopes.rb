@@ -13,7 +13,6 @@ module ScopesExtractor
       }.freeze
 
       PROGRAMS_ENDPOINT = 'https://api.intigriti.com/external/researcher/v1/programs'
-      DENY = ['.ripe.net'].freeze
 
       def self.sync(program, config)
         scopes = { 'in' => {}, 'out' => {} }
@@ -105,7 +104,6 @@ module ScopesExtractor
 
         endpoint = scope['endpoint'].to_s
         return false if endpoint.empty?
-        return false if DENY.any? { |deny| endpoint.include?(deny) }
 
         true
       end

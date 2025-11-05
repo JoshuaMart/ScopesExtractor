@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.12.0 - Remove debug line
+
+### 🔄 Modifications
+
+#### Removal of scope skipping variable
+
+Removed a variable that was used for debugging, which caused the `ripe.net` scope to be skipped.
+
 ## Version 1.11.0 - Fix Type Casting Bug
 
 ### 🐛 Bug Fixes
