@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.12.1 - Intigriti Scopes
+
+### 🔄 Modifications
+
+#### Update Intigriti Scopes Categories
+
+Add `source_code` category to scopes
+
 ## Version 1.12.0 - Remove debug line
 
 ### 🔄 Modifications
