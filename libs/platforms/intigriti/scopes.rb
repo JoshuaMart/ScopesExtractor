@@ -9,6 +9,7 @@ module ScopesExtractor
         mobile: [2, 3],
         cidr: [4],
         device: [5],
+        source_code: [8],
         other: [6]
       }.freeze
 
