@@ -2,7 +2,7 @@
 
 A tool for monitoring bug bounty programs across multiple platforms to track scope changes.
 
-[![Ruby](https://img.shields.io/badge/Ruby-3.4.2-red.svg)](https://www.ruby-lang.org/en/)
+[![Ruby](https://img.shields.io/badge/Ruby-3.4.7-red.svg)](https://www.ruby-lang.org/en/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Maintainability](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor/maintainability.svg)](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor)
