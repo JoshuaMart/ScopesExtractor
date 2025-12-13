@@ -1,3 +1,9 @@
-exclusions:
-  # Bugcrowd
-  - "█"
+scopes:
+  - "*.abcdedf.net"
+
+programs:
+  bugcrowd: []
+  yeswehack: []
+  hackerone: []
+  intigriti: []
+  immunefi: []

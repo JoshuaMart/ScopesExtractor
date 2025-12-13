@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'scopes'
+require_relative '../../utilities/program_filter'
 
 module ScopesExtractor
   module Hackerone
@@ -20,6 +21,7 @@ module ScopesExtractor
         programs.each do |program|
           attributes = program['attributes']
           next unless attributes['submission_state'] == 'open' && attributes['offers_bounties']
+          next if ProgramFilter.excluded?('hackerone', attributes['handle'])
 
           name = attributes['name']
           results[name] = program_info(program)
