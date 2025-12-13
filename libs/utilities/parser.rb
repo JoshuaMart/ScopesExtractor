@@ -19,10 +19,10 @@ module ScopesExtractor
         @parser_config ||= Config.load[:parser]
       end
 
-      # Gets exclusions from parser config
-      # @return [Array<String>] List of exclusion patterns
+      # Gets scope exclusions from parser config
+      # @return [Array<String>] List of scope exclusion patterns
       def exclusions
-        parser_config[:exclusions]
+        parser_config[:scope_exclusions]
       end
 
       # Parses a JSON string into a Ruby object

@@ -3,6 +3,7 @@
 require 'nokogiri'
 require 'json'
 require_relative 'scopes'
+require_relative '../../utilities/program_filter'
 
 module ScopesExtractor
   module Immunefi
@@ -35,6 +36,8 @@ module ScopesExtractor
         programs = extract_programs(html)
 
         programs.each do |program|
+          next if ProgramFilter.excluded?('immunefi', program['id'])
+
           sleep(1) # Avoid rate limit
           title = program['project']
 

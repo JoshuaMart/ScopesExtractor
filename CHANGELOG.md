@@ -1,5 +1,40 @@
 # Changelog
 
+## Version 1.13.0 - Program Exclusions
+
+### 🆕 New Features
+
+#### Program-Level Exclusions
+
+Added the ability to exclude entire programs from synchronization on a per-platform basis.
+
+**Configuration:**
+Programs can now be excluded by adding their slug/handle/ID to `config/exclusions.yml`:
+
+```yaml
+scopes:
+  - "*.abcdedf.net"
+
+programs:
+  bugcrowd:
+    - "program-slug-1"
+    - "program-slug-2"
+  yeswehack:
+    - "program-slug-1"
+  hackerone:
+    - "program-handle-1"
+  intigriti:
+    - "program-handle-1"
+  immunefi:
+    - "project-id-1"
+```
+
+**Use Cases:**
+- Exclude programs you're not interested in monitoring
+- Reduce noise from specific bug bounty programs
+
+---
+
 ## Version 1.12.1 - Intigriti Scopes
 
 ### 🔄 Modifications

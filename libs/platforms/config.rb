@@ -100,7 +100,8 @@ module ScopesExtractor
         {
           notify_uri_errors: ENV.fetch('NOTIFY_URI_ERRORS', 'true').downcase == 'true',
           notify_intigriti_403_errors: ENV.fetch('NOTIFY_INTIGRITI_403_ERRORS', 'true').downcase == 'true',
-          exclusions: load_exclusions
+          scope_exclusions: load_exclusions['scopes'],
+          program_exclusions: load_exclusions['programs']
         }
       end
 
@@ -108,9 +109,15 @@ module ScopesExtractor
         config_path = File.join(File.dirname(__FILE__), '..', '..', 'config', 'exclusions.yml')
         if File.exist?(config_path)
           config = YAML.safe_load(File.read(config_path))
-          config['exclusions'] || []
+          {
+            'scopes' => config['scopes'] || [],
+            'programs' => config['programs'] || {}
+          }
         else
-          []
+          {
+            'scopes' => [],
+            'programs' => {}
+          }
         end
       end
     end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'scopes'
+require_relative '../../utilities/program_filter'
 
 module ScopesExtractor
   module Intigriti
@@ -21,6 +22,7 @@ module ScopesExtractor
       def self.parse_programs(programs, config, results)
         programs&.each do |program|
           next if skip_program?(program)
+          next if ProgramFilter.excluded?('intigriti', program['handle'])
 
           sleep(0.3) # Avoid rate limit
           name = program['name']

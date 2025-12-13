@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'scopes'
+require_relative '../../utilities/program_filter'
 
 module ScopesExtractor
   module Bugcrowd
@@ -23,6 +24,9 @@ module ScopesExtractor
       def self.parse_programs(programs, results)
         programs.each do |program|
           next unless program['accessStatus'] == 'open'
+
+          slug = program['briefUrl'][1..]
+          next if ProgramFilter.excluded?('bugcrowd', slug)
 
           infos = program_info(program)
           scopes = Scopes.sync(program)

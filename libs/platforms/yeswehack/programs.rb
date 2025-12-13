@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'scopes'
+require_relative '../../utilities/program_filter'
 
 module ScopesExtractor
   module YesWeHack
@@ -43,6 +44,7 @@ module ScopesExtractor
       def self.parse_programs(programs, results, config)
         programs.each do |program|
           next if program['disabled'] || program['vdp']
+          next if ProgramFilter.excluded?('yeswehack', program['slug'])
 
           title = program['title']
 
