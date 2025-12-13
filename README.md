@@ -27,7 +27,7 @@ Scopes Extractor is a Ruby application that monitors bug bounty programs. It tra
 
 ### Prerequisites
 
-- Docker (recommended) or Ruby 3.4.2
+- Docker (recommended) or Ruby >=3.4
 
 ### Setup
 
