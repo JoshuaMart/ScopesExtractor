@@ -69,6 +69,10 @@ RSpec.describe ScopesExtractor::Normalizer do
         input = 'example.com / example.net'
         expect(described_class.normalize('intigriti', input)).to eq(['example.com', 'example.net'])
       end
+
+      it 'strips surrounding spaces' do
+        expect(described_class.normalize('intigriti', '*.example.com  ')).to eq(['*.example.com'])
+      end
     end
 
     context 'HackerOne' do

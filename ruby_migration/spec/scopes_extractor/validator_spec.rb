@@ -39,9 +39,11 @@ RSpec.describe ScopesExtractor::Validator do
         expect(described_class.valid_web_target?('site.<tld>', 'web')).to be false
       end
 
-      it 'rejects internal wildcards' do
-        expect(described_class.valid_web_target?('matrix.agent.*.tchap.gouv.fr', 'web')).to be false
-        expect(described_class.valid_web_target?('foo.*.bar.com', 'web')).to be false
+      it 'rejects invalid wildcard usage' do
+        expect(described_class.valid_web_target?('sub.*.example.com', 'web')).to be false # Internal wildcard
+        expect(described_class.valid_web_target?('*.sub*.example.com', 'web')).to be false # Double wildcard
+        expect(described_class.valid_web_target?('*.example.com/path', 'web')).to be false # Wildcard with path
+        expect(described_class.valid_web_target?('*.-sub.example.com', 'web')).to be false # Leading hyphen
       end
 
       it 'rejects very short values' do
