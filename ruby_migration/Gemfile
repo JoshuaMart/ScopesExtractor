@@ -1,0 +1,38 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+# Core utilities
+gem 'concurrent-ruby' # Parallelism
+gem 'dotenv' # Environment variables management
+gem 'zeitwerk' # Autoloading
+
+# Database
+gem 'sequel'          # ORM
+gem 'sqlite3'         # Driver
+
+# HTTP Client
+gem 'faraday' # HTTP Client factory
+gem 'faraday-cookie_jar' # Session persistence (Bugcrowd)
+gem 'faraday-follow_redirects' # Handle HTTP redirects
+gem 'faraday-retry' # Automatic retries
+
+# Data Validation & Schemas
+gem 'dry-struct' # Typed data structures
+gem 'dry-types'
+
+# Platform Auth Utilities
+gem 'rotp' # TOTP generation (YesWeHack/Bugcrowd)
+
+# CLI & API
+gem 'puma'            # Web server
+gem 'rackup'          # Required for Sinatra 3+
+gem 'sinatra'         # Web API
+gem 'thor'            # Command line tool
+
+# Development & Testing
+group :development, :test do
+  gem 'pry'
+  gem 'rspec'
+  gem 'rubocop'
+end

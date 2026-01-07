@@ -1,0 +1,59 @@
+# frozen_string_literal: true
+
+require 'spec_helper'
+require 'scopes_extractor'
+
+RSpec.describe ScopesExtractor::Validator do
+  describe '.valid_web_target?' do
+    context 'Web/API types' do
+      it 'accepts valid domains and subdomains' do
+        expect(described_class.valid_web_target?('example.com', 'web')).to be true
+        expect(described_class.valid_web_target?('sub.example.com', 'web')).to be true
+        expect(described_class.valid_web_target?('internet-banking.retail.dbs.in', 'web')).to be true
+        expect(described_class.valid_web_target?('*.example.com', 'api')).to be true
+      end
+
+      it 'accepts valid URLs' do
+        expect(described_class.valid_web_target?('https://api.test.com/v1', 'web')).to be true
+        expect(described_class.valid_web_target?('http://localhost:8080', 'api')).to be true
+      end
+
+      it 'accepts IP addresses' do
+        expect(described_class.valid_web_target?('1.2.3.4', 'web')).to be true
+      end
+
+      it 'rejects values without a dot' do
+        expect(described_class.valid_web_target?('localhost', 'web')).to be false
+        expect(described_class.valid_web_target?('internal-service', 'api')).to be false
+      end
+
+      it 'rejects values with spaces' do
+        expect(described_class.valid_web_target?('example.com / path', 'web')).to be false
+        expect(described_class.valid_web_target?('This is a description.', 'web')).to be false
+      end
+
+      it 'rejects values with sentence punctuation, brackets or chevrons' do
+        expect(described_class.valid_web_target?('example.com!', 'web')).to be false
+        expect(described_class.valid_web_target?('check(internal)', 'web')).to be false
+        expect(described_class.valid_web_target?('domain.com?', 'api')).to be false
+        expect(described_class.valid_web_target?('site.<tld>', 'web')).to be false
+      end
+
+      it 'rejects internal wildcards' do
+        expect(described_class.valid_web_target?('matrix.agent.*.tchap.gouv.fr', 'web')).to be false
+        expect(described_class.valid_web_target?('foo.*.bar.com', 'web')).to be false
+      end
+
+      it 'rejects very short values' do
+        expect(described_class.valid_web_target?('a.b', 'web')).to be false
+      end
+    end
+
+    context 'Other types' do
+      it 'skips validation for source_code or other types' do
+        expect(described_class.valid_web_target?('Just text', 'source_code')).to be true
+        expect(described_class.valid_web_target?('repo-name', 'other')).to be true
+      end
+    end
+  end
+end

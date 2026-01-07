@@ -1,0 +1,20 @@
+# Global exclusions (applied to all platforms)
+# Scopes matching these strings will be ignored
+global_exclusions:
+  - "endpoints on our sites"
+
+# Platform specific configurations
+platforms:
+  yeswehack:
+    enabled: false
+  hackerone:
+    enabled: false
+  intigriti:
+    enabled: false
+  bugcrowd:
+    enabled: false
+
+# Sync settings
+sync:
+  auto: true
+  delay: 10800 # 3 hours
