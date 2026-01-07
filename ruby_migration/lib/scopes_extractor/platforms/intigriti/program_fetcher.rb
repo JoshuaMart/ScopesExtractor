@@ -13,11 +13,11 @@ module ScopesExtractor
         def fetch_all
           programs = []
           offset = 0
-          limit = 100
+          limit = 500
 
           loop do
             ScopesExtractor.logger.debug "[Intigriti] Fetching programs with offset #{offset}"
-            resp = @client.get("#{BASE_URL}/programs", { offset: offset, limit: limit })
+            resp = @client.get("#{BASE_URL}/programs", { offset: offset, limit: limit, statusId: 3 })
 
             unless resp.status == 200
               ScopesExtractor.logger.error "[Intigriti] Failed to fetch programs: #{resp.status}"
@@ -25,7 +25,7 @@ module ScopesExtractor
             end
 
             data = JSON.parse(resp.body)
-            items = data['items'] || []
+            items = data['records'] || []
             break if items.empty?
 
             programs.concat(items)

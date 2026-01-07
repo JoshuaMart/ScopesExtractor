@@ -36,13 +36,11 @@ module ScopesExtractor
         private
 
         def parse_program(data)
-          # Intigriti uses "domains" for scopes
-          raw_scopes = data['domains'] || []
+          # Intigriti uses "domains" -> "content" for scopes list
+          raw_scopes = data.dig('domains', 'content') || []
 
           scopes = raw_scopes.flat_map do |s|
-            # type 1 = URL, 2 = IP, 3 = Mobile, etc (Check API doc)
-            # But let's use the object properties if available
-            next if s['inScope'] == false
+            next if s.dig('tier', 'value') == 'No Bounty'
 
             normalize_scope(data['id'], s)
           end.compact
@@ -51,30 +49,42 @@ module ScopesExtractor
             id: data['id'],
             platform: 'intigriti',
             name: data['name'],
-            bounty: data.dig('maxBounty', 'value').positive?,
+            bounty: data.dig('maxBounty', 'value').to_f.positive?,
             scopes: scopes
           )
         end
 
         def normalize_scope(program_id, raw_domain)
-          type = map_scope_type(raw_domain['type'])
-          values = Normalizer.normalize('intigriti', raw_domain['endpoint'])
+          type_id = raw_domain.dig('type', 'id')
+          type = map_scope_type(type_id)
+
+          is_in_scope = raw_domain.dig('tier', 'value') != 'Out Of Scope'
+
+          endpoint = raw_domain['endpoint'].to_s
+          return [] if endpoint.empty?
+
+          values = if type == 'web' && is_in_scope
+                     Normalizer.normalize('intigriti', endpoint)
+                   else
+                     [endpoint.downcase]
+                   end
 
           values.map do |val|
             Models::Scope.new(
               program_id: program_id,
               value: val,
               type: type,
-              is_in_scope: true
+              is_in_scope: is_in_scope
             )
           end
         end
 
-        def map_scope_type(intigriti_type)
-          case intigriti_type
-          when 'Url', 'IpAddress' then 'web'
-          when 'Android', 'Ios' then 'mobile'
-          else 'other'
+        def map_scope_type(type_id)
+          case type_id
+          when 1, 7 then 'web'
+          when 2, 3 then 'mobile'
+          when 8 then 'source_code'
+          else 'other' # includes 4 (cidr), 5 (device), 6 (other)
           end
         end
       end
