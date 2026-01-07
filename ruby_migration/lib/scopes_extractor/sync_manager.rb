@@ -10,26 +10,32 @@ module ScopesExtractor
     end
 
     def run(platform_name: nil)
-      targets = if platform_name
-                  @platforms.select do |p|
-                    p.name.downcase.gsub('_', '') == platform_name.downcase.gsub('_', '')
-                  end
-                else
-                  @platforms
-                end
+      targets = targets_for(platform_name)
 
       if targets.empty?
         ScopesExtractor.logger.warn "No enabled platforms matching '#{platform_name}'"
         return
       end
 
+      execute_sync(targets)
+    end
+
+    def targets_for(platform_name)
+      if platform_name
+        @platforms.select do |p|
+          p.name.downcase.delete('_') == platform_name.downcase.delete('_')
+        end
+      else
+        @platforms
+      end
+    end
+
+    def execute_sync(targets)
       ScopesExtractor.logger.info "Starting global synchronization for #{targets.size} platforms"
 
       # Use Concurrent::Promises for parallel execution
       promises = targets.map do |platform|
-        Concurrent::Promises.future(platform) do |p|
-          sync_platform(p)
-        end
+        Concurrent::Promises.future(platform) { |p| sync_platform(p) }
       end
 
       # Wait for all syncing to complete
@@ -65,6 +71,15 @@ module ScopesExtractor
       ScopesExtractor.logger.info "[#{platform.name}] Syncing..."
       programs = platform.fetch_programs
 
+      process_programs(platform, programs)
+
+      ScopesExtractor.logger.info "[#{platform.name}] Sync completed. Processed #{programs.size} programs."
+    rescue StandardError => e
+      ScopesExtractor.logger.error "[#{platform.name}] Sync failed: #{e.message}"
+      ScopesExtractor.notifier.log('Sync Error', "Platform #{platform.name} failed: #{e.message}", level: :error)
+    end
+
+    def process_programs(platform, programs)
       engine = DiffEngine.new
       programs.each do |prog|
         # Skip if program is globally excluded
@@ -79,11 +94,6 @@ module ScopesExtractor
         ScopesExtractor.logger.error "[#{platform.name}] #{error_msg}"
         ScopesExtractor.notifier.log('Program Sync Error', error_msg, level: :error)
       end
-
-      ScopesExtractor.logger.info "[#{platform.name}] Sync completed. Processed #{programs.size} programs."
-    rescue StandardError => e
-      ScopesExtractor.logger.error "[#{platform.name}] Sync failed: #{e.message}"
-      ScopesExtractor.notifier.log('Sync Error', "Platform #{platform.name} failed: #{e.message}", level: :error)
     end
   end
 end
