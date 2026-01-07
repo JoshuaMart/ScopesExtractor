@@ -31,9 +31,22 @@ module ScopesExtractor
     end
 
     def self.valid_wildcard_usage?(val)
-      # Wildcards are only allowed at the start (e.g. *.example.com)
-      # Reject internal wildcards like "sub.*.domain.com"
-      !(val.include?('*') && !val.start_with?('*.'))
+      return true unless val.include?('*')
+
+      # 1. Wildcards must be at start only: "*.example.com"
+      return false unless val.start_with?('*.')
+
+      # 2. No double wildcards: "*.sub*.example.com"
+      return false if val.count('*') > 1
+
+      # 3. No paths allowed in wildcard domains: "*.example.com/login"
+      return false if val.include?('/')
+
+      # 4. Domain part cannot start with a hyphen: "*.-example.com"
+      domain_part = val[2..]
+      return false if domain_part&.start_with?('-')
+
+      true
     end
   end
 end
