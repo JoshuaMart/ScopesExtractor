@@ -105,11 +105,6 @@ module ScopesExtractor
             end
           end
 
-          # Fallback to meta tags
-          if response.body&.match(/meta name="csrf-token" content="([^"]+)"/)
-            return response.body.match(/meta name="csrf-token" content="([^"]+)"/)[1]
-          end
-
           ''
         end
 
