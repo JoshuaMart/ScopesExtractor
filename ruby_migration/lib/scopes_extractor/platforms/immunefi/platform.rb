@@ -23,6 +23,9 @@ module ScopesExtractor
             # Original code filtered "excluded" programs but we handle exclusions globally.
 
             slug = raw['id']
+            
+            # Avoid rate limit
+            sleep(1) 
             details = fetcher.fetch_details(slug)
             next unless details
 
@@ -74,8 +77,7 @@ module ScopesExtractor
           case type_str
           when 'websites_and_applications' then 'web'
           when 'smart_contract' then 'source_code'
-          when 'blockchain_dlt' then 'other'
-          else 'other'
+          else 'other' # includes 'blockchain_dlt' and others
           end
         end
       end
