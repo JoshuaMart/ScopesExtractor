@@ -33,9 +33,8 @@ RSpec.describe ScopesExtractor::Validator do
       end
 
       it 'rejects values with sentence punctuation, brackets or chevrons' do
-        expect(described_class.valid_web_target?('example.com!', 'web')).to be false
+        expect(described_class.valid_web_target?('domain.com!', 'web')).to be false
         expect(described_class.valid_web_target?('check(internal)', 'web')).to be false
-        expect(described_class.valid_web_target?('domain.com?', 'api')).to be false
         expect(described_class.valid_web_target?('site.<tld>', 'web')).to be false
       end
 
@@ -61,6 +60,10 @@ RSpec.describe ScopesExtractor::Validator do
         expect(described_class.valid_web_target?('https://example.com/app/#/dashboard', 'web')).to be true
         expect(described_class.valid_web_target?('example.com/#/dashboard', 'web')).to be true # Now allowed (hash in path)
         expect(described_class.valid_web_target?('site-###.com', 'web')).to be false
+      end
+
+      it 'allows query parameters in full URLs' do
+        expect(described_class.valid_web_target?('https://app.mux.network/#/trade?chainid=42161', 'web')).to be true
       end
 
       it 'rejects very short values' do
