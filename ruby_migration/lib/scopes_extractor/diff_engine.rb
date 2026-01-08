@@ -23,7 +23,7 @@ module ScopesExtractor
           last_updated: Time.now
         )
         @notifier.notify_new_program(platform_name, fetched_program.name, program_slug)
-        log_event(program_id, 'program_added', 'Brand new program discovered')
+        log_event(program_id, 'add_program', 'Brand new program discovered')
       else
         program_id = existing_program[:id]
         # Update program if name/bounty changed
@@ -62,7 +62,7 @@ module ScopesExtractor
           created_at: Time.now
         )
         @notifier.notify_new_scope(fetched_program.platform, fetched_program.name, val, scope_obj.type)
-        log_event(program_id, 'scope_added', val)
+        log_event(program_id, 'add_scope', val)
       end
 
       # Removed Scopes (or rather, no longer present in fetch)
@@ -70,7 +70,7 @@ module ScopesExtractor
       removed.each do |val|
         @db[:scopes].where(program_id: program_id, value: val).delete
         @notifier.notify_removed_scope(fetched_program.platform, fetched_program.name, val)
-        log_event(program_id, 'scope_removed', val)
+        log_event(program_id, 'remove_scope', val)
       end
     end
 
