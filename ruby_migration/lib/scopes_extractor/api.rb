@@ -21,6 +21,7 @@ module ScopesExtractor
         prog_scopes = scopes[prog[:id]] || []
         {
           id: prog[:id],
+          slug: prog[:slug],
           platform: prog[:platform],
           name: prog[:name],
           bounty: [1, true].include?(prog[:bounty]),
@@ -41,17 +42,18 @@ module ScopesExtractor
     # Endpoint /changes: Returns implementation history
     get '/changes' do
       query = ScopesExtractor.db[:history]
-                             .join(:programs, id: :program_id)
+                             .join(:programs, Sequel[:programs][:id] => :program_id)
                              .select(
                                Sequel[:history][:id],
-                               :program_id,
-                               :name,
-                               :platform,
+                               Sequel[:programs][:id].as(:program_db_id),
+                               Sequel[:programs][:slug].as(:program_slug),
+                               Sequel[:programs][:name],
+                               Sequel[:programs][:platform],
                                :event_type,
                                :details,
                                Sequel[:history][:created_at]
                              )
-                             .order(Sequel.desc(:created_at))
+                             .order(Sequel.desc(Sequel[:history][:created_at]))
 
       # Filter by hours
       if params[:hours]
@@ -60,7 +62,7 @@ module ScopesExtractor
       end
 
       # Filter by platform
-      query = query.where(Sequel.ilike(:platform, params[:platform])) if params[:platform]
+      query = query.where(Sequel.ilike(Sequel[:programs][:platform], params[:platform])) if params[:platform]
 
       # Filter by event type
       query = query.where(event_type: params[:type]) if params[:type]
@@ -74,15 +76,15 @@ module ScopesExtractor
     # Endpoint /wildcards: Returns unique sorted wildcard domains
     get '/wildcards' do
       query = ScopesExtractor.db[:scopes]
-                             .join(:programs, id: :program_id)
-                             .where(is_in_scope: true)
-                             .where(Sequel.like(:value, '*%'))
+                             .join(:programs, Sequel[:programs][:id] => Sequel[:scopes][:program_id])
+                             .where(Sequel[:scopes][:is_in_scope] => true)
+                             .where(Sequel.like(Sequel[:scopes][:value], '*%'))
 
-      query = query.where(Sequel.ilike(:platform, params[:platform])) if params[:platform]
+      query = query.where(Sequel.ilike(Sequel[:programs][:platform], params[:platform])) if params[:platform]
 
-      wildcards = query.select(:value)
+      wildcards = query.select(Sequel[:scopes][:value])
                        .distinct
-                       .map(:value)
+                       .map { |row| row[:value] }
                        .sort
 
       wildcards.to_json
@@ -102,10 +104,10 @@ module ScopesExtractor
       platform = params[:platform].downcase
 
       assets = ScopesExtractor.db[:scopes]
-                              .join(:programs, id: :program_id)
+                              .join(:programs, Sequel[:programs][:id] => Sequel[:scopes][:program_id])
                               .where(Sequel[:programs][:platform] => platform)
                               .where(Sequel[:scopes][:type] => 'web')
-                              .where(is_in_scope: true)
+                              .where(Sequel[:scopes][:is_in_scope] => true)
                               .select_map(Sequel[:scopes][:value])
                               .uniq
                               .sort

@@ -21,9 +21,9 @@ module ScopesExtractor
       load[:sync] || {}
     end
 
-    def self.excluded?(platform, program_id)
-      # Check platform specific exclusions
-      platforms.dig(platform.to_sym, :exclusions)&.include?(program_id) || false
+    def self.excluded?(platform, program_slug)
+      # Check platform specific exclusions based on slug
+      platforms.dig(platform.to_sym, :exclusions)&.include?(program_slug) || false
     end
 
     def self.deep_symbolize(hash)

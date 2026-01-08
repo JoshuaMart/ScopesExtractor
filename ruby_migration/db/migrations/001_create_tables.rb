@@ -3,16 +3,19 @@
 Sequel.migration do
   change do
     create_table(:programs) do
-      String :id, primary_key: true # slug
+      primary_key :id # Auto-increment Integer
       String :platform, null: false
+      String :slug, null: false # Platform-specific identifier (handle/slug)
       String :name, null: false
       TrueClass :bounty, default: true
       DateTime :last_updated, default: Sequel::CURRENT_TIMESTAMP
+
+      index %i[platform slug], unique: true
     end
 
     create_table(:scopes) do
       primary_key :id
-      foreign_key :program_id, :programs, type: String, on_delete: :cascade
+      foreign_key :program_id, :programs, type: Integer, on_delete: :cascade
       String :value, null: false
       String :type, null: false # web, mobile, api, other
       TrueClass :is_in_scope, default: true
@@ -23,7 +26,7 @@ Sequel.migration do
 
     create_table(:history) do
       primary_key :id
-      foreign_key :program_id, :programs, type: String, on_delete: :cascade
+      foreign_key :program_id, :programs, type: Integer, on_delete: :cascade
       String :event_type, null: false # add_program, add_scope, remove_scope
       String :details
       DateTime :created_at, default: Sequel::CURRENT_TIMESTAMP

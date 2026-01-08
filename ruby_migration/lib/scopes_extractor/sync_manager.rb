@@ -85,9 +85,9 @@ module ScopesExtractor
     def process_programs(platform, programs)
       engine = DiffEngine.new
       programs.each do |prog|
-        # Skip if program is globally excluded
-        if Config.excluded?(platform.name.downcase, prog.id)
-          ScopesExtractor.logger.debug "[#{platform.name}] Skipping excluded program: #{prog.id}"
+        # Skip if program is excluded
+        if Config.excluded?(platform.name.downcase, prog.slug)
+          ScopesExtractor.logger.debug "[#{platform.name}] Skipping excluded program: #{prog.slug}"
           next
         end
 

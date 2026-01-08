@@ -53,7 +53,7 @@ module ScopesExtractor
           end.compact
 
           Models::Program.new(
-            id: handle,
+            slug: handle,
             platform: 'hackerone',
             name: attr['name'],
             bounty: true, # We filtered for offers_bounties=true

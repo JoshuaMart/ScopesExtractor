@@ -52,7 +52,7 @@ module ScopesExtractor
           end
 
           Models::Program.new(
-            id: data['slug'],
+            slug: data['slug'],
             platform: 'yeswehack',
             name: data['title'],
             bounty: data['bounty'] == true,

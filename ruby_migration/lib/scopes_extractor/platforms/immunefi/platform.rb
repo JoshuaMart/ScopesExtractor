@@ -51,7 +51,7 @@ module ScopesExtractor
           end.compact
 
           Models::Program.new(
-            id: slug,
+            slug: slug,
             platform: 'immunefi',
             name: name,
             bounty: true, # safely assume yes for Immunefi

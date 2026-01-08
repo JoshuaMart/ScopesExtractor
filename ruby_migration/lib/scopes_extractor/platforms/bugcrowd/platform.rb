@@ -45,7 +45,7 @@ module ScopesExtractor
           end
 
           Models::Program.new(
-            id: slug,
+            slug: slug,
             platform: 'bugcrowd',
             name: raw['name'],
             # In engagements JSON, bounty status is not always obvious,

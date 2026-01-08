@@ -46,7 +46,7 @@ module ScopesExtractor
           end.compact
 
           Models::Program.new(
-            id: data['id'],
+            slug: data['id'],
             platform: 'intigriti',
             name: data['name'],
             bounty: data.dig('maxBounty', 'value').to_f.positive?,

@@ -3,7 +3,8 @@
 module ScopesExtractor
   module Models
     class Program < Dry::Struct
-      attribute :id, Types::String # slug
+      attribute? :id, Types::Integer # Auto-increment primary key (optional for new records)
+      attribute :slug, Types::String # Platform-specific identifier (handle/slug)
       attribute :platform, Types::String
       attribute :name, Types::String
       attribute :bounty, Types::Bool.default(true)
