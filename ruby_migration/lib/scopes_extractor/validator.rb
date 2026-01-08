@@ -21,10 +21,26 @@ module ScopesExtractor
       # 2. Must NOT contain any spaces
       return false if val.include?(' ')
 
-      # 3. Must NOT contain sentence punctuation, brackets, or chevrons
-      return false if val.match?(/[!?()\[\]{}<>]/)
+      # 3. Must NOT contain sentence punctuation, brackets, chevrons, or template placeholders like %
+      return false if val.match?(/[!?()\[\]<>%]/)
 
-      # 4. Minimum length (e.g., "a.bc")
+      # 3b. Must NOT contain curly braces (often used for placeholders {id})
+      return false if val.match?(/[{}]/)
+
+      # 4. '#' is allowed ONLY in the fragment/path part of a full URL, NOT in the domain
+      if val.include?('#')
+        # Extract host: everything before the first slash (ignoring protocol slashes)
+        # 1. Remove protocol if present
+        cleaned = val.sub(%r{^https?://}, '')
+        
+        # 2. Get host part (stop at first / or end of string)
+        host_part = cleaned.split('/', 2).first
+        
+        # 3. Reject if host part contains #
+        return false if host_part&.include?('#')
+      end
+
+      # 5. Minimum length (e.g., "a.bc")
       return false if val.length < 4
 
       true
