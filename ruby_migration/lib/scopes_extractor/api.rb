@@ -42,16 +42,15 @@ module ScopesExtractor
     # Endpoint /changes: Returns implementation history
     get '/changes' do
       query = ScopesExtractor.db[:history]
-                             .join(:programs, Sequel[:programs][:id] => :program_id)
+                             .left_join(:programs, Sequel[:programs][:id] => Sequel[:history][:program_id])
                              .select(
-                               Sequel[:history][:id],
-                               Sequel[:programs][:id].as(:program_db_id),
-                               Sequel[:programs][:slug].as(:program_slug),
-                               Sequel[:programs][:name],
+                               Sequel[:history][:created_at],
                                Sequel[:programs][:platform],
-                               :event_type,
-                               :details,
-                               Sequel[:history][:created_at]
+                               Sequel[:programs][:name].as(:program_name),
+                               Sequel[:history][:event_type],
+                               Sequel[:history][:scope_type],
+                               Sequel[:history][:category],
+                               Sequel[:history][:details]
                              )
                              .order(Sequel.desc(Sequel[:history][:created_at]))
 
@@ -65,12 +64,38 @@ module ScopesExtractor
       query = query.where(Sequel.ilike(Sequel[:programs][:platform], params[:platform])) if params[:platform]
 
       # Filter by event type
-      query = query.where(event_type: params[:type]) if params[:type]
+      query = query.where(Sequel[:history][:event_type] => params[:type]) if params[:type]
 
       # Limit to 100 by default if no time filter
       query = query.limit(100) unless params[:hours]
 
-      query.all.to_json
+      # Transform to match original format
+      results = query.all.map do |row|
+        result = {
+          timestamp: row[:created_at]&.iso8601,
+          platform: row[:platform]&.capitalize,
+          program: row[:program_name],
+          change_type: row[:event_type],
+          scope_type: row[:scope_type],
+          category: row[:category],
+          value: row[:details]
+        }
+        
+        # For remove_program, parse scopes from details JSON
+        if row[:event_type] == 'remove_program' && row[:details]
+          begin
+            scopes_data = JSON.parse(row[:details])
+            result[:scopes] = scopes_data
+            result[:value] = row[:program_name] # Use program name as value
+          rescue JSON::ParserError
+            # If parsing fails, keep details as-is
+          end
+        end
+        
+        result
+      end
+
+      results.to_json
     end
 
     # Endpoint /wildcards: Returns unique sorted wildcard domains

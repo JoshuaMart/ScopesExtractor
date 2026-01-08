@@ -26,9 +26,11 @@ Sequel.migration do
 
     create_table(:history) do
       primary_key :id
-      foreign_key :program_id, :programs, type: Integer, on_delete: :cascade
-      String :event_type, null: false # add_program, add_scope, remove_scope
+      foreign_key :program_id, :programs, type: Integer, on_delete: :set_null
+      String :event_type, null: false # add_program, add_scope, remove_scope, remove_program
       String :details
+      String :scope_type # "in" or "out" (only for scope events)
+      String :category # web, mobile, source_code, etc. (only for scope events)
       DateTime :created_at, default: Sequel::CURRENT_TIMESTAMP
     end
   end

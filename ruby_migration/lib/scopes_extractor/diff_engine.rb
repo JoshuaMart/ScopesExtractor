@@ -58,19 +58,29 @@ module ScopesExtractor
           program_id: program_id,
           value: val,
           type: scope_obj.type,
-          is_in_scope: true,
+          is_in_scope: scope_obj.is_in_scope,
           created_at: Time.now
         )
         @notifier.notify_new_scope(fetched_program.platform, fetched_program.name, val, scope_obj.type)
-        log_event(program_id, 'add_scope', val)
+        
+        # Log with scope_type (in/out) and category (web, contracts, etc)
+        scope_type_str = scope_obj.is_in_scope ? 'in' : 'out'
+        log_event(program_id, 'add_scope', val, scope_type_str, scope_obj.type)
       end
 
       # Removed Scopes (or rather, no longer present in fetch)
       removed = existing_values - fetched_values
       removed.each do |val|
+        # Get scope info before deletion
+        existing_scope = existing_scopes.find { |s| s[:value] == val }
+        next unless existing_scope
+        
+        scope_type_str = existing_scope[:is_in_scope] ? 'in' : 'out'
+        category = existing_scope[:type]
+        
         @db[:scopes].where(program_id: program_id, value: val).delete
         @notifier.notify_removed_scope(fetched_program.platform, fetched_program.name, val)
-        log_event(program_id, 'remove_scope', val)
+        log_event(program_id, 'remove_scope', val, scope_type_str, category)
       end
     end
 
@@ -113,11 +123,13 @@ module ScopesExtractor
       log_event(program[:id], 'asset_ignored', scope_obj.value)
     end
 
-    def log_event(program_id, type, details)
+    def log_event(program_id, type, details, scope_type = nil, category = nil)
       @db[:history].insert(
         program_id: program_id,
         event_type: type,
         details: details,
+        scope_type: scope_type,
+        category: category,
         created_at: Time.now
       )
     end

@@ -33,6 +33,12 @@ module ScopesExtractor
         notify(title, description, level: :success)
       end
 
+      def notify_removed_program(platform, program_name, program_id)
+        title = "❌ Removed Program: #{program_name}"
+        description = "**Platform:** #{platform}\n**ID:** `#{program_id}`"
+        notify(title, description, level: :error)
+      end
+
       def notify_new_scope(platform, program_name, scope, type)
         title = "🎯 New Scope: #{program_name}"
         description = "**Platform:** #{platform}\n**Type:** `#{type}`\n**Scope:** `#{scope}`"
