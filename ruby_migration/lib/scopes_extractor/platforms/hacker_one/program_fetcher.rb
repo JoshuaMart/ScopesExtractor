@@ -44,6 +44,37 @@ module ScopesExtractor
 
           JSON.parse(resp.body)
         end
+
+        def fetch_scopes(handle)
+          scopes = []
+          page = 1
+          
+          loop do
+            ScopesExtractor.logger.debug "[HackerOne] Fetching scopes for #{handle} page #{page}"
+            resp = @client.get("#{BASE_URL}/hackers/programs/#{handle}/structured_scopes", {
+              page: { number: page, size: 100 }
+            })
+            
+            unless resp.status == 200
+              ScopesExtractor.logger.warn "[HackerOne] Failed to fetch scopes for #{handle}: #{resp.status}"
+              break
+            end
+
+            json = JSON.parse(resp.body)
+            data = json['data'] || []
+            break if data.empty?
+
+            scopes.concat(data)
+
+            # Check for next page
+            has_next = json.dig('links', 'next')
+            break unless has_next
+
+            page += 1
+          end
+          
+          scopes
+        end
       end
     end
   end
