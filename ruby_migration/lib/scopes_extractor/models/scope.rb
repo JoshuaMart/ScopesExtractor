@@ -26,6 +26,10 @@ module ScopesExtractor
         elsif val.match?(%r{^https?://(apps\.apple\.com|itunes\.apple\.com|play\.google\.com)})
           attributes = attributes.dup
           attributes[:type] = 'mobile'
+        # Auto-heuristic: Chrome Web Store (Extensions)
+        elsif val.match?(%r{^https?://(chrome\.google\.com/webstore|chromewebstore\.google\.com)})
+          attributes = attributes.dup
+          attributes[:type] = 'executable'
         # Auto-heuristic: Wildcard domain -> force type 'web'
         elsif val.start_with?('*.')
           attributes = attributes.dup
