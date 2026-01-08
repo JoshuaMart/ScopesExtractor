@@ -80,7 +80,7 @@ module ScopesExtractor
           category: row[:category],
           value: row[:details]
         }
-        
+
         # For remove_program, parse scopes from details JSON
         if row[:event_type] == 'remove_program' && row[:details]
           begin
@@ -91,7 +91,7 @@ module ScopesExtractor
             # If parsing fails, keep details as-is
           end
         end
-        
+
         result
       end
 

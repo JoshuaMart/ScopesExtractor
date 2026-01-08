@@ -62,7 +62,7 @@ module ScopesExtractor
           created_at: Time.now
         )
         @notifier.notify_new_scope(fetched_program.platform, fetched_program.name, val, scope_obj.type)
-        
+
         # Log with scope_type (in/out) and category (web, contracts, etc)
         scope_type_str = scope_obj.is_in_scope ? 'in' : 'out'
         log_event(program_id, 'add_scope', val, scope_type_str, scope_obj.type)
@@ -74,10 +74,10 @@ module ScopesExtractor
         # Get scope info before deletion
         existing_scope = existing_scopes.find { |s| s[:value] == val }
         next unless existing_scope
-        
+
         scope_type_str = existing_scope[:is_in_scope] ? 'in' : 'out'
         category = existing_scope[:type]
-        
+
         @db[:scopes].where(program_id: program_id, value: val).delete
         @notifier.notify_removed_scope(fetched_program.platform, fetched_program.name, val)
         log_event(program_id, 'remove_scope', val, scope_type_str, category)

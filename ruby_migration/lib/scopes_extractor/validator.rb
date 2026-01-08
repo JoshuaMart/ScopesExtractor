@@ -35,13 +35,13 @@ module ScopesExtractor
 
         # Get potential host part (stop at first slash)
         host_candidate = cleaned.split('/', 2).first
-        
+
         # If host part contains '?', it marks start of query string (e.g. example.com?q=1)
         # So the real host is before that.
         host = host_candidate.split('?', 2).first
 
         # Reject if the extracted host contains '#' (invalid inside domain)
-        return false if host.match?(/[#]/)
+        return false if host.match?(/\#/)
       end
 
       # 5. Minimum length (e.g., "a.bc")

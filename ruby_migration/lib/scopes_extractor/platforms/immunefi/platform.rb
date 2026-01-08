@@ -23,9 +23,9 @@ module ScopesExtractor
             # Original code filtered "excluded" programs but we handle exclusions globally.
 
             slug = raw['id']
-            
+
             # Avoid rate limit
-            sleep(1) 
+            sleep(1)
             details = fetcher.fetch_details(slug)
             next unless details
 

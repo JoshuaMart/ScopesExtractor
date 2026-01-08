@@ -36,7 +36,7 @@ module ScopesExtractor
           attributes[:type] = 'web'
         end
 
-        super(attributes)
+        super
       end
     end
   end
