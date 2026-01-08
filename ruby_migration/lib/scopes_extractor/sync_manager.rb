@@ -52,6 +52,7 @@ module ScopesExtractor
       @platforms << Platforms::HackerOne::Platform.new(config_for(:h1)) if config.dig(:hackerone, :enabled)
       @platforms << Platforms::Intigriti::Platform.new(config_for(:intigriti)) if config.dig(:intigriti, :enabled)
       @platforms << Platforms::Bugcrowd::Platform.new(config_for(:bugcrowd)) if config.dig(:bugcrowd, :enabled)
+      @platforms << Platforms::Immunefi::Platform.new(config_for(:immunefi)) if config.dig(:immunefi, :enabled)
     end
 
     def config_for(key)
@@ -64,6 +65,8 @@ module ScopesExtractor
         { token: ENV.fetch('INTIGRITI_TOKEN', nil) }
       when :bugcrowd
         { email: ENV.fetch('BC_EMAIL', nil), password: ENV.fetch('BC_PWD', nil), otp: ENV.fetch('BC_OTP', nil) }
+      when :immunefi
+        {} # No auth required
       end
     end
 

@@ -13,6 +13,8 @@ platforms:
     enabled: false
   bugcrowd:
     enabled: false
+  immunefi:
+    enabled: false
 
 # Sync settings
 sync:
