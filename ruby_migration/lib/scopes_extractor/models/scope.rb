@@ -18,6 +18,14 @@ module ScopesExtractor
         if val.match?(%r{^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}$})
           attributes = attributes.dup
           attributes[:type] = 'cidr'
+        # Auto-heuristic: Source Code (GitHub, GitLab)
+        elsif val.match?(%r{^https?://(www\.)?(github\.com|gitlab\.com)})
+          attributes = attributes.dup
+          attributes[:type] = 'source_code'
+        # Auto-heuristic: Mobile App Store URLs
+        elsif val.match?(%r{^https?://(apps\.apple\.com|itunes\.apple\.com|play\.google\.com)})
+          attributes = attributes.dup
+          attributes[:type] = 'mobile'
         # Auto-heuristic: Wildcard domain -> force type 'web'
         elsif val.start_with?('*.')
           attributes = attributes.dup
