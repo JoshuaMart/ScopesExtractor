@@ -5,8 +5,8 @@ source 'https://rubygems.org'
 # Core utilities
 gem 'concurrent-ruby' # Parallelism
 gem 'dotenv' # Environment variables management
-gem 'zeitwerk' # Autoloading
 gem 'nokogiri' # Immunefi
+gem 'zeitwerk' # Autoloading
 
 # Database
 gem 'sequel'          # ORM

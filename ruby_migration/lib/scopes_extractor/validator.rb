@@ -32,10 +32,10 @@ module ScopesExtractor
         # Extract host: everything before the first slash (ignoring protocol slashes)
         # 1. Remove protocol if present
         cleaned = val.sub(%r{^https?://}, '')
-        
+
         # 2. Get host part (stop at first / or end of string)
         host_part = cleaned.split('/', 2).first
-        
+
         # 3. Reject if host part contains #
         return false if host_part&.include?('#')
       end

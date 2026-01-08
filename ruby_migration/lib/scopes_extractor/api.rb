@@ -60,14 +60,10 @@ module ScopesExtractor
       end
 
       # Filter by platform
-      if params[:platform]
-        query = query.where(Sequel.ilike(:platform, params[:platform]))
-      end
+      query = query.where(Sequel.ilike(:platform, params[:platform])) if params[:platform]
 
       # Filter by event type
-      if params[:type]
-        query = query.where(event_type: params[:type])
-      end
+      query = query.where(event_type: params[:type]) if params[:type]
 
       # Limit to 100 by default if no time filter
       query = query.limit(100) unless params[:hours]
@@ -82,9 +78,7 @@ module ScopesExtractor
                              .where(is_in_scope: true)
                              .where(Sequel.like(:value, '*%'))
 
-      if params[:platform]
-        query = query.where(Sequel.ilike(:platform, params[:platform]))
-      end
+      query = query.where(Sequel.ilike(:platform, params[:platform])) if params[:platform]
 
       wildcards = query.select(:value)
                        .distinct

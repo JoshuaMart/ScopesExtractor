@@ -21,7 +21,7 @@ module ScopesExtractor
             # Immunefi raw program has 'id' as slug, 'project' as name
             # We filter out closed programs if necessary (but fetch_all usually returns open ones from the list)
             # Original code filtered "excluded" programs but we handle exclusions globally.
-            
+
             slug = raw['id']
             details = fetcher.fetch_details(slug)
             next unless details
@@ -40,7 +40,7 @@ module ScopesExtractor
           slug = data['id'] # or 'project' for name? check original
           # Original: title = program['project'], slug = program['id']
           name = data['project']
-          
+
           assets = data['assets'] || []
 
           scopes = assets.flat_map do |asset|

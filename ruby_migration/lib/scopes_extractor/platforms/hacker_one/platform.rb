@@ -48,7 +48,7 @@ module ScopesExtractor
           scopes = raw_scopes.flat_map do |s|
             s_attr = s['attributes']
             next if s_attr['eligible_for_submission'] == false # Out of scope
-            
+
             normalize_scope(handle, s_attr)
           end.compact
 
