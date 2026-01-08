@@ -6,14 +6,21 @@ module ScopesExtractor
       attribute? :id, Types::Integer
       attribute :program_id, Types::String
       attribute :value, Types::String
-      attribute :type, Types::String.enum('web', 'mobile', 'api', 'source_code', 'executable', 'other')
+      attribute :type, Types::String.enum('web', 'mobile', 'api', 'source_code', 'executable', 'cidr', 'other')
       attribute :is_in_scope, Types::Bool.default(true)
       attribute? :created_at, Types::DateTime
 
       def self.new(attributes)
-        # Auto-heuristic: If it looks like a wildcard domain, force type to 'web'
-        if attributes[:value].to_s.start_with?('*.')
-          attributes = attributes.dup # Avoid mutating original hash
+        val = attributes[:value].to_s
+
+        # Auto-heuristic: CIDR detection (e.g., 1.2.3.4/24)
+        # Check for IP pattern + slash + digits
+        if val.match?(%r{^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}$})
+          attributes = attributes.dup
+          attributes[:type] = 'cidr'
+        # Auto-heuristic: Wildcard domain -> force type 'web'
+        elsif val.start_with?('*.')
+          attributes = attributes.dup
           attributes[:type] = 'web'
         end
 
