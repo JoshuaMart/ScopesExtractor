@@ -40,32 +40,56 @@ module ScopesExtractor
 
     # Endpoint /changes: Returns implementation history
     get '/changes' do
-      history = ScopesExtractor.db[:history]
-                               .join(:programs, id: :program_id)
-                               .select(
-                                 Sequel[:history][:id],
-                                 :program_id,
-                                 :name,
-                                 :event_type,
-                                 :details,
-                                 Sequel[:history][:created_at]
-                               )
-                               .order(Sequel.desc(:created_at))
-                               .limit(100)
-                               .all
+      query = ScopesExtractor.db[:history]
+                             .join(:programs, id: :program_id)
+                             .select(
+                               Sequel[:history][:id],
+                               :program_id,
+                               :name,
+                               :platform,
+                               :event_type,
+                               :details,
+                               Sequel[:history][:created_at]
+                             )
+                             .order(Sequel.desc(:created_at))
 
-      history.to_json
+      # Filter by hours
+      if params[:hours]
+        hours = params[:hours].to_i
+        query = query.where(Sequel[:history][:created_at] > Time.now - (hours * 3600))
+      end
+
+      # Filter by platform
+      if params[:platform]
+        query = query.where(Sequel.ilike(:platform, params[:platform]))
+      end
+
+      # Filter by event type
+      if params[:type]
+        query = query.where(event_type: params[:type])
+      end
+
+      # Limit to 100 by default if no time filter
+      query = query.limit(100) unless params[:hours]
+
+      query.all.to_json
     end
 
     # Endpoint /wildcards: Returns unique sorted wildcard domains
     get '/wildcards' do
-      wildcards = ScopesExtractor.db[:scopes]
-                                 .where(is_in_scope: true)
-                                 .where(Sequel.like(:value, '*%'))
-                                 .select(:value)
-                                 .distinct
-                                 .map(:value)
-                                 .sort
+      query = ScopesExtractor.db[:scopes]
+                             .join(:programs, id: :program_id)
+                             .where(is_in_scope: true)
+                             .where(Sequel.like(:value, '*%'))
+
+      if params[:platform]
+        query = query.where(Sequel.ilike(:platform, params[:platform]))
+      end
+
+      wildcards = query.select(:value)
+                       .distinct
+                       .map(:value)
+                       .sort
 
       wildcards.to_json
     end
