@@ -16,7 +16,7 @@ module ScopesExtractor
 
           loop do
             ScopesExtractor.logger.debug "[HackerOne] Fetching programs page #{page}"
-            resp = @client.get("#{BASE_URL}/researcher/programs", { page: { number: page, size: 100 } })
+            resp = @client.get("#{BASE_URL}/hackers/programs", { page: { number: page, size: 100 } })
 
             unless resp.status == 200
               ScopesExtractor.logger.error "[HackerOne] Failed to fetch programs: #{resp.status}"
@@ -39,7 +39,7 @@ module ScopesExtractor
         end
 
         def fetch_details(handle)
-          resp = @client.get("#{BASE_URL}/researcher/programs/#{handle}")
+          resp = @client.get("#{BASE_URL}/hackers/programs/#{handle}")
           return nil unless resp.status == 200
 
           JSON.parse(resp.body)
