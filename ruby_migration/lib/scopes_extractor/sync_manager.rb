@@ -33,6 +33,9 @@ module ScopesExtractor
     def execute_sync(targets)
       ScopesExtractor.logger.info "Starting global synchronization for #{targets.size} platforms"
 
+      # Cleanup old history before sync
+      Database.cleanup_old_history
+
       # Use Concurrent::Promises for parallel execution
       promises = targets.map do |platform|
         Concurrent::Promises.future(platform) { |p| sync_platform(p) }

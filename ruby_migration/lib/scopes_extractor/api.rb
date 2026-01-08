@@ -8,6 +8,11 @@ module ScopesExtractor
     set :bind, '0.0.0.0'
     set :port, ENV.fetch('API_PORT', 4567)
 
+    # Cleanup old history on API startup
+    configure do
+      Database.cleanup_old_history
+    end
+
     before do
       content_type :json
     end
