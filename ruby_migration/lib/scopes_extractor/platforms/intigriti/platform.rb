@@ -83,8 +83,9 @@ module ScopesExtractor
           case type_id
           when 1, 7 then 'web'
           when 2, 3 then 'mobile'
+          when 4 then 'cidr'
           when 8 then 'source_code'
-          else 'other' # includes 4 (cidr), 5 (device), 6 (other)
+          else 'other' # includes 5 (device), 6 (other)
           end
         end
       end
