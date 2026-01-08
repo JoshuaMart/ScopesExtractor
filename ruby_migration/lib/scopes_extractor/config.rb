@@ -13,10 +13,6 @@ module ScopesExtractor
       end
     end
 
-    def self.global_exclusions
-      load[:global_exclusions] || []
-    end
-
     def self.platforms
       load[:platforms] || {}
     end
@@ -26,10 +22,8 @@ module ScopesExtractor
     end
 
     def self.excluded?(platform, program_id)
-      # Check global exclusions
-      global_exclusions.include?(program_id) ||
-        # Check platform specific exclusions
-        platforms.dig(platform.to_sym, :exclusions)&.include?(program_id) || false
+      # Check platform specific exclusions
+      platforms.dig(platform.to_sym, :exclusions)&.include?(program_id) || false
     end
 
     def self.deep_symbolize(hash)
