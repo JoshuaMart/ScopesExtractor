@@ -42,8 +42,13 @@ RSpec.describe ScopesExtractor::Validator do
       it 'rejects invalid wildcard usage' do
         expect(described_class.valid_web_target?('sub.*.example.com', 'web')).to be false # Internal wildcard
         expect(described_class.valid_web_target?('*.sub*.example.com', 'web')).to be false # Double wildcard
+        expect(described_class.valid_web_target?('*.sub.*.example.com', 'web')).to be false # Double wildcard (subdomain)
         expect(described_class.valid_web_target?('*.example.com/path', 'web')).to be false # Wildcard with path
         expect(described_class.valid_web_target?('*.-sub.example.com', 'web')).to be false # Leading hyphen
+      end
+
+      it 'rejects descriptions in parentheses' do
+        expect(described_class.valid_web_target?('*.example.com (description text)', 'web')).to be false
       end
 
       it 'rejects very short values' do
