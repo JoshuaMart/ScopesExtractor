@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'concurrent-ruby'
 
 module ScopesExtractor
   module Notifiers
@@ -12,7 +13,8 @@ module ScopesExtractor
         error: 16_711_680
       }.freeze
 
-      RATE_LIMIT_CACHE = {}.freeze
+      # Thread-safe hash for rate limit tracking (mutable)
+      RATE_LIMIT_CACHE = Concurrent::Hash.new
 
       def initialize
         @main_webhook = Config.discord_main_webhook[:url]
