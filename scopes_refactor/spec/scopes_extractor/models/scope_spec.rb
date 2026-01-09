@@ -79,4 +79,56 @@ RSpec.describe ScopesExtractor::Models::Scope do
       expect(scope.out_scope?).to be false
     end
   end
+
+  describe 'auto-heuristic type detection' do
+    it 'detects CIDR notation and overrides platform type' do
+      scope = described_class.new(value: '192.168.1.0/24', type: 'web', is_in_scope: true)
+      expect(scope.type).to eq('cidr')
+    end
+
+    it 'detects GitHub URLs as source_code' do
+      scope = described_class.new(value: 'https://github.com/user/repo', type: 'web', is_in_scope: true)
+      expect(scope.type).to eq('source_code')
+    end
+
+    it 'detects GitLab URLs as source_code' do
+      scope = described_class.new(value: 'https://gitlab.com/user/project', type: 'other', is_in_scope: true)
+      expect(scope.type).to eq('source_code')
+    end
+
+    it 'detects App Store URLs as mobile' do
+      scope = described_class.new(value: 'https://apps.apple.com/app/id123456', type: 'web', is_in_scope: true)
+      expect(scope.type).to eq('mobile')
+    end
+
+    it 'detects Play Store URLs as mobile' do
+      scope = described_class.new(value: 'https://play.google.com/store/apps/details?id=com.app', type: 'other', is_in_scope: true)
+      expect(scope.type).to eq('mobile')
+    end
+
+    it 'detects Chrome Web Store URLs as executable' do
+      scope = described_class.new(value: 'https://chrome.google.com/webstore/detail/extension', type: 'web', is_in_scope: true)
+      expect(scope.type).to eq('executable')
+    end
+
+    it 'detects wildcards as web' do
+      scope = described_class.new(value: '*.example.com', type: 'other', is_in_scope: true)
+      expect(scope.type).to eq('web')
+    end
+
+    it 'keeps platform type when no heuristic matches' do
+      scope = described_class.new(value: 'com.example.app', type: 'mobile', is_in_scope: true)
+      expect(scope.type).to eq('mobile')
+    end
+
+    it 'keeps other type when no heuristic matches' do
+      scope = described_class.new(value: 'example.com', type: 'other', is_in_scope: true)
+      expect(scope.type).to eq('other')
+    end
+
+    it 'keeps web type when no heuristic matches' do
+      scope = described_class.new(value: 'example.com', type: 'web', is_in_scope: true)
+      expect(scope.type).to eq('web')
+    end
+  end
 end
