@@ -42,6 +42,12 @@ module ScopesExtractor
             details = fetcher.fetch_details(raw['slug'])
             next unless details
 
+            # Skip VDP programs if configured
+            if Config.skip_vdp?('yeswehack') && details['vdp'] == true
+              ScopesExtractor.logger.debug "[YesWeHack] Skipping VDP program: #{raw['slug']}"
+              next
+            end
+
             begin
               parse_program(details)
             rescue StandardError => e
