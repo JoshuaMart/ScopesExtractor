@@ -30,7 +30,7 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 
   # Clean up test database after each test
-  config.after(:each) do
+  config.after do
     next unless ScopesExtractor.db
 
     begin

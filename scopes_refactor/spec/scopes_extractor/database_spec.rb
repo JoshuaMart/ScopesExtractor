@@ -12,7 +12,7 @@ RSpec.describe ScopesExtractor::Database do
   end
 
   after do
-    FileUtils.rm_f(test_db_path) if File.exist?(test_db_path)
+    FileUtils.rm_f(test_db_path)
   end
 
   describe '.connect' do

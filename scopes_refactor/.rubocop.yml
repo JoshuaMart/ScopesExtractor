@@ -62,3 +62,13 @@ Style/FrozenStringLiteralComment:
 Naming/PredicatePrefix:
   Exclude:
     - 'lib/scopes_extractor/platforms/**/authenticator.rb'
+
+# RSpec - More permissive for tests
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/ExampleLength:
+  Max: 15
+
+RSpec/MessageSpies:
+  Enabled: false
