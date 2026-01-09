@@ -75,5 +75,8 @@ require_relative 'scopes_extractor/diff_engine'
 # Require sync manager
 require_relative 'scopes_extractor/sync_manager'
 
+# Require platforms
+require_relative 'scopes_extractor/platforms/base_platform'
+
 # Initialize HTTP client
 ScopesExtractor::HTTP.setup
