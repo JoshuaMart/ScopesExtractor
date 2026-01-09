@@ -64,3 +64,6 @@ require_relative 'scopes_extractor/validator'
 # Require models
 require_relative 'scopes_extractor/models/scope'
 require_relative 'scopes_extractor/models/program'
+
+# Initialize HTTP client
+ScopesExtractor::HTTP.setup
