@@ -1,18 +1,15 @@
-# Global exclusions (applied to all platforms)
-# Scopes matching these strings will be ignored
-global_exclusions:
-  - "endpoints on our sites"
-
 # Platform specific configurations
 platforms:
   yeswehack:
-    enabled: false
+    enabled: true
   hackerone:
-    enabled: false
+    enabled: true
   intigriti:
-    enabled: false
+    enabled: true
+    exclusions:
+      - "201f8ade-4d93-4d8b-b371-af5ed9d8b837"
   bugcrowd:
-    enabled: false
+    enabled: true
   immunefi:
     enabled: false
 
@@ -20,3 +17,6 @@ platforms:
 sync:
   auto: true
   delay: 10800 # 3 hours
+
+# History retention (in days)
+history_retention_days: 30
