@@ -111,6 +111,17 @@ RSpec.describe ScopesExtractor::API do
         expect(data['count']).to eq(1)
         expect(data['scopes'].first['value']).to eq('*.example.com')
       end
+
+      it 'returns only values when values_only=true' do
+        get '/', values_only: 'true'
+        expect(last_response).to be_ok
+
+        data = JSON.parse(last_response.body)
+        expect(data).to be_an(Array)
+        expect(data.size).to eq(2)
+        expect(data).to include('*.example.com')
+        expect(data).to include('com.example.app')
+      end
     end
   end
 
@@ -209,6 +220,15 @@ RSpec.describe ScopesExtractor::API do
         data = JSON.parse(last_response.body)
         timestamps = data['changes'].map { |c| Time.parse(c['created_at'].to_s) }
         expect(timestamps).to eq(timestamps.sort.reverse)
+      end
+
+      it 'includes program_slug in response' do
+        get '/changes'
+        expect(last_response).to be_ok
+
+        data = JSON.parse(last_response.body)
+        expect(data['count']).to be > 0
+        expect(data['changes'].first['program_slug']).to eq('test-program')
       end
     end
   end

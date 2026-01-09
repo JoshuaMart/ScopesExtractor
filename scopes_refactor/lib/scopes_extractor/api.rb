@@ -34,6 +34,7 @@ module ScopesExtractor
     #   - type: filter by scope type (web, mobile, etc.)
     #   - bounty: filter by bounty status (true/false)
     #   - slug: filter by program slug
+    #   - values_only: return only an array of scope values (true/false)
     get '/' do
       query = ScopesExtractor.db[:programs]
                              .join(:scopes, program_id: :id)
@@ -54,7 +55,13 @@ module ScopesExtractor
       query = query.where(Sequel[:programs][:slug] => params[:slug]) if params[:slug]
 
       results = query.all
-      { scopes: results, count: results.size }.to_json
+
+      # Return only values if requested
+      if params[:values_only] == 'true'
+        results.map { |r| r[:value] }.to_json
+      else
+        { scopes: results, count: results.size }.to_json
+      end
     rescue StandardError => e
       status 500
       { error: e.message }.to_json
@@ -69,13 +76,17 @@ module ScopesExtractor
       hours = (params[:hours] || 24).to_i
       cutoff = Time.now - (hours * 3600)
 
-      query = ScopesExtractor.db[:history].where { created_at >= cutoff }
+      query = ScopesExtractor.db[:history]
+                             .left_join(:programs, id: :program_id)
+                             .where { Sequel[:history][:created_at] >= cutoff }
+                             .select_all(:history)
+                             .select_append(Sequel[:programs][:slug].as(:program_slug))
 
       # Apply filters
-      query = query.where(platform_name: params[:platform]) if params[:platform]
-      query = query.where(event_type: params[:type]) if params[:type]
+      query = query.where(Sequel[:history][:platform_name] => params[:platform]) if params[:platform]
+      query = query.where(Sequel[:history][:event_type] => params[:type]) if params[:type]
 
-      results = query.order(Sequel.desc(:created_at)).all
+      results = query.order(Sequel.desc(Sequel[:history][:created_at])).all
       { changes: results, count: results.size }.to_json
     rescue StandardError => e
       status 500
