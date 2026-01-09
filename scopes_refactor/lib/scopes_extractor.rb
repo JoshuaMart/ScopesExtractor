@@ -82,5 +82,11 @@ require_relative 'scopes_extractor/platforms/yeswehack/authenticator'
 require_relative 'scopes_extractor/platforms/yeswehack/program_fetcher'
 require_relative 'scopes_extractor/platforms/yeswehack/platform'
 
+# Require API
+require_relative 'scopes_extractor/api'
+
+# Require AutoSync
+require_relative 'scopes_extractor/auto_sync'
+
 # Initialize HTTP client
 ScopesExtractor::HTTP.setup

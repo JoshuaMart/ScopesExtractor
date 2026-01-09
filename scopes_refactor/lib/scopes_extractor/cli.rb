@@ -51,19 +51,12 @@ module ScopesExtractor
     option :verbose, type: :boolean, aliases: '-v', desc: 'Enable verbose logging'
     def serve
       setup_logging(options[:verbose])
+      prepare_database
 
-      port = options[:port] || Config.api_port
-      bind = options[:bind] || Config.api_bind
-
-      ScopesExtractor.logger.info "Starting API server on #{bind}:#{port}"
-
-      if options[:sync]
-        ScopesExtractor.logger.info 'Auto-sync enabled'
-        # TODO: Start background sync thread (Phase 8.2)
-      end
-
-      # TODO: Implement in Phase 7 with Sinatra
-      ScopesExtractor.logger.warn 'API server functionality not yet implemented (Phase 7)'
+      auto_sync = setup_auto_sync if options[:sync]
+      configure_and_start_server(auto_sync)
+    rescue StandardError => e
+      handle_server_error(e, auto_sync)
     end
 
     desc 'migrate', 'Run database migrations'
@@ -89,6 +82,46 @@ module ScopesExtractor
 
       ScopesExtractor.logger.level = Logger::DEBUG
       ScopesExtractor.logger.debug 'Verbose logging enabled'
+    end
+
+    def prepare_database
+      Database.connect
+      Database.migrate
+    end
+
+    def setup_auto_sync
+      sync_manager = SyncManager.new
+      auto_sync = AutoSync.new(sync_manager)
+      auto_sync.start
+      auto_sync
+    end
+
+    def configure_and_start_server(auto_sync)
+      port = options[:port] || Config.api_port
+      bind = options[:bind] || Config.api_bind
+
+      API.set :port, port
+      API.set :bind, bind
+
+      ScopesExtractor.logger.info "Starting API server on #{bind}:#{port}"
+
+      setup_shutdown_handler(auto_sync)
+      API.run!
+    end
+
+    def setup_shutdown_handler(auto_sync)
+      trap('INT') do
+        ScopesExtractor.logger.info "\nShutting down gracefully..."
+        auto_sync&.stop
+        exit
+      end
+    end
+
+    def handle_server_error(error, auto_sync)
+      ScopesExtractor.logger.error "Server failed: #{error.message}"
+      ScopesExtractor.logger.debug error.backtrace.join("\n") if options[:verbose]
+      auto_sync&.stop
+      exit 1
     end
   end
 end
