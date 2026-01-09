@@ -69,5 +69,8 @@ require_relative 'scopes_extractor/notifiers/discord'
 require_relative 'scopes_extractor/models/scope'
 require_relative 'scopes_extractor/models/program'
 
+# Require diff engine
+require_relative 'scopes_extractor/diff_engine'
+
 # Initialize HTTP client
 ScopesExtractor::HTTP.setup
