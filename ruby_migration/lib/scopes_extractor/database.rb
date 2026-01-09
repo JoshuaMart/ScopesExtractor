@@ -20,14 +20,14 @@ module ScopesExtractor
     def self.cleanup_old_history
       retention_days = Config.history_retention_days
       cutoff_date = Time.now - (retention_days * 24 * 3600)
-      
+
       deleted_count = ScopesExtractor.db[:history]
                                      .where(Sequel[:created_at] < cutoff_date)
                                      .delete
-      
-      if deleted_count.positive?
-        ScopesExtractor.logger.info "Cleaned up #{deleted_count} old history entries (older than #{retention_days} days)"
-      end
+
+      return unless deleted_count.positive?
+
+      ScopesExtractor.logger.info "Cleaned up #{deleted_count} old history entries (older than #{retention_days} days)"
     end
   end
 end
