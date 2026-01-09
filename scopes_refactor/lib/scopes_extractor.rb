@@ -60,6 +60,10 @@ require_relative 'scopes_extractor/config'
 require_relative 'scopes_extractor/database'
 require_relative 'scopes_extractor/normalizer'
 require_relative 'scopes_extractor/validator'
+require_relative 'scopes_extractor/http'
+
+# Require notifiers
+require_relative 'scopes_extractor/notifiers/discord'
 
 # Require models
 require_relative 'scopes_extractor/models/scope'
