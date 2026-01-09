@@ -46,6 +46,12 @@ module ScopesExtractor
 
     # Endpoint /changes: Returns implementation history
     get '/changes' do
+      query = build_history_query
+      results = query.all.map { |row| format_history_row(row) }
+      results.to_json
+    end
+
+    def build_history_query
       query = ScopesExtractor.db[:history]
                              .select(
                                Sequel[:history][:created_at],
@@ -58,48 +64,58 @@ module ScopesExtractor
                              )
                              .order(Sequel.desc(Sequel[:history][:created_at]))
 
-      # Filter by hours
-      if params[:hours]
-        hours = params[:hours].to_i
-        query = query.where(Sequel[:history][:created_at] > Time.now - (hours * 3600))
-      end
+      query = apply_time_filter(query)
+      query = apply_platform_filter(query)
+      query = apply_type_filter(query)
+      apply_default_limit(query)
+    end
 
-      # Filter by platform
-      query = query.where(Sequel.ilike(Sequel[:history][:platform_name], params[:platform])) if params[:platform]
+    def apply_time_filter(query)
+      return query unless params[:hours]
 
-      # Filter by event type
-      query = query.where(Sequel[:history][:event_type] => params[:type]) if params[:type]
+      hours = params[:hours].to_i
+      query.where(Sequel[:history][:created_at] > Time.now - (hours * 3600))
+    end
 
-      # Limit to 100 by default if no time filter
-      query = query.limit(100) unless params[:hours]
+    def apply_platform_filter(query)
+      return query unless params[:platform]
 
-      # Transform to match original format
-      results = query.all.map do |row|
-        result = {
-          timestamp: row[:created_at]&.iso8601,
-          platform: row[:platform_name]&.capitalize,
-          program: row[:program_name],
-          change_type: row[:event_type],
-          scope_type: row[:scope_type],
-          category: row[:category],
-          value: row[:details]
-        }
+      query.where(Sequel.ilike(Sequel[:history][:platform_name], params[:platform]))
+    end
 
-        # For remove_program, parse scopes from details JSON
-        if row[:event_type] == 'remove_program' && row[:details]
-          begin
-            scopes_data = JSON.parse(row[:details])
-            result[:scopes] = scopes_data
-            result[:value] = row[:program_name] # Use program name as value
-          rescue JSON::ParserError
-            # If parsing fails, keep details as-is
-          end
-        end
+    def apply_type_filter(query)
+      return query unless params[:type]
 
-        result
-      end
+      query.where(Sequel[:history][:event_type] => params[:type])
+    end
 
-      results.to_json
+    def apply_default_limit(query)
+      params[:hours] ? query : query.limit(100)
+    end
+
+    def format_history_row(row)
+      result = {
+        timestamp: row[:created_at]&.iso8601,
+        platform: row[:platform_name]&.capitalize,
+        program: row[:program_name],
+        change_type: row[:event_type],
+        scope_type: row[:scope_type],
+        category: row[:category],
+        value: row[:details]
+      }
+
+      parse_remove_program_scopes(result, row) if row[:event_type] == 'remove_program'
+      result
+    end
+
+    def parse_remove_program_scopes(result, row)
+      return unless row[:details]
+
+      scopes_data = JSON.parse(row[:details])
+      result[:scopes] = scopes_data
+      result[:value] = row[:program_name]
+    rescue JSON::ParserError
+      # Keep details as-is if parsing fails
     end
 
     # Endpoint /wildcards: Returns unique sorted wildcard domains

@@ -89,71 +89,93 @@ module ScopesExtractor
       engine = DiffEngine.new
       platform_key = platform.name.downcase
 
-      # Get existing programs for this platform from DB
       db_programs = ScopesExtractor.db[:programs].where(platform: platform_key).all
-      db_slugs = db_programs.map { |p| p[:slug] }
+      fetched_slugs = extract_fetched_slugs(platform_key, programs)
 
-      # Get fetched program slugs (excluding excluded ones)
-      fetched_slugs = programs.reject { |p| Config.excluded?(platform_key, p.slug) }
-                              .map(&:slug)
+      sync_fetched_programs(platform, platform_key, programs, engine)
+      handle_removed_programs(platform, platform_key, db_programs, fetched_slugs)
+    end
 
-      # Process each fetched program
+    def extract_fetched_slugs(platform_key, programs)
+      programs.reject { |p| Config.excluded?(platform_key, p.slug) }
+              .map(&:slug)
+    end
+
+    def sync_fetched_programs(platform, platform_key, programs, engine)
       programs.each do |prog|
-        # Skip if program is excluded
-        if Config.excluded?(platform_key, prog.slug)
-          ScopesExtractor.logger.debug "[#{platform.name}] Skipping excluded program: #{prog.slug}"
-          next
-        end
+        next if skip_excluded_program?(platform, platform_key, prog)
 
         engine.process_program(platform_key, prog)
       rescue StandardError => e
-        error_msg = "Failed to process program #{prog.slug} on #{platform.name}: #{e.message}"
-        ScopesExtractor.logger.error "[#{platform.name}] #{error_msg}"
-        ScopesExtractor.notifier.log('Program Sync Error', error_msg, level: :error)
+        handle_program_sync_error(platform, prog, e)
       end
+    end
 
-      # Detect removed programs (in DB but not fetched)
+    def skip_excluded_program?(platform, platform_key, prog)
+      return false unless Config.excluded?(platform_key, prog.slug)
+
+      ScopesExtractor.logger.debug "[#{platform.name}] Skipping excluded program: #{prog.slug}"
+      true
+    end
+
+    def handle_program_sync_error(platform, prog, error)
+      error_msg = "Failed to process program #{prog.slug} on #{platform.name}: #{error.message}"
+      ScopesExtractor.logger.error "[#{platform.name}] #{error_msg}"
+      ScopesExtractor.notifier.log('Program Sync Error', error_msg, level: :error)
+    end
+
+    def handle_removed_programs(platform, platform_key, db_programs, fetched_slugs)
+      db_slugs = db_programs.map { |p| p[:slug] }
       removed_slugs = db_slugs - fetched_slugs
+
       removed_slugs.each do |slug|
         program = db_programs.find { |p| p[:slug] == slug }
         next unless program
 
-        # Get all scopes before deletion
-        scopes = ScopesExtractor.db[:scopes].where(program_id: program[:id]).all
-
-        # Group scopes by in/out and type
-        scopes_data = {
-          in: {},
-          out: {}
-        }
-
-        scopes.each do |scope|
-          category = scope[:is_in_scope] ? :in : :out
-          type = scope[:type]
-          scopes_data[category][type] ||= []
-          scopes_data[category][type] << scope[:value]
-        end
-
-        # Convert to JSON for storage
-        scopes_json = scopes_data.to_json
-
-        # Log event BEFORE deletion (with scopes in details)
-        ScopesExtractor.db[:history].insert(
-          program_id: program[:id],
-          platform_name: platform_key,
-          program_name: program[:name],
-          event_type: 'remove_program',
-          details: scopes_json,
-          created_at: Time.now
-        )
-
-        # Delete program (will cascade to scopes)
-        ScopesExtractor.db[:programs].where(id: program[:id]).delete
-
-        # Notify and log
-        ScopesExtractor.notifier.notify_removed_program(platform_key, program[:name], slug)
-        ScopesExtractor.logger.info "[#{platform.name}] Removed program: #{program[:name]} (#{slug})"
+        remove_program(platform, platform_key, program)
       end
+    end
+
+    def remove_program(platform, platform_key, program)
+      scopes_json = collect_program_scopes(program[:id])
+
+      log_program_removal(program, platform_key, scopes_json)
+      delete_program_from_db(program[:id])
+      notify_program_removal(platform, platform_key, program)
+    end
+
+    def collect_program_scopes(program_id)
+      scopes = ScopesExtractor.db[:scopes].where(program_id: program_id).all
+      scopes_data = { in: {}, out: {} }
+
+      scopes.each do |scope|
+        category = scope[:is_in_scope] ? :in : :out
+        type = scope[:type]
+        scopes_data[category][type] ||= []
+        scopes_data[category][type] << scope[:value]
+      end
+
+      scopes_data.to_json
+    end
+
+    def log_program_removal(program, platform_key, scopes_json)
+      ScopesExtractor.db[:history].insert(
+        program_id: program[:id],
+        platform_name: platform_key,
+        program_name: program[:name],
+        event_type: 'remove_program',
+        details: scopes_json,
+        created_at: Time.now
+      )
+    end
+
+    def delete_program_from_db(program_id)
+      ScopesExtractor.db[:programs].where(id: program_id).delete
+    end
+
+    def notify_program_removal(platform, platform_key, program)
+      ScopesExtractor.notifier.notify_removed_program(platform_key, program[:name], program[:slug])
+      ScopesExtractor.logger.info "[#{platform.name}] Removed program: #{program[:name]} (#{program[:slug]})"
     end
   end
 end

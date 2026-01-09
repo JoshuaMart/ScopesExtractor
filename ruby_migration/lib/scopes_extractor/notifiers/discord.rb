@@ -100,27 +100,41 @@ module ScopesExtractor
       end
 
       def send_to_discord(msg)
-        response = @client.post(msg[:url]) do |req|
+        response = post_message(msg)
+        handle_response(response, msg)
+      rescue StandardError => e
+        handle_error(e)
+      end
+
+      def post_message(msg)
+        @client.post(msg[:url]) do |req|
           req.headers['Content-Type'] = 'application/json'
           req.body = msg[:payload].to_json
         end
+      end
 
+      def handle_response(response, msg)
         case response.status
-        when 200..299
-          # Success, handle rate limit headers if needed
-          handle_rate_limit(response)
-        when 429
-          # Rate limit hit, retry after delay
-          retry_after = (JSON.parse(response.body)['retry_after'] || 5).to_f
-          ScopesExtractor.logger.warn "Discord rate limit hit, waiting #{retry_after}s"
-          sleep(retry_after)
-          @queue << msg # Re-queue
-        else
-          ScopesExtractor.logger.error "Failed to send Discord notification: #{response.status} - #{response.body}"
+        when 200..299 then handle_rate_limit(response)
+        when 429 then handle_rate_limit_error(response, msg)
+        else handle_failure(response)
         end
-      rescue StandardError => e
-        ScopesExtractor.logger.error "Error in Discord worker: #{e.message}"
-        sleep(5) # Cooldown on network error
+      end
+
+      def handle_rate_limit_error(response, msg)
+        retry_after = (JSON.parse(response.body)['retry_after'] || 5).to_f
+        ScopesExtractor.logger.warn "Discord rate limit hit, waiting #{retry_after}s"
+        sleep(retry_after)
+        @queue << msg
+      end
+
+      def handle_failure(response)
+        ScopesExtractor.logger.error "Failed to send Discord notification: #{response.status} - #{response.body}"
+      end
+
+      def handle_error(error)
+        ScopesExtractor.logger.error "Error in Discord worker: #{error.message}"
+        sleep(5)
       end
 
       def handle_rate_limit(response)

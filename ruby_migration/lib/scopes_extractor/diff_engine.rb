@@ -23,7 +23,13 @@ module ScopesExtractor
           last_updated: Time.now
         )
         @notifier.notify_new_program(platform_name, fetched_program.name, program_slug)
-        log_event(program_id, platform_name, fetched_program.name, 'add_program', 'Brand new program discovered')
+        log_event(
+          program_id: program_id,
+          platform_name: platform_name,
+          program_name: fetched_program.name,
+          event_type: 'add_program',
+          details: 'Brand new program discovered'
+        )
       else
         program_id = existing_program[:id]
         # Update program if name/bounty changed
@@ -46,42 +52,68 @@ module ScopesExtractor
       existing_scopes = @db[:scopes].where(program_id: program_id).all
       existing_values = existing_scopes.map { |s| s[:value] }
 
-      # Filter invalid junk scopes (auto-exclude)
       filtered_scopes = filter_invalid_scopes(fetched_program.platform, fetched_program)
       fetched_values = filtered_scopes.map(&:value).uniq
 
-      # Added Scopes
+      process_added_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values, filtered_scopes)
+      process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
+                             existing_scopes)
+    end
+
+    def process_added_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
+                             filtered_scopes)
       added = fetched_values - existing_values
       added.each do |val|
         scope_obj = filtered_scopes.find { |s| s.value == val }
-        @db[:scopes].insert(
-          program_id: program_id,
-          value: val,
-          type: scope_obj.type,
-          is_in_scope: scope_obj.is_in_scope,
-          created_at: Time.now
-        )
+        insert_scope(program_id, scope_obj)
         @notifier.notify_new_scope(fetched_program.platform, fetched_program.name, val, scope_obj.type)
 
-        # Log with scope_type (in/out) and category (web, contracts, etc)
-        scope_type_str = scope_obj.is_in_scope ? 'in' : 'out'
-        log_event(program_id, platform_name, fetched_program.name, 'add_scope', val, scope_type_str, scope_obj.type)
+        log_event(
+          program_id: program_id,
+          platform_name: platform_name,
+          program_name: fetched_program.name,
+          event_type: 'add_scope',
+          details: val,
+          scope_type: scope_obj.is_in_scope ? 'in' : 'out',
+          category: scope_obj.type
+        )
       end
+    end
 
-      # Removed Scopes (or rather, no longer present in fetch)
+    def process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
+                               existing_scopes)
       removed = existing_values - fetched_values
       removed.each do |val|
-        # Get scope info before deletion
         existing_scope = existing_scopes.find { |s| s[:value] == val }
         next unless existing_scope
 
-        scope_type_str = existing_scope[:is_in_scope] ? 'in' : 'out'
-        category = existing_scope[:type]
-
-        @db[:scopes].where(program_id: program_id, value: val).delete
+        delete_scope(program_id, val)
         @notifier.notify_removed_scope(fetched_program.platform, fetched_program.name, val)
-        log_event(program_id, platform_name, fetched_program.name, 'remove_scope', val, scope_type_str, category)
+
+        log_event(
+          program_id: program_id,
+          platform_name: platform_name,
+          program_name: fetched_program.name,
+          event_type: 'remove_scope',
+          details: val,
+          scope_type: existing_scope[:is_in_scope] ? 'in' : 'out',
+          category: existing_scope[:type]
+        )
       end
+    end
+
+    def insert_scope(program_id, scope_obj)
+      @db[:scopes].insert(
+        program_id: program_id,
+        value: scope_obj.value,
+        type: scope_obj.type,
+        is_in_scope: scope_obj.is_in_scope,
+        created_at: Time.now
+      )
+    end
+
+    def delete_scope(program_id, value)
+      @db[:scopes].where(program_id: program_id, value: value).delete
     end
 
     def filter_invalid_scopes(platform_name, fetched_program)
@@ -120,10 +152,16 @@ module ScopesExtractor
       )
 
       @notifier.notify_ignored_asset(platform_name, fetched_program.name, scope_obj.value, 'Invalid format')
-      log_event(program[:id], platform_name, fetched_program.name, 'asset_ignored', scope_obj.value)
+      log_event(
+        program_id: program[:id],
+        platform_name: platform_name,
+        program_name: fetched_program.name,
+        event_type: 'asset_ignored',
+        details: scope_obj.value
+      )
     end
 
-    def log_event(program_id, platform_name, program_name, event_type, details, scope_type = nil, category = nil)
+    def log_event(program_id:, platform_name:, program_name:, event_type:, details:, scope_type: nil, category: nil)
       @db[:history].insert(
         program_id: program_id,
         platform_name: platform_name,

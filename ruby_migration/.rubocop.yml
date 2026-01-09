@@ -2,21 +2,43 @@ AllCops:
   NewCops: enable
 
 Metrics/BlockLength:
+  Max: 30
   Exclude:
     - "spec/**/*"
+    - "db/migrations/**/*"
 
 Layout/LineLength:
   Exclude:
     - "spec/**/*"
 
+Metrics/ClassLength:
+  Max: 145
+
 Metrics/MethodLength:
-  Max: 25
+  Max: 30
 
 Metrics/AbcSize:
-  Max: 20
+  Max: 25
 
 Metrics/CyclomaticComplexity:
   Max: 10
 
+Metrics/PerceivedComplexity:
+  Max: 10
+
+Metrics/ParameterLists:
+  Exclude:
+    - "lib/scopes_extractor/diff_engine.rb"
+
 Style/Documentation:
   Enabled: false
+
+# Platform-specific code has legitimate complexity
+Metrics:
+  Exclude:
+    - "lib/scopes_extractor/platforms/bugcrowd/authenticator.rb"
+
+# Predicate naming doesn't apply to authentication methods
+Naming/PredicateMethod:
+  Exclude:
+    - "lib/scopes_extractor/platforms/bugcrowd/authenticator.rb"

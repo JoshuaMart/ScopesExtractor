@@ -19,12 +19,21 @@ module ScopesExtractor
     method_option :sync, type: :boolean, default: false, desc: 'Enable AutoSync in background'
     def serve
       Database.migrate
+      start_autosync_if_enabled
+      start_api_server
+    end
 
-      sync_settings = Config.sync
-      if options[:sync] || sync_settings[:auto]
-        delay = sync_settings[:delay] || 10_800 # Default 3h
+    no_commands do
+      def start_autosync_if_enabled
+        sync_settings = Config.sync
+        return unless options[:sync] || sync_settings[:auto]
+
+        delay = sync_settings[:delay] || 10_800
         logger.info "Starting AutoSync in background (delay: #{delay}s)..."
+        start_autosync_thread(delay)
+      end
 
+      def start_autosync_thread(delay)
         Thread.new do
           loop do
             SyncManager.new.run
@@ -32,14 +41,16 @@ module ScopesExtractor
             sleep delay
           rescue StandardError => e
             logger.error "AutoSync loop error: #{e.message}"
-            sleep 60 # Retry after 1 minute on crash
+            sleep 60
           end
         end
       end
 
-      logger.info "Starting API server on port #{options[:port]}..."
-      ENV['API_PORT'] = options[:port].to_s
-      Api.run!
+      def start_api_server
+        logger.info "Starting API server on port #{options[:port]}..."
+        ENV['API_PORT'] = options[:port].to_s
+        Api.run!
+      end
     end
 
     desc 'reset', 'Reset the database'
