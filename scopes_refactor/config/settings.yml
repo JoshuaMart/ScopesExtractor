@@ -1,0 +1,58 @@
+# ScopesExtractor Configuration
+
+# Application settings
+app:
+  log_level: INFO  # DEBUG, INFO, WARN, ERROR
+  database_path: db/scopes.db
+
+# HTTP client configuration
+http:
+  user_agent: "ScopesExtractor/2.0 (Ruby; +github.com/JoshuaMart/ScopesExtractor)"
+  proxy: null  # Optional: "http://proxy.example.com:8080"
+  timeout: 30  # seconds
+
+# API server configuration
+api:
+  port: 4567
+  bind: "0.0.0.0"
+
+platforms:
+  yeswehack:
+    enabled: false
+    skip_vdp: true
+  hackerone:
+    enabled: false
+    skip_vdp: false
+  intigriti:
+    enabled: false
+    skip_vdp: true
+  bugcrowd:
+    enabled: false
+    skip_vdp: true
+  immunefi:
+    enabled: false
+    skip_vdp: false
+
+sync:
+  auto: false
+  delay: 10800  # 3 hours in seconds
+
+history_retention_days: 30
+
+discord:
+  enabled: false
+  webhooks:
+    main:
+      url: ""  # https://discord.com/api/webhooks/.../xxx
+      events: ["new_program", "removed_program", "new_scope", "removed_scope", "ignored_asset"]
+      new_scope_types: ["web"]  # Filter notifications by scope type (web, mobile, android, ios, etc.)
+                                # Empty or null = notify all types
+    errors:
+      url: ""  # https://discord.com/api/webhooks/.../yyy
+
+platform_exclusions:
+  yeswehack: []
+  hackerone: []
+  intigriti: []
+  bugcrowd: []
+  immunefi: []
