@@ -33,14 +33,15 @@ module ScopesExtractor
     def sync(platform = nil)
       setup_logging(options[:verbose])
 
-      if platform
-        ScopesExtractor.logger.info "Starting sync for platform: #{platform}"
-      else
-        ScopesExtractor.logger.info 'Starting sync for all enabled platforms'
-      end
+      Database.connect
+      Database.migrate
 
-      # TODO: Implement in Phase 6 with SyncManager
-      ScopesExtractor.logger.warn 'Sync functionality not yet implemented (Phase 6)'
+      sync_manager = SyncManager.new
+      sync_manager.run(platform_name: platform)
+    rescue StandardError => e
+      ScopesExtractor.logger.error "Sync failed: #{e.message}"
+      ScopesExtractor.logger.debug e.backtrace.join("\n") if options[:verbose]
+      exit 1
     end
 
     desc 'serve', 'Start the API server'

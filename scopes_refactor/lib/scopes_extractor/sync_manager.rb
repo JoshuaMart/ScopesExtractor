@@ -51,10 +51,18 @@ module ScopesExtractor
     end
 
     def setup_platforms
-      # Initialize only enabled platforms
-      # TODO: Platform implementations will be added in Phase 5 (YesWeHack) and later
-      # config = Config.platforms
-      # @platforms << Platforms::YesWeHack::Platform.new if config.dig(:yeswehack, :enabled)
+      config = Config.platforms
+
+      # YesWeHack
+      if config.dig(:yeswehack, :enabled)
+        @platforms << Platforms::YesWeHack::Platform.new(
+          email: ENV.fetch('YWH_EMAIL', nil),
+          password: ENV.fetch('YWH_PWD', nil),
+          otp: ENV.fetch('YWH_OTP', nil)
+        )
+      end
+
+      # TODO: Add other platforms when implemented
       # @platforms << Platforms::HackerOne::Platform.new if config.dig(:hackerone, :enabled)
       # @platforms << Platforms::Intigriti::Platform.new if config.dig(:intigriti, :enabled)
       # @platforms << Platforms::Bugcrowd::Platform.new if config.dig(:bugcrowd, :enabled)

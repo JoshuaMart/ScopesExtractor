@@ -1,0 +1,85 @@
+# frozen_string_literal: true
+
+require 'spec_helper'
+
+RSpec.describe ScopesExtractor::Platforms::YesWeHack::Platform do
+  let(:config) do
+    {
+      email: 'test@example.com',
+      password: 'password123',
+      otp: 'BASE32SECRET3232'
+    }
+  end
+  let(:platform) { described_class.new(config) }
+  let(:authenticator) { instance_double(ScopesExtractor::Platforms::YesWeHack::Authenticator) }
+
+  describe '#initialize' do
+    it 'accepts a config hash' do
+      expect(platform.config).to eq(config)
+    end
+  end
+
+  describe '#name' do
+    it 'returns YesWeHack' do
+      expect(platform.name).to eq('YesWeHack')
+    end
+  end
+
+  describe '#valid_access?' do
+    before do
+      allow(ScopesExtractor::Platforms::YesWeHack::Authenticator).to receive(:new).and_return(authenticator)
+    end
+
+    context 'when authentication succeeds' do
+      before do
+        allow(authenticator).to receive_messages(authenticate: 'valid_token', authenticated?: true)
+      end
+
+      it 'returns true' do
+        expect(platform.valid_access?).to be true
+      end
+    end
+
+    context 'when authentication fails' do
+      before do
+        allow(authenticator).to receive(:authenticate).and_raise(StandardError.new('Auth failed'))
+      end
+
+      it 'returns false' do
+        expect(platform.valid_access?).to be false
+      end
+
+      it 'logs the error' do
+        expect(ScopesExtractor.logger).to receive(:error).with(/Access validation failed: Auth failed/)
+        platform.valid_access?
+      end
+    end
+  end
+
+  describe '#fetch_programs' do
+    before do
+      allow(ScopesExtractor::Platforms::YesWeHack::Authenticator).to receive(:new).and_return(authenticator)
+      allow(authenticator).to receive(:authenticate).and_return('valid_token')
+    end
+
+    it 'authenticates before fetching' do
+      expect(authenticator).to receive(:authenticate)
+      platform.fetch_programs
+    end
+
+    it 'returns an empty array (stub for now)' do
+      expect(platform.fetch_programs).to eq([])
+    end
+
+    context 'when already authenticated' do
+      it 'does not authenticate again' do
+        # First call authenticates
+        platform.fetch_programs
+
+        # Second call should not authenticate
+        expect(authenticator).not_to receive(:authenticate)
+        platform.fetch_programs
+      end
+    end
+  end
+end

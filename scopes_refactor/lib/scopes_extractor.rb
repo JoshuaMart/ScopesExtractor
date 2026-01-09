@@ -78,6 +78,8 @@ require_relative 'scopes_extractor/sync_manager'
 
 # Require platforms
 require_relative 'scopes_extractor/platforms/base_platform'
+require_relative 'scopes_extractor/platforms/yeswehack/authenticator'
+require_relative 'scopes_extractor/platforms/yeswehack/platform'
 
 # Initialize HTTP client
 ScopesExtractor::HTTP.setup
