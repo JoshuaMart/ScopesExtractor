@@ -34,8 +34,23 @@ module ScopesExtractor
         def fetch_programs
           authenticate unless authenticated?
 
-          # TODO: Implement in next step with ProgramFetcher
-          []
+          fetcher = ProgramFetcher.new(@token)
+          raw_programs = fetcher.fetch_all
+
+          raw_programs.filter_map do |raw|
+            # Fetch full details to get scopes
+            details = fetcher.fetch_details(raw['slug'])
+            next unless details
+
+            begin
+              parse_program(details)
+            rescue StandardError => e
+              # Log the error and skip this program, but don't crash the whole sync
+              ScopesExtractor.logger.error "[YesWeHack] Failed to parse program #{raw['slug']}: #{e.message}"
+              ScopesExtractor.logger.debug e.backtrace.join("\n")
+              nil
+            end
+          end
         end
 
         private
@@ -54,6 +69,51 @@ module ScopesExtractor
 
         def authenticated?
           !@token.nil?
+        end
+
+        def parse_program(data)
+          # Parse in-scope assets
+          in_scopes = (data['scopes'] || []).filter_map do |raw_scope|
+            parse_scope(raw_scope, true)
+          end
+
+          # Parse out-of-scope assets - YesWeHack uses string array for out_of_scope
+          out_scopes = (data['out_of_scope'] || []).filter_map do |raw_scope|
+            # Skip string items (textual descriptions, not actual scopes)
+            next if raw_scope.is_a?(String)
+
+            parse_scope(raw_scope, false)
+          end
+
+          Models::Program.new(
+            slug: data['slug'],
+            platform: 'yeswehack',
+            name: data['title'],
+            bounty: data['bounty'] == true,
+            scopes: in_scopes + out_scopes
+          )
+        end
+
+        def parse_scope(raw_scope, is_in_scope)
+          type = map_scope_type(raw_scope['scope_type'])
+          value = raw_scope['scope']
+
+          # Return scope without normalization (DiffEngine will handle it)
+          Models::Scope.new(
+            value: value,
+            type: type,
+            is_in_scope: is_in_scope
+          )
+        end
+
+        def map_scope_type(ywh_type)
+          case ywh_type
+          when 'web-application', 'api', 'ip-address', 'wildcard' then 'web'
+          when 'mobile-application', 'mobile-application-android', 'mobile-application-ios' then 'mobile'
+          when 'open-source' then 'source_code'
+          when 'application' then 'executable'
+          else 'other'
+          end
         end
       end
     end

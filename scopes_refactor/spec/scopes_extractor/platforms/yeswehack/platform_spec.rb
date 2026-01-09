@@ -57,9 +57,13 @@ RSpec.describe ScopesExtractor::Platforms::YesWeHack::Platform do
   end
 
   describe '#fetch_programs' do
+    let(:program_fetcher) { instance_double(ScopesExtractor::Platforms::YesWeHack::ProgramFetcher) }
+
     before do
       allow(ScopesExtractor::Platforms::YesWeHack::Authenticator).to receive(:new).and_return(authenticator)
       allow(authenticator).to receive(:authenticate).and_return('valid_token')
+      allow(ScopesExtractor::Platforms::YesWeHack::ProgramFetcher).to receive(:new).and_return(program_fetcher)
+      allow(program_fetcher).to receive(:fetch_all).and_return([])
     end
 
     it 'authenticates before fetching' do
@@ -67,7 +71,17 @@ RSpec.describe ScopesExtractor::Platforms::YesWeHack::Platform do
       platform.fetch_programs
     end
 
-    it 'returns an empty array (stub for now)' do
+    it 'creates a program fetcher with token' do
+      expect(ScopesExtractor::Platforms::YesWeHack::ProgramFetcher).to receive(:new).with('valid_token')
+      platform.fetch_programs
+    end
+
+    it 'calls fetch_all on the fetcher' do
+      expect(program_fetcher).to receive(:fetch_all)
+      platform.fetch_programs
+    end
+
+    it 'returns programs array' do
       expect(platform.fetch_programs).to eq([])
     end
 
