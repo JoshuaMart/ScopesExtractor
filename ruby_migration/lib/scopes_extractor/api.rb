@@ -47,11 +47,10 @@ module ScopesExtractor
     # Endpoint /changes: Returns implementation history
     get '/changes' do
       query = ScopesExtractor.db[:history]
-                             .left_join(:programs, Sequel[:programs][:id] => Sequel[:history][:program_id])
                              .select(
                                Sequel[:history][:created_at],
-                               Sequel[:programs][:platform],
-                               Sequel[:programs][:name].as(:program_name),
+                               Sequel[:history][:platform_name],
+                               Sequel[:history][:program_name],
                                Sequel[:history][:event_type],
                                Sequel[:history][:scope_type],
                                Sequel[:history][:category],
@@ -66,7 +65,7 @@ module ScopesExtractor
       end
 
       # Filter by platform
-      query = query.where(Sequel.ilike(Sequel[:programs][:platform], params[:platform])) if params[:platform]
+      query = query.where(Sequel.ilike(Sequel[:history][:platform_name], params[:platform])) if params[:platform]
 
       # Filter by event type
       query = query.where(Sequel[:history][:event_type] => params[:type]) if params[:type]
@@ -78,7 +77,7 @@ module ScopesExtractor
       results = query.all.map do |row|
         result = {
           timestamp: row[:created_at]&.iso8601,
-          platform: row[:platform]&.capitalize,
+          platform: row[:platform_name]&.capitalize,
           program: row[:program_name],
           change_type: row[:event_type],
           scope_type: row[:scope_type],

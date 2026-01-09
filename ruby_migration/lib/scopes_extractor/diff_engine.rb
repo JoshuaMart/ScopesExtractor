@@ -23,7 +23,7 @@ module ScopesExtractor
           last_updated: Time.now
         )
         @notifier.notify_new_program(platform_name, fetched_program.name, program_slug)
-        log_event(program_id, 'add_program', 'Brand new program discovered')
+        log_event(program_id, platform_name, fetched_program.name, 'add_program', 'Brand new program discovered')
       else
         program_id = existing_program[:id]
         # Update program if name/bounty changed
@@ -37,12 +37,12 @@ module ScopesExtractor
       end
 
       # 2. Sync Scopes
-      sync_scopes(program_id, fetched_program)
+      sync_scopes(program_id, platform_name, fetched_program)
     end
 
     private
 
-    def sync_scopes(program_id, fetched_program)
+    def sync_scopes(program_id, platform_name, fetched_program)
       existing_scopes = @db[:scopes].where(program_id: program_id).all
       existing_values = existing_scopes.map { |s| s[:value] }
 
@@ -65,7 +65,7 @@ module ScopesExtractor
 
         # Log with scope_type (in/out) and category (web, contracts, etc)
         scope_type_str = scope_obj.is_in_scope ? 'in' : 'out'
-        log_event(program_id, 'add_scope', val, scope_type_str, scope_obj.type)
+        log_event(program_id, platform_name, fetched_program.name, 'add_scope', val, scope_type_str, scope_obj.type)
       end
 
       # Removed Scopes (or rather, no longer present in fetch)
@@ -80,7 +80,7 @@ module ScopesExtractor
 
         @db[:scopes].where(program_id: program_id, value: val).delete
         @notifier.notify_removed_scope(fetched_program.platform, fetched_program.name, val)
-        log_event(program_id, 'remove_scope', val, scope_type_str, category)
+        log_event(program_id, platform_name, fetched_program.name, 'remove_scope', val, scope_type_str, category)
       end
     end
 
@@ -120,13 +120,15 @@ module ScopesExtractor
       )
 
       @notifier.notify_ignored_asset(platform_name, fetched_program.name, scope_obj.value, 'Invalid format')
-      log_event(program[:id], 'asset_ignored', scope_obj.value)
+      log_event(program[:id], platform_name, fetched_program.name, 'asset_ignored', scope_obj.value)
     end
 
-    def log_event(program_id, type, details, scope_type = nil, category = nil)
+    def log_event(program_id, platform_name, program_name, event_type, details, scope_type = nil, category = nil)
       @db[:history].insert(
         program_id: program_id,
-        event_type: type,
+        platform_name: platform_name,
+        program_name: program_name,
+        event_type: event_type,
         details: details,
         scope_type: scope_type,
         category: category,

@@ -140,6 +140,8 @@ module ScopesExtractor
         # Log event BEFORE deletion (with scopes in details)
         ScopesExtractor.db[:history].insert(
           program_id: program[:id],
+          platform_name: platform_key,
+          program_name: program[:name],
           event_type: 'remove_program',
           details: scopes_json,
           created_at: Time.now
