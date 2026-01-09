@@ -21,6 +21,7 @@ gem 'yaml', '~> 0.4'                 # Configuration files
 # Development & Testing
 group :development, :test do
   gem 'pry', '~> 0.16'                  # Debugging
+  gem 'rack-test', '~> 2.1'             # API testing
   gem 'rspec', '~> 3.13'                # Testing framework
   gem 'rubocop', '~> 1.82'              # Code quality
   gem 'rubocop-performance', '~> 1.26'  # Performance cops
