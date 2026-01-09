@@ -60,3 +60,7 @@ require_relative 'scopes_extractor/config'
 require_relative 'scopes_extractor/database'
 require_relative 'scopes_extractor/normalizer'
 require_relative 'scopes_extractor/validator'
+
+# Require models
+require_relative 'scopes_extractor/models/scope'
+require_relative 'scopes_extractor/models/program'
