@@ -72,3 +72,6 @@ RSpec/ExampleLength:
 
 RSpec/MessageSpies:
   Enabled: false
+
+RSpec/SpecFilePathFormat:
+  Enabled: false  # Allow yeswehack instead of yes_we_hack
