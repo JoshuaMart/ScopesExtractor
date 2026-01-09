@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 Sequel.migration do
-  change do
-    create_table(:programs) do
+  up do
+    create_table?(:programs) do
       primary_key :id
       String :platform, null: false
       String :slug, null: false
@@ -13,7 +13,7 @@ Sequel.migration do
       index %i[platform slug], unique: true
     end
 
-    create_table(:scopes) do
+    create_table?(:scopes) do
       primary_key :id
       foreign_key :program_id, :programs, type: Integer, on_delete: :cascade, null: false
       String :value, null: false
@@ -26,7 +26,7 @@ Sequel.migration do
       index :type
     end
 
-    create_table(:history) do
+    create_table?(:history) do
       primary_key :id
       foreign_key :program_id, :programs, type: Integer, on_delete: :set_null
       String :platform_name
@@ -42,7 +42,7 @@ Sequel.migration do
       index :event_type
     end
 
-    create_table(:ignored_assets) do
+    create_table?(:ignored_assets) do
       primary_key :id
       String :platform, null: false
       String :program_slug, null: false
@@ -52,5 +52,12 @@ Sequel.migration do
 
       index %i[platform program_slug value], unique: true
     end
+  end
+
+  down do
+    drop_table?(:ignored_assets)
+    drop_table?(:history)
+    drop_table?(:scopes)
+    drop_table?(:programs)
   end
 end
