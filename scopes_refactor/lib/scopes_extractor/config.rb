@@ -4,7 +4,7 @@ module ScopesExtractor
   module Config
     class << self
       def load
-        @load ||= YAML.load_file(config_path)
+        @load ||= YAML.load_file(config_path, symbolize_names: true)
       end
 
       def reload
