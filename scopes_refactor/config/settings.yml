@@ -18,20 +18,17 @@ api:
 
 platforms:
   yeswehack:
-    enabled: false
+    enabled: true
     skip_vdp: true
   hackerone:
-    enabled: false
+    enabled: true
     skip_vdp: false
   intigriti:
-    enabled: false
+    enabled: true
     skip_vdp: true
   bugcrowd:
-    enabled: false
+    enabled: true
     skip_vdp: true
-  immunefi:
-    enabled: false
-    skip_vdp: false
 
 sync:
   auto: false
@@ -53,6 +50,6 @@ discord:
 platform_exclusions:
   yeswehack: []
   hackerone: []
-  intigriti: []
+  intigriti: [ "ripencc" ]
   bugcrowd: []
   immunefi: []
