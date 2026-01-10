@@ -81,6 +81,8 @@ require_relative 'scopes_extractor/platforms/base_platform'
 require_relative 'scopes_extractor/platforms/yeswehack/authenticator'
 require_relative 'scopes_extractor/platforms/yeswehack/program_fetcher'
 require_relative 'scopes_extractor/platforms/yeswehack/platform'
+require_relative 'scopes_extractor/platforms/intigriti/program_fetcher'
+require_relative 'scopes_extractor/platforms/intigriti/platform'
 
 # Require API
 require_relative 'scopes_extractor/api'
