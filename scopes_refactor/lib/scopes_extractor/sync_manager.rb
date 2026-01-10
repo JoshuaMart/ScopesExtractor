@@ -73,7 +73,7 @@ module ScopesExtractor
       if config.dig(:hackerone, :enabled)
         @platforms << Platforms::HackerOne::Platform.new(
           username: ENV.fetch('H1_USERNAME', nil),
-          api_token: ENV.fetch('H1_API_TOKEN', nil)
+          api_token: ENV.fetch('H1_TOKEN', nil)
         )
       end
 
