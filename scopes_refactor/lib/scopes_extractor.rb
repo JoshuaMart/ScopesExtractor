@@ -83,6 +83,8 @@ require_relative 'scopes_extractor/platforms/yeswehack/program_fetcher'
 require_relative 'scopes_extractor/platforms/yeswehack/platform'
 require_relative 'scopes_extractor/platforms/intigriti/program_fetcher'
 require_relative 'scopes_extractor/platforms/intigriti/platform'
+require_relative 'scopes_extractor/platforms/hacker_one/program_fetcher'
+require_relative 'scopes_extractor/platforms/hacker_one/platform'
 
 # Require API
 require_relative 'scopes_extractor/api'

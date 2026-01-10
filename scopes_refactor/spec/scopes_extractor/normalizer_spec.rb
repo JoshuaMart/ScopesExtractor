@@ -98,5 +98,37 @@ RSpec.describe ScopesExtractor::Normalizer do
         expect(described_class.normalize('intigriti', input)).to eq(['*.example.com'])
       end
     end
+
+    context 'with HackerOne platform' do
+      it 'replaces .* with .com' do
+        input = '*.example.*'
+        expect(described_class.normalize('hackerone', input)).to eq(['*.example.com'])
+      end
+
+      it 'replaces .(TLD) with .com' do
+        input = '*.example.(TLD)'
+        expect(described_class.normalize('hackerone', input)).to eq(['*.example.com'])
+      end
+
+      it 'replaces .(tld) with .com (case insensitive)' do
+        input = '*.example.(tld)'
+        expect(described_class.normalize('hackerone', input)).to eq(['*.example.com'])
+      end
+
+      it 'splits values with comma separator' do
+        input = 'site1.com,site2.net,site3.org'
+        expect(described_class.normalize('hackerone', input)).to eq(['site1.com', 'site2.net', 'site3.org'])
+      end
+
+      it 'combines .(TLD) replacement and comma splitting' do
+        input = '*.example.(TLD),*.test.com'
+        expect(described_class.normalize('hackerone', input)).to eq(['*.example.com', '*.test.com'])
+      end
+
+      it 'returns single value when no special patterns' do
+        input = '*.example.com'
+        expect(described_class.normalize('hackerone', input)).to eq(['*.example.com'])
+      end
+    end
   end
 end

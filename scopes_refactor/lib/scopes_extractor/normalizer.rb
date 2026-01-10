@@ -10,6 +10,7 @@ module ScopesExtractor
       normalized = case platform.downcase
                    when 'yeswehack' then normalize_yeswehack(value)
                    when 'intigriti' then normalize_intigriti(value)
+                   when 'hackerone' then normalize_hackerone(value)
                    else [value]
                    end
 
@@ -69,6 +70,21 @@ module ScopesExtractor
       # Handle slash-separated values (e.g., "www.example.kz / www.example.com")
       if value.include?(' / ')
         value.split(' / ')
+      else
+        [value]
+      end
+    end
+
+    def self.normalize_hackerone(value)
+      # Replace .* patterns with .com
+      value = value.sub('.*', '.com')
+
+      # Replace .(TLD) or .(tld) patterns with .com
+      value = value.sub(/\.\(TLD\)/i, '.com')
+
+      # Handle comma-separated values
+      if value.include?(',')
+        value.split(',')
       else
         [value]
       end

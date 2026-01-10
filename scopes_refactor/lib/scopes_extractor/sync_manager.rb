@@ -63,14 +63,21 @@ module ScopesExtractor
       end
 
       # Intigriti
-      return unless config.dig(:intigriti, :enabled)
+      if config.dig(:intigriti, :enabled)
+        @platforms << Platforms::Intigriti::Platform.new(
+          token: ENV.fetch('INTIGRITI_TOKEN', nil)
+        )
+      end
 
-      @platforms << Platforms::Intigriti::Platform.new(
-        token: ENV.fetch('INTIGRITI_TOKEN', nil)
+      # HackerOne
+      return unless config.dig(:hackerone, :enabled)
+
+      @platforms << Platforms::HackerOne::Platform.new(
+        username: ENV.fetch('H1_USERNAME', nil),
+        api_token: ENV.fetch('H1_TOKEN', nil)
       )
 
       # TODO: Add other platforms when implemented
-      # @platforms << Platforms::HackerOne::Platform.new if config.dig(:hackerone, :enabled)
       # @platforms << Platforms::Bugcrowd::Platform.new if config.dig(:bugcrowd, :enabled)
       # @platforms << Platforms::Immunefi::Platform.new if config.dig(:immunefi, :enabled)
     end
