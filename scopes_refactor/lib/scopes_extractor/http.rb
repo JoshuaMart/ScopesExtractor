@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'typhoeus'
+require 'tempfile'
 
 module ScopesExtractor
   module HTTP
@@ -9,8 +10,13 @@ module ScopesExtractor
 
       def setup
         @hydra = Typhoeus::Hydra.new(max_concurrency: 10)
-        @cookie_file = File.join(Dir.tmpdir, "scopes_extractor_cookies_#{Process.pid}.txt")
+        @cookie_file = Tempfile.new(['scopes_extractor_cookies', '.txt'])
+        @cookie_file.close # Close but don't unlink - Typhoeus needs the file path
         ScopesExtractor.logger.info "HTTP client initialized with User-Agent: #{Config.user_agent}"
+      end
+
+      def cleanup
+        @cookie_file&.unlink
       end
 
       def get(url, headers: {}, timeout: nil)
@@ -37,8 +43,8 @@ module ScopesExtractor
           headers: default_headers.merge(headers),
           timeout: timeout || Config.timeout,
           followlocation: true,
-          cookiefile: @cookie_file,
-          cookiejar: @cookie_file
+          cookiefile: @cookie_file.path,
+          cookiejar: @cookie_file.path
         }
 
         options[:body] = body if body
