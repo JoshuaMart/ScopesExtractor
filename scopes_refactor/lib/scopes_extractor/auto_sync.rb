@@ -13,11 +13,8 @@ module ScopesExtractor
     def start
       return if @running
 
-      config = Config.sync
-      return unless config[:auto]
-
       @running = true
-      delay = config[:delay]
+      delay = Config.sync[:delay]
 
       ScopesExtractor.logger.info "Starting auto-sync with #{delay}s delay"
 

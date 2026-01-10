@@ -31,8 +31,7 @@ platforms:
     skip_vdp: true
 
 sync:
-  auto: false
-  delay: 10800  # 3 hours in seconds
+  delay: 10800  # 3 hours in seconds (used by --sync flag)
 
 history_retention_days: 30
 

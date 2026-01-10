@@ -103,7 +103,6 @@ RSpec.describe ScopesExtractor::Config do
     describe '.sync' do
       it 'returns sync configuration' do
         sync = described_class.sync
-        expect(sync[:auto]).to be true
         expect(sync[:delay]).to eq(10_800)
       end
     end
