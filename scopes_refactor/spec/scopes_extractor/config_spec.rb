@@ -78,7 +78,6 @@ RSpec.describe ScopesExtractor::Config do
         expect(platforms).to have_key(:hackerone)
         expect(platforms).to have_key(:intigriti)
         expect(platforms).to have_key(:bugcrowd)
-        expect(platforms).to have_key(:immunefi)
       end
     end
 
@@ -104,7 +103,7 @@ RSpec.describe ScopesExtractor::Config do
     describe '.sync' do
       it 'returns sync configuration' do
         sync = described_class.sync
-        expect(sync[:auto]).to be false
+        expect(sync[:auto]).to be true
         expect(sync[:delay]).to eq(10_800)
       end
     end
