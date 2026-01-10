@@ -156,7 +156,9 @@ docker-compose up -d
 docker run -v $(pwd)/config/settings.yml:/app/config/settings.yml \
            -v $(pwd)/db:/app/db \
            -v $(pwd)/.env:/app/.env \
-           scopes_extractor sync
+           --name scopes_extractor \
+           scopes_extractor \
+           bundle exec bin/scopes_extractor sync
 
 # Start API server with auto-sync
 docker run -d \
@@ -165,7 +167,8 @@ docker run -d \
            -v $(pwd)/.env:/app/.env \
            -p 4567:4567 \
            --name scopes_extractor \
-           scopes_extractor serve --sync
+           scopes_extractor \
+           bundle exec bin/scopes_extractor serve --sync
 
 # View logs
 docker logs -f scopes_extractor
