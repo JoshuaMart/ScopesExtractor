@@ -12,20 +12,9 @@ A tool to automatically synchronize and track bug bounty program scopes from mul
 - 🔄 **Multi-Platform Support**: YesWeHack, HackerOne, Intigriti, Bugcrowd
 - 📊 **Automatic Synchronization**: Continuously monitor programs and detect scope changes
 - 🔔 **Discord Notifications**: Get notified about new programs, scope changes, and removals
-- 🎯 **Smart Filtering**: Filter by platform, scope type, bounty status, and more
 - 🗄️ **SQLite Database**: Persistent storage with historical change tracking
 - 🌐 **REST API**: Query scopes and changes programmatically
-- 🔍 **Scope Validation**: Validation and normalization of scope values
-
-## Supported Platforms
-
-| Platform | Authentication | Status |
-|----------|---------------|--------|
-| YesWeHack | Email + Password + TOTP | ✅ Working |
-| HackerOne | Username + API Token | ✅ Working |
-| Intigriti | API Token | ✅ Working |
-| Bugcrowd | Email + Password + TOTP | ✅ Working |
-| Immunefi | None (Public API) | ✅ Working |
+- 🎯 **Smart Scope Processing**: Automatic validation and normalization with platform-specific rules
 
 ## Installation
 
@@ -35,11 +24,16 @@ A tool to automatically synchronize and track bug bounty program scopes from mul
 - SQLite3
 - libcurl (for Typhoeus)
 
-```bash
-cp .env.example .env
-```
+### Configuration
 
-Edit the `config/settings.yml` and `.env` file
+1. **Copy the environment template**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure platform credentials** in `.env` (email, password, API tokens, TOTP secrets)
+
+3. **Configure application settings** in `config/settings.yml` (enable/disable platforms, Discord webhooks, etc.)
 
 ### Using Docker (Recommended)
 
@@ -396,6 +390,89 @@ discord:
       new_scope_types: ["web"]  # Only notify for web scopes
       # Or leave empty/null to notify for all types
 ```
+
+## Scope Processing
+
+ScopesExtractor includes intelligent scope processing with automatic normalization and validation.
+
+<details>
+<summary><strong>Auto-Heuristic Type Detection</strong></summary>
+
+Scopes are automatically categorized based on pattern matching, overriding platform-provided types when applicable:
+
+| Pattern | Detected Type | Example |
+|---------|--------------|---------|
+| GitHub/GitLab URLs | `source_code` | `https://github.com/user/repo` |
+| Atlassian Marketplace | `source_code` | `https://marketplace.atlassian.com/apps/123` |
+| App Store URLs | `mobile` | `https://apps.apple.com/app/id123` |
+| Play Store URLs | `mobile` | `https://play.google.com/store/apps/details?id=com.app` |
+| Chrome Web Store | `executable` | `https://chrome.google.com/webstore/detail/ext` |
+| CIDR notation | `cidr` | `192.168.1.0/24` |
+| Wildcard domains | `web` | `*.example.com` |
+
+</details>
+
+<details>
+<summary><strong>Platform-Specific Normalization</strong></summary>
+
+Each platform has custom normalization rules to handle their scope formats:
+
+**YesWeHack**
+- Expands multi-TLD patterns: `example.{fr,com}` → `example.fr`, `example.com`
+- Handles prefix patterns: `{www,api}.example.com` → `www.example.com`, `api.example.com`
+
+**HackerOne**
+- Replaces `.*` with `.com`: `example.*` → `example.com`
+- Replaces `.(TLD)` with `.com`: `example.(TLD)` → `example.com`
+- Splits comma-separated values: `domain1.com,domain2.com` → `domain1.com`, `domain2.com`
+
+**Intigriti**
+- Replaces `<tld>` with `.com`: `*.example.<tld>` → `*.example.com`
+- Splits slash-separated values: `domain1.com / domain2.com` → `domain1.com`, `domain2.com`
+
+**Bugcrowd**
+- Extracts primary domain from dash-separated descriptions: `example.com - Production` → `example.com`
+
+</details>
+
+<details>
+<summary><strong>Global Normalization</strong></summary>
+
+Applied to all scopes regardless of platform:
+
+- Converts leading dots to wildcards: `.example.com` → `*.example.com`
+- Removes trailing slashes and wildcards: `example.com/*` → `example.com`
+- Downcases all values: `Example.COM` → `example.com`
+- Cleans up escaped characters and extra spaces
+
+</details>
+
+<details>
+<summary><strong>Validation Rules</strong></summary>
+
+Scopes are validated before being added to the database. Invalid scopes trigger `ignored_asset` notifications.
+
+**Rejected patterns:**
+- Values without dots (unless IP addresses)
+- Multiple wildcards: `*.xyz.*.example.com` ❌
+- Invalid wildcard placement: `example*.com` ❌
+- Template placeholders: `{id}`, `<identifier>`, `[name]`
+- Descriptions in parentheses: `example.com (production only)`
+- Sentence punctuation: periods, commas, semicolons in unexpected positions
+- Values with spaces (except in URLs with query parameters)
+- Very short values (< 4 characters)
+- Hash symbols in domain portion (allowed in URL fragments)
+
+**Accepted patterns:**
+- Standard domains: `example.com` ✅
+- Subdomains: `api.example.com` ✅
+- Wildcards: `*.example.com` ✅
+- URLs with protocols: `https://example.com` ✅
+- URLs with paths: `https://example.com/api` ✅
+- IP addresses: `192.168.1.1` ✅
+- CIDR ranges: `10.0.0.0/8` ✅
+
+</details>
 
 ## Development
 
