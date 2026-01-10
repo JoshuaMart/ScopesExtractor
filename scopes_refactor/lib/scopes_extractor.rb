@@ -15,6 +15,7 @@ module ScopesExtractor
     end
 
     def setup_logger
+      $stdout.sync = true # Force immediate flush for Docker
       @logger = Logger.new($stdout)
       @logger.level = log_level_from_env
       @logger.formatter = proc do |severity, datetime, _progname, msg|
