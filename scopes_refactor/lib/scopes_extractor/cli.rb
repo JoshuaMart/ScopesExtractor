@@ -25,7 +25,6 @@ module ScopesExtractor
       ScopesExtractor.logger.info 'Resetting database...'
       Database.connect
       Database.reset
-      ScopesExtractor.logger.info 'Database reset complete'
     end
 
     desc 'sync [PLATFORM]', 'Synchronize programs from bug bounty platforms'
