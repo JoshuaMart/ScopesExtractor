@@ -61,5 +61,42 @@ RSpec.describe ScopesExtractor::Normalizer do
         expect(described_class.normalize('yeswehack', input)).to eq(['example.com', 'example.net', 'example.org'])
       end
     end
+
+    context 'with Intigriti platform' do
+      it 'replaces <tld> with .com' do
+        input = '*.example.<tld>'
+        expect(described_class.normalize('intigriti', input)).to eq(['*.example.com'])
+      end
+
+      it 'replaces <TLD> with .com (case insensitive)' do
+        input = '*.example.<TLD>'
+        expect(described_class.normalize('intigriti', input)).to eq(['*.example.com'])
+      end
+
+      it 'replaces .* with .com' do
+        input = '*.example.*'
+        expect(described_class.normalize('intigriti', input)).to eq(['*.example.com'])
+      end
+
+      it 'splits values with slash separator' do
+        input = 'www.example.kz / www.example.com'
+        expect(described_class.normalize('intigriti', input)).to eq(['www.example.kz', 'www.example.com'])
+      end
+
+      it 'handles multiple slash separators' do
+        input = 'site1.com / site2.net / site3.org'
+        expect(described_class.normalize('intigriti', input)).to eq(['site1.com', 'site2.net', 'site3.org'])
+      end
+
+      it 'combines <tld> replacement and slash splitting' do
+        input = '*.example.<tld> / *.test.com'
+        expect(described_class.normalize('intigriti', input)).to eq(['*.example.com', '*.test.com'])
+      end
+
+      it 'returns single value when no special patterns' do
+        input = '*.example.com'
+        expect(described_class.normalize('intigriti', input)).to eq(['*.example.com'])
+      end
+    end
   end
 end

@@ -9,6 +9,7 @@ module ScopesExtractor
 
       normalized = case platform.downcase
                    when 'yeswehack' then normalize_yeswehack(value)
+                   when 'intigriti' then normalize_intigriti(value)
                    else [value]
                    end
 
@@ -53,6 +54,21 @@ module ScopesExtractor
         middle = match[:middle]
         tlds = match[:tlds].split('|')
         tlds.map { |tld| "#{prefix}#{middle}#{tld}" }
+      else
+        [value]
+      end
+    end
+
+    def self.normalize_intigriti(value)
+      # Replace <tld> or <TLD> patterns with .com
+      value = value.gsub(/\.<tld>/i, '.com')
+
+      # Replace .* patterns with .com
+      value = value.sub('.*', '.com')
+
+      # Handle slash-separated values (e.g., "www.example.kz / www.example.com")
+      if value.include?(' / ')
+        value.split(' / ')
       else
         [value]
       end

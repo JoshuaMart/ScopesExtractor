@@ -75,8 +75,8 @@ module ScopesExtractor
           scopes_data = details.dig('domains', 'content')
           return nil unless scopes_data
 
-          scopes = scopes_data.filter_map do |raw_scope|
-            parse_scope(raw_scope)
+          scopes = scopes_data.flat_map do |raw_scope|
+            parse_scope(raw_scope) || []
           end
 
           Models::Program.new(
@@ -101,11 +101,21 @@ module ScopesExtractor
           # Determine if in scope or out of scope
           is_in_scope = raw_scope.dig('tier', 'value') != 'Out Of Scope'
 
-          Models::Scope.new(
-            value: endpoint,
-            type: type,
-            is_in_scope: is_in_scope
-          )
+          # Normalize the endpoint value for web types
+          normalized_values = if type == 'web' && is_in_scope
+                                Normalizer.normalize('intigriti', endpoint)
+                              else
+                                [endpoint.downcase]
+                              end
+
+          # Return array of scopes (can be multiple after normalization)
+          normalized_values.map do |value|
+            Models::Scope.new(
+              value: value,
+              type: type,
+              is_in_scope: is_in_scope
+            )
+          end
         end
 
         def map_scope_type(type_id)
