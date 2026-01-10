@@ -111,6 +111,11 @@ RSpec.describe ScopesExtractor::Models::Scope do
       expect(scope.type).to eq('executable')
     end
 
+    it 'detects Atlassian Marketplace URLs as source_code' do
+      scope = described_class.new(value: 'https://marketplace.atlassian.com/apps/1234/app-name', type: 'web', is_in_scope: true)
+      expect(scope.type).to eq('source_code')
+    end
+
     it 'detects wildcards as web' do
       scope = described_class.new(value: '*.example.com', type: 'other', is_in_scope: true)
       expect(scope.type).to eq('web')

@@ -41,6 +41,9 @@ module ScopesExtractor
         # Chrome Web Store (Extensions)
         elsif value.match?(%r{^https?://(chrome\.google\.com/webstore|chromewebstore\.google\.com)})
           normalized[:type] = 'executable'
+        # Atlassian Marketplace
+        elsif value.match?(%r{^https?://marketplace\.atlassian\.com})
+          normalized[:type] = 'source_code'
         # Wildcard domain -> force type 'web'
         elsif value.start_with?('*.')
           normalized[:type] = 'web'
