@@ -85,6 +85,9 @@ require_relative 'scopes_extractor/platforms/intigriti/program_fetcher'
 require_relative 'scopes_extractor/platforms/intigriti/platform'
 require_relative 'scopes_extractor/platforms/hacker_one/program_fetcher'
 require_relative 'scopes_extractor/platforms/hacker_one/platform'
+require_relative 'scopes_extractor/platforms/bugcrowd/authenticator'
+require_relative 'scopes_extractor/platforms/bugcrowd/program_fetcher'
+require_relative 'scopes_extractor/platforms/bugcrowd/platform'
 
 # Require API
 require_relative 'scopes_extractor/api'

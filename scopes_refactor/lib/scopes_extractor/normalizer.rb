@@ -11,6 +11,7 @@ module ScopesExtractor
                    when 'yeswehack' then normalize_yeswehack(value)
                    when 'intigriti' then normalize_intigriti(value)
                    when 'hackerone' then normalize_hackerone(value)
+                   when 'bugcrowd' then normalize_bugcrowd(value)
                    else [value]
                    end
 
@@ -85,6 +86,15 @@ module ScopesExtractor
       # Handle comma-separated values
       if value.include?(',')
         value.split(',')
+      else
+        [value]
+      end
+    end
+
+    def self.normalize_bugcrowd(value)
+      # Handle dash-separated descriptions (e.g., "example.com - Production")
+      if value.include?(' - ')
+        [value.split(' - ').first.strip]
       else
         [value]
       end

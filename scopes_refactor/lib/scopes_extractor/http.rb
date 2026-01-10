@@ -5,10 +5,11 @@ require 'typhoeus'
 module ScopesExtractor
   module HTTP
     class << self
-      attr_reader :hydra
+      attr_reader :hydra, :cookie_file
 
       def setup
         @hydra = Typhoeus::Hydra.new(max_concurrency: 10)
+        @cookie_file = File.join(Dir.tmpdir, "scopes_extractor_cookies_#{Process.pid}.txt")
         ScopesExtractor.logger.info "HTTP client initialized with User-Agent: #{Config.user_agent}"
       end
 
@@ -35,7 +36,9 @@ module ScopesExtractor
         options = {
           headers: default_headers.merge(headers),
           timeout: timeout || Config.timeout,
-          followlocation: true
+          followlocation: true,
+          cookiefile: @cookie_file,
+          cookiejar: @cookie_file
         }
 
         options[:body] = body if body
