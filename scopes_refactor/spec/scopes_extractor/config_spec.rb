@@ -150,6 +150,27 @@ RSpec.describe ScopesExtractor::Config do
       it 'returns false for platforms with empty exclusion lists' do
         expect(described_class.excluded?('hackerone', 'any-program')).to be false
       end
+
+      it 'works with string platform names' do
+        allow(described_class).to receive(:platform_exclusions).and_return({
+                                                                             yeswehack: %w[excluded-program-1 excluded-program-2],
+                                                                             intigriti: ['test-program']
+                                                                           })
+
+        expect(described_class.excluded?('yeswehack', 'excluded-program-1')).to be true
+        expect(described_class.excluded?('yeswehack', 'other-program')).to be false
+        expect(described_class.excluded?('intigriti', 'test-program')).to be true
+      end
+
+      it 'works with symbol platform names' do
+        allow(described_class).to receive(:platform_exclusions).and_return({
+                                                                             yeswehack: ['excluded-program'],
+                                                                             intigriti: []
+                                                                           })
+
+        expect(described_class.excluded?(:yeswehack, 'excluded-program')).to be true
+        expect(described_class.excluded?(:intigriti, 'any-program')).to be false
+      end
     end
   end
 end

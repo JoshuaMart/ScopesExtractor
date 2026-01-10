@@ -105,7 +105,8 @@ module ScopesExtractor
       end
 
       def excluded?(platform_name, program_slug)
-        exclusions = platform_exclusions[platform_name.to_sym] || []
+        platform_key = platform_name.to_s.to_sym
+        exclusions = platform_exclusions[platform_key] || []
         exclusions.include?(program_slug)
       end
 
