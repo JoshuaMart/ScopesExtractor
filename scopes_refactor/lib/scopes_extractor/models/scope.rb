@@ -32,8 +32,8 @@ module ScopesExtractor
         # CIDR detection (e.g., 1.2.3.4/24)
         if value.match?(%r{^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}$})
           normalized[:type] = 'cidr'
-        # Source Code (GitHub, GitLab)
-        elsif value.match?(%r{^https?://(www\.)?(github\.com|gitlab\.com)})
+        # Source Code (GitHub, GitLab, Atlassian Marketplace)
+        elsif value.match?(%r{^https?://((www\.)?(github|gitlab)\.com|marketplace\.atlassian\.com)})
           normalized[:type] = 'source_code'
         # Mobile App Store URLs
         elsif value.match?(%r{^https?://(apps\.apple\.com|itunes\.apple\.com|play\.google\.com)})
@@ -41,9 +41,6 @@ module ScopesExtractor
         # Chrome Web Store (Extensions)
         elsif value.match?(%r{^https?://(chrome\.google\.com/webstore|chromewebstore\.google\.com)})
           normalized[:type] = 'executable'
-        # Atlassian Marketplace
-        elsif value.match?(%r{^https?://marketplace\.atlassian\.com})
-          normalized[:type] = 'source_code'
         # Wildcard domain -> force type 'web'
         elsif value.start_with?('*.')
           normalized[:type] = 'web'
