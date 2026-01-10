@@ -21,6 +21,9 @@ module ScopesExtractor
 
       ScopesExtractor.logger.info "Starting auto-sync with #{delay}s delay"
 
+      # Perform initial sync immediately
+      perform_sync
+
       @thread = Thread.new do
         loop do
           break unless @running
