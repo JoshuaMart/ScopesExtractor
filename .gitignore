@@ -1,11 +1,4 @@
-
 .env
-
-.idea/
-extract.json
-Gemfile.lock
-libs/db/db.json
 /coverage
-libs/db/history.json
-libs/db/cookies.txt
-ruby_migration/db/scopes_extractor.sqlite3
+db/scopes.db
+spec/examples.txt
