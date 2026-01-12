@@ -67,14 +67,12 @@ module ScopesExtractor
 
             handle = attr['handle']
 
-            # Fetch scopes for this program
-            scopes_data = fetcher.fetch_scopes(handle)
-            next unless scopes_data
-
             begin
+              # Fetch scopes for this program
+              scopes_data = fetcher.fetch_scopes(handle)
               parse_program(raw, scopes_data)
             rescue StandardError => e
-              ScopesExtractor.logger.error "[HackerOne] Failed to parse program #{handle}: #{e.message}"
+              ScopesExtractor.logger.error "[HackerOne] Failed to fetch/parse program #{handle}: #{e.message}"
               ScopesExtractor.logger.debug e.backtrace.join("\n")
               nil
             end

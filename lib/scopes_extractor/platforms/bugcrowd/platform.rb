@@ -49,14 +49,12 @@ module ScopesExtractor
 
         # Fetches all programs from Bugcrowd
         # @return [Array<Models::Program>] array of programs
+        # @raise [StandardError] if authentication or fetching fails
         def fetch_programs
           # Authenticate first
           unless @authenticated
             success = authenticate
-            unless success
-              ScopesExtractor.logger.error '[Bugcrowd] Authentication failed, cannot fetch programs'
-              return []
-            end
+            raise 'Authentication failed, cannot fetch programs' unless success
           end
 
           fetcher = ProgramFetcher.new

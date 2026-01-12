@@ -13,6 +13,7 @@ module ScopesExtractor
 
         # Fetches all bug bounty programs from Bugcrowd
         # @return [Array<Hash>] array of raw program data
+        # @raise [StandardError] if fetching fails
         def fetch_all
           programs = []
           page = 1
@@ -23,10 +24,7 @@ module ScopesExtractor
             url = "#{BASE_URL}/engagements.json?page=#{page}&category=bug_bounty"
             response = HTTP.get(url)
 
-            unless response.success?
-              ScopesExtractor.logger.error "[Bugcrowd] Failed to fetch engagements page #{page}: #{response.code}"
-              break
-            end
+            raise "Failed to fetch engagements page #{page}: HTTP #{response.code}" unless response.success?
 
             data = JSON.parse(response.body)
             items = data['engagements'] || []
@@ -43,23 +41,18 @@ module ScopesExtractor
 
           ScopesExtractor.logger.info "[Bugcrowd] Fetched total of #{programs.size} program(s)"
           programs
-        rescue StandardError => e
-          ScopesExtractor.logger.error "[Bugcrowd] Error fetching programs: #{e.message}"
-          []
         end
 
         # Fetches scopes for a specific program
         # @param brief_url [String] program brief URL (e.g., "/program-name" or "/engagements/program-name")
         # @return [Array<Hash>] array of scope targets
+        # @raise [StandardError] if fetching fails
         def fetch_scopes(brief_url)
           if brief_url.start_with?('/engagements/')
             fetch_engagement_scopes(brief_url)
           else
             fetch_group_scopes(brief_url)
           end
-        rescue StandardError => e
-          ScopesExtractor.logger.error "[Bugcrowd] Error fetching scopes for #{brief_url}: #{e.message}"
-          []
         end
 
         private

@@ -15,6 +15,7 @@ module ScopesExtractor
 
         # Fetches all programs with pagination
         # @return [Array<Hash>] array of program data from API
+        # @raise [StandardError] if fetching fails
         def fetch_all
           programs = []
           offset = 0
@@ -28,10 +29,7 @@ module ScopesExtractor
               headers: { 'Authorization' => "Bearer #{@token}" }
             )
 
-            unless response.success?
-              ScopesExtractor.logger.error "[Intigriti] Failed to fetch programs: #{response.code}"
-              break
-            end
+            raise "Failed to fetch programs: HTTP #{response.code}" unless response.success?
 
             data = JSON.parse(response.body)
             current_items = data['records'] || []

@@ -172,6 +172,58 @@ RSpec.describe ScopesExtractor::SyncManager do
         expect(notifier).to receive(:notify_error).with('Platform Sync Error', /TestPlatform.*API error/)
         sync_manager.run
       end
+
+      it 'does not process programs when fetch fails' do
+        expect(diff_engine).not_to receive(:process_program)
+        expect(diff_engine).not_to receive(:process_removed_programs)
+        sync_manager.run
+      end
+    end
+
+    context 'when platform sync fails and database has existing programs' do
+      before do
+        # Setup failing platform
+        failing_platform = MockPlatform.new(name: 'TestPlatform', programs: [])
+        allow(failing_platform).to receive(:fetch_programs).and_raise(StandardError.new('API error'))
+        allow(sync_manager).to receive(:targets_for).and_return([failing_platform])
+
+        # Insert existing program in database
+        db = ScopesExtractor.db
+        program_id = db[:programs].insert(
+          slug: 'existing-program',
+          platform: 'testplatform',
+          name: 'Existing Program',
+          bounty: true,
+          last_updated: Time.now
+        )
+        db[:scopes].insert(
+          program_id: program_id,
+          value: 'example.com',
+          type: 'web',
+          is_in_scope: true,
+          created_at: Time.now
+        )
+      end
+
+      it 'preserves existing programs and scopes when fetch fails' do
+        db = ScopesExtractor.db
+
+        # Verify data exists before sync
+        expect(db[:programs].count).to eq(1)
+        expect(db[:scopes].count).to eq(1)
+
+        # Run sync with failing platform
+        sync_manager.run
+
+        # Verify data is still intact after failed sync
+        expect(db[:programs].count).to eq(1)
+        expect(db[:scopes].count).to eq(1)
+
+        program = db[:programs].first
+        expect(program[:slug]).to eq('existing-program')
+        scope = db[:scopes].first
+        expect(scope[:value]).to eq('example.com')
+      end
     end
   end
 end

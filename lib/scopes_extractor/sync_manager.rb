@@ -95,11 +95,17 @@ module ScopesExtractor
       ScopesExtractor.logger.info "[#{platform.name}] Starting sync..."
 
       programs = platform.fetch_programs
+
+      # Skip processing if fetch failed (exception was raised and caught)
+      return unless programs
+
       process_programs(platform_key, programs)
 
       ScopesExtractor.logger.info "[#{platform.name}] Sync completed. Processed #{programs.size} program(s)."
     rescue StandardError => e
       handle_sync_error(platform.name, e)
+      # Return nil to indicate sync failure - prevents processing with empty data
+      nil
     end
 
     def process_programs(platform_key, programs)

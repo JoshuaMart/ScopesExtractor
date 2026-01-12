@@ -13,6 +13,7 @@ module ScopesExtractor
 
         # Fetches all programs from HackerOne with pagination
         # @return [Array<Hash>] array of raw program data
+        # @raise [StandardError] if fetching fails
         def fetch_all
           programs = []
           page = 1
@@ -26,10 +27,7 @@ module ScopesExtractor
               headers: { 'Authorization' => "Basic #{@auth_header}" }
             )
 
-            unless response.success?
-              ScopesExtractor.logger.error "[HackerOne] Failed to fetch programs page #{page}: #{response.code}"
-              break
-            end
+            raise "Failed to fetch programs page #{page}: HTTP #{response.code}" unless response.success?
 
             data = JSON.parse(response.body)
             items = data['data'] || []
@@ -47,14 +45,12 @@ module ScopesExtractor
 
           ScopesExtractor.logger.info "[HackerOne] Fetched total of #{programs.size} program(s)"
           programs
-        rescue StandardError => e
-          ScopesExtractor.logger.error "[HackerOne] Error fetching programs: #{e.message}"
-          []
         end
 
         # Fetches scopes for a specific program
         # @param handle [String] program handle
-        # @return [Array<Hash>, nil] array of scope data or nil on error
+        # @return [Array<Hash>] array of scope data
+        # @raise [StandardError] if fetching fails
         def fetch_scopes(handle)
           scopes = []
           page = 1
@@ -66,10 +62,7 @@ module ScopesExtractor
               headers: { 'Authorization' => "Basic #{@auth_header}" }
             )
 
-            unless response.success?
-              ScopesExtractor.logger.debug "[HackerOne] Failed to fetch scopes for #{handle}: #{response.code}"
-              return nil
-            end
+            raise "Failed to fetch scopes for #{handle}: HTTP #{response.code}" unless response.success?
 
             data = JSON.parse(response.body)
             items = data['data'] || []
@@ -84,9 +77,6 @@ module ScopesExtractor
           end
 
           scopes
-        rescue StandardError => e
-          ScopesExtractor.logger.error "[HackerOne] Error fetching scopes for #{handle}: #{e.message}"
-          nil
         end
       end
     end

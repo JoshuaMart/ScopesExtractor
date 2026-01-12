@@ -85,10 +85,10 @@ RSpec.describe ScopesExtractor::Platforms::YesWeHack::ProgramFetcher do
           .to_return(status: 500, body: 'Internal Server Error')
       end
 
-      it 'returns empty array and logs error' do
-        expect(ScopesExtractor.logger).to receive(:error).with(/Failed to fetch programs: 500/)
-        programs = fetcher.fetch_all
-        expect(programs).to eq([])
+      it 'raises an exception' do
+        expect do
+          fetcher.fetch_all
+        end.to raise_error(StandardError, /Failed to fetch programs: HTTP 500/)
       end
     end
 
