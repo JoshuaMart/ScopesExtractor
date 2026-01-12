@@ -19,6 +19,14 @@ module ScopesExtractor
         @cookie_file&.unlink
       end
 
+      def clear_cookies
+        return unless @cookie_file
+
+        # Truncate the cookie file to clear all cookies
+        File.truncate(@cookie_file.path, 0)
+        ScopesExtractor.logger.debug 'Cookie jar cleared'
+      end
+
       def get(url, headers: {}, timeout: nil)
         request(:get, url, headers: headers, timeout: timeout)
       end

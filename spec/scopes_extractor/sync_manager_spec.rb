@@ -213,6 +213,24 @@ RSpec.describe ScopesExtractor::SyncManager do
       end
     end
 
+    context 'when valid_access? succeeds' do
+      before do
+        platform = MockPlatform.new(name: 'TestPlatform', programs: [])
+        allow(platform).to receive(:valid_access?).and_return(true)
+        allow(sync_manager).to receive(:targets_for).and_return([platform])
+      end
+
+      it 'calls valid_access? before fetching programs' do
+        platform = MockPlatform.new(name: 'TestPlatform', programs: [])
+        allow(sync_manager).to receive(:targets_for).and_return([platform])
+
+        expect(platform).to receive(:valid_access?).ordered.and_return(true)
+        expect(platform).to receive(:fetch_programs).ordered.and_return([])
+
+        sync_manager.run
+      end
+    end
+
     context 'when platform sync fails and database has existing programs' do
       before do
         # Setup failing platform

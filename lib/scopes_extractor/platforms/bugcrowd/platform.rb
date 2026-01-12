@@ -24,9 +24,13 @@ module ScopesExtractor
 
         # Validates access by testing authentication
         # Resets authentication state and forces re-authentication on each call
+        # Clears cookies to ensure fresh authentication flow
         # @return [Boolean] true if authentication succeeds, false otherwise
         def valid_access?
           return false unless @email && @password && @otp_secret
+
+          # Clear cookies to prevent stale session issues
+          HTTP.clear_cookies
 
           # Reset authentication state to force fresh authentication
           @authenticator = nil
