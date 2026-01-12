@@ -23,26 +23,34 @@ module ScopesExtractor
         end
 
         # Validates access by testing authentication
+        # Resets authentication state and forces re-authentication on each call
         # @return [Boolean] true if authentication succeeds, false otherwise
         def valid_access?
           return false unless @email && @password && @otp_secret
 
+          # Reset authentication state to force fresh authentication
+          @authenticator = nil
+          @authenticated = false
+
           begin
-            authenticator = Authenticator.new(
+            @authenticator = Authenticator.new(
               email: @email,
               password: @password,
               otp_secret: @otp_secret
             )
 
-            if authenticator.authenticate
+            if @authenticator.authenticate
               ScopesExtractor.logger.debug '[Bugcrowd] Access validation successful'
+              @authenticated = true
               true
             else
               ScopesExtractor.logger.error '[Bugcrowd] Access validation failed'
+              @authenticated = false
               false
             end
           rescue StandardError => e
             ScopesExtractor.logger.error "[Bugcrowd] Access validation error: #{e.message}"
+            @authenticated = false
             false
           end
         end

@@ -180,10 +180,44 @@ RSpec.describe ScopesExtractor::SyncManager do
       end
     end
 
+    context 'when valid_access? fails' do
+      before do
+        platform = MockPlatform.new(name: 'TestPlatform', programs: [])
+        allow(platform).to receive(:valid_access?).and_return(false)
+        allow(sync_manager).to receive(:targets_for).and_return([platform])
+      end
+
+      it 'logs access validation error' do
+        expect(ScopesExtractor.logger).to receive(:error).with(/Access validation failed/)
+        sync_manager.run
+      end
+
+      it 'notifies about access error' do
+        expect(notifier).to receive(:notify_error).with('Platform Access Error', /TestPlatform.*Access validation failed/)
+        sync_manager.run
+      end
+
+      it 'does not call fetch_programs' do
+        platform = MockPlatform.new(name: 'TestPlatform', programs: [])
+        allow(platform).to receive(:valid_access?).and_return(false)
+        allow(sync_manager).to receive(:targets_for).and_return([platform])
+
+        expect(platform).not_to receive(:fetch_programs)
+        sync_manager.run
+      end
+
+      it 'does not process programs' do
+        expect(diff_engine).not_to receive(:process_program)
+        expect(diff_engine).not_to receive(:process_removed_programs)
+        sync_manager.run
+      end
+    end
+
     context 'when platform sync fails and database has existing programs' do
       before do
         # Setup failing platform
         failing_platform = MockPlatform.new(name: 'TestPlatform', programs: [])
+        allow(failing_platform).to receive(:valid_access?).and_return(true)
         allow(failing_platform).to receive(:fetch_programs).and_raise(StandardError.new('API error'))
         allow(sync_manager).to receive(:targets_for).and_return([failing_platform])
 

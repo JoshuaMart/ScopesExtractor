@@ -20,12 +20,19 @@ module ScopesExtractor
         end
 
         # Validates access by attempting authentication
+        # Resets token and forces re-authentication on each call
         # @return [Boolean] true if authentication succeeds, false otherwise
         def valid_access?
+          # Reset token to force fresh authentication
+          @token = nil
+          @authenticator = nil
+
           authenticate
           true
         rescue StandardError => e
           ScopesExtractor.logger.error "[YesWeHack] Access validation failed: #{e.message}"
+          @token = nil
+          @authenticator = nil
           false
         end
 

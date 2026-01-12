@@ -94,6 +94,14 @@ module ScopesExtractor
       platform_key = platform.name.downcase
       ScopesExtractor.logger.info "[#{platform.name}] Starting sync..."
 
+      # Validate access before fetching programs
+      unless platform.valid_access?
+        error_msg = 'Access validation failed - credentials may be invalid or expired'
+        ScopesExtractor.logger.error "[#{platform.name}] #{error_msg}"
+        @notifier.notify_error('Platform Access Error', "#{platform.name}: #{error_msg}")
+        return nil
+      end
+
       programs = platform.fetch_programs
 
       # Skip processing if fetch failed (exception was raised and caught)

@@ -12,4 +12,8 @@ class MockPlatform
   def fetch_programs
     @programs
   end
+
+  def valid_access?
+    true
+  end
 end
