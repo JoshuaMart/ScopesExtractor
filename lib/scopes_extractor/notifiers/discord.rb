@@ -23,11 +23,23 @@ module ScopesExtractor
         @new_scope_types = Config.discord_new_scope_types
       end
 
-      def notify_new_program(platform, program_name, slug)
+      def notify_new_program(platform, program_name, slug, scope_stats: {})
         return unless enabled? && event_enabled?('new_program')
 
         title = "🆕 New Program: #{program_name}"
         description = "**Platform:** #{platform}\n**Slug:** `#{slug}`"
+
+        # Add scope statistics if present
+        unless scope_stats.empty?
+          total_scopes = scope_stats.values.sum
+          description += "\n**Scopes Added:** #{total_scopes}"
+
+          # Add breakdown by type
+          scope_stats.each do |type, count|
+            description += "\n  • #{type}: #{count}"
+          end
+        end
+
         send_notification(@main_webhook, title, description, :success)
       end
 

@@ -49,7 +49,8 @@ RSpec.describe ScopesExtractor::DiffEngine do
           scopes: []
         )
 
-        expect(notifier).to receive(:notify_new_program).with('yeswehack', 'Test Program', 'test-program')
+        expect(notifier).to receive(:notify_new_program).with('yeswehack', 'Test Program', 'test-program',
+                                                              scope_stats: {})
         diff_engine.process_program('yeswehack', program)
       end
 
@@ -68,6 +69,45 @@ RSpec.describe ScopesExtractor::DiffEngine do
         expect(history).not_to be_nil
         expect(history[:platform_name]).to eq('yeswehack')
         expect(history[:details]).to eq('Brand new program discovered')
+      end
+
+      it 'includes scope statistics in notification for new program with scopes' do
+        scope1 = ScopesExtractor::Models::Scope.new(value: 'example.com', type: 'web', is_in_scope: true)
+        scope2 = ScopesExtractor::Models::Scope.new(value: '*.example.com', type: 'web', is_in_scope: true)
+        scope3 = ScopesExtractor::Models::Scope.new(value: 'com.example.app', type: 'mobile', is_in_scope: true)
+
+        program = ScopesExtractor::Models::Program.new(
+          slug: 'test-program',
+          platform: 'yeswehack',
+          name: 'Test Program',
+          bounty: true,
+          scopes: [scope1, scope2, scope3]
+        )
+
+        expect(notifier).to receive(:notify_new_program).with(
+          'yeswehack',
+          'Test Program',
+          'test-program',
+          scope_stats: { 'web' => 2, 'mobile' => 1 }
+        )
+
+        diff_engine.process_program('yeswehack', program)
+      end
+
+      it 'does not send individual scope notifications for new programs' do
+        scope1 = ScopesExtractor::Models::Scope.new(value: 'example.com', type: 'web', is_in_scope: true)
+        scope2 = ScopesExtractor::Models::Scope.new(value: '*.example.com', type: 'web', is_in_scope: true)
+
+        program = ScopesExtractor::Models::Program.new(
+          slug: 'test-program',
+          platform: 'yeswehack',
+          name: 'Test Program',
+          bounty: true,
+          scopes: [scope1, scope2]
+        )
+
+        expect(notifier).not_to receive(:notify_new_scope)
+        diff_engine.process_program('yeswehack', program)
       end
     end
 
@@ -137,6 +177,30 @@ RSpec.describe ScopesExtractor::DiffEngine do
         expect(scopes.first[:is_in_scope]).to be true
       end
 
+      it 'sends individual scope notifications for existing programs' do
+        # First create the program
+        ScopesExtractor.db[:programs].insert(
+          slug: 'existing-program',
+          platform: 'yeswehack',
+          name: 'Existing Program',
+          bounty: true,
+          last_updated: Time.now
+        )
+
+        # Add a new scope to existing program
+        scope = ScopesExtractor::Models::Scope.new(value: 'example.com', type: 'web', is_in_scope: true)
+        program = ScopesExtractor::Models::Program.new(
+          slug: 'existing-program',
+          platform: 'yeswehack',
+          name: 'Existing Program',
+          bounty: true,
+          scopes: [scope]
+        )
+
+        expect(notifier).to receive(:notify_new_scope).with('yeswehack', 'Existing Program', 'example.com', 'web')
+        diff_engine.process_program('yeswehack', program)
+      end
+
       it 'normalizes scopes before adding' do
         program = ScopesExtractor::Models::Program.new(
           slug: 'test-program',
@@ -152,21 +216,6 @@ RSpec.describe ScopesExtractor::DiffEngine do
 
         scopes = ScopesExtractor.db[:scopes].all
         expect(scopes.first[:value]).to eq('example.com')
-      end
-
-      it 'notifies about new scopes' do
-        program = ScopesExtractor::Models::Program.new(
-          slug: 'test-program',
-          platform: 'yeswehack',
-          name: 'Test Program',
-          bounty: true,
-          scopes: [
-            ScopesExtractor::Models::Scope.new(value: '*.example.com', type: 'web', is_in_scope: true)
-          ]
-        )
-
-        expect(notifier).to receive(:notify_new_scope).with('yeswehack', 'Test Program', '*.example.com', 'web')
-        diff_engine.process_program('yeswehack', program)
       end
 
       it 'ignores invalid scopes' do

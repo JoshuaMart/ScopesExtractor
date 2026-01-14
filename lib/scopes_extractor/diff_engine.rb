@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module ScopesExtractor
+  # rubocop:disable Metrics/ClassLength
   class DiffEngine
     def initialize(notifier: nil)
       @db = ScopesExtractor.db
@@ -13,16 +14,20 @@ module ScopesExtractor
       # 1. Ensure program exists in DB
       existing_program = @db[:programs].where(slug: program_slug, platform: platform_name).first
 
-      if existing_program.nil?
+      is_new_program = existing_program.nil?
+
+      if is_new_program
         program_id = insert_new_program(platform_name, fetched_program)
-        notify_new_program(platform_name, fetched_program, program_id)
       else
         program_id = existing_program[:id]
         update_program_if_changed(program_id, existing_program, fetched_program)
       end
 
       # 2. Sync Scopes
-      sync_scopes(program_id, platform_name, fetched_program)
+      scope_stats = sync_scopes(program_id, platform_name, fetched_program, is_new_program: is_new_program)
+
+      # 3. Notify about new program with scope counts (after scopes are processed)
+      notify_new_program(platform_name, fetched_program, program_id, scope_stats) if is_new_program
     end
 
     def process_removed_programs(platform_name, fetched_slugs)
@@ -62,8 +67,13 @@ module ScopesExtractor
       )
     end
 
-    def notify_new_program(platform_name, fetched_program, program_id)
-      @notifier.notify_new_program(platform_name, fetched_program.name, fetched_program.slug)
+    def notify_new_program(platform_name, fetched_program, program_id, scope_stats)
+      @notifier.notify_new_program(
+        platform_name,
+        fetched_program.name,
+        fetched_program.slug,
+        scope_stats: scope_stats
+      )
 
       log_event(
         program_id: program_id,
@@ -84,7 +94,7 @@ module ScopesExtractor
       )
     end
 
-    def sync_scopes(program_id, platform_name, fetched_program)
+    def sync_scopes(program_id, platform_name, fetched_program, is_new_program: false)
       existing_scopes = @db[:scopes].where(program_id: program_id).all
       existing_values = existing_scopes.map { |s| s[:value] }
 
@@ -92,9 +102,19 @@ module ScopesExtractor
       filtered_scopes = filter_and_normalize_scopes(platform_name, fetched_program)
       fetched_values = filtered_scopes.map(&:value).uniq
 
-      process_added_scopes(program_id, platform_name, fetched_program, existing_values, filtered_scopes)
+      scope_stats = process_added_scopes(
+        program_id,
+        platform_name,
+        fetched_program,
+        existing_values,
+        filtered_scopes,
+        skip_notifications: is_new_program
+      )
+
       process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
                              existing_scopes)
+
+      scope_stats
     end
 
     def filter_and_normalize_scopes(platform_name, fetched_program)
@@ -123,14 +143,23 @@ module ScopesExtractor
       valid_scopes
     end
 
-    def process_added_scopes(program_id, platform_name, fetched_program, existing_values, filtered_scopes)
+    def process_added_scopes(program_id, platform_name, fetched_program, existing_values, filtered_scopes,
+                             skip_notifications: false)
       fetched_values = filtered_scopes.map(&:value).uniq
       added = fetched_values - existing_values
+
+      # Count scopes by type for new program notification
+      scope_stats = Hash.new(0)
 
       added.each do |val|
         scope_obj = filtered_scopes.find { |s| s.value == val }
         insert_scope(program_id, scope_obj)
-        @notifier.notify_new_scope(platform_name, fetched_program.name, val, scope_obj.type)
+
+        # Count by type
+        scope_stats[scope_obj.type] += 1
+
+        # Skip individual notifications for new programs
+        @notifier.notify_new_scope(platform_name, fetched_program.name, val, scope_obj.type) unless skip_notifications
 
         log_event(
           program_id: program_id,
@@ -142,6 +171,8 @@ module ScopesExtractor
           category: scope_obj.type
         )
       end
+
+      scope_stats
     end
 
     def process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
@@ -241,4 +272,5 @@ module ScopesExtractor
       )
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end
