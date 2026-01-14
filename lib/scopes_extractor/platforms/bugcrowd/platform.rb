@@ -25,39 +25,56 @@ module ScopesExtractor
         # Validates access by testing authentication
         # Resets authentication state and forces re-authentication on each call
         # Clears cookies to ensure fresh authentication flow
+        # Retries authentication up to 3 times on failure
         # @return [Boolean] true if authentication succeeds, false otherwise
+        # rubocop:disable Metrics/MethodLength
         def valid_access?
           return false unless @email && @password && @otp_secret
 
-          # Clear cookies to prevent stale session issues
-          HTTP.clear_cookies
+          max_retries = 3
+          attempt = 0
 
-          # Reset authentication state to force fresh authentication
-          @authenticator = nil
-          @authenticated = false
+          while attempt < max_retries
+            attempt += 1
 
-          begin
-            @authenticator = Authenticator.new(
-              email: @email,
-              password: @password,
-              otp_secret: @otp_secret
-            )
+            # Clear cookies to prevent stale session issues
+            HTTP.clear_cookies
 
-            if @authenticator.authenticate
-              ScopesExtractor.logger.debug '[Bugcrowd] Access validation successful'
-              @authenticated = true
-              true
-            else
-              ScopesExtractor.logger.error '[Bugcrowd] Access validation failed'
-              @authenticated = false
-              false
-            end
-          rescue StandardError => e
-            ScopesExtractor.logger.error "[Bugcrowd] Access validation error: #{e.message}"
+            # Reset authentication state to force fresh authentication
+            @authenticator = nil
             @authenticated = false
-            false
+
+            begin
+              ScopesExtractor.logger.debug "[Bugcrowd] Authentication attempt #{attempt}/#{max_retries}"
+
+              @authenticator = Authenticator.new(
+                email: @email,
+                password: @password,
+                otp_secret: @otp_secret
+              )
+
+              if @authenticator.authenticate
+                ScopesExtractor.logger.info "[Bugcrowd] Authentication successful on attempt #{attempt}"
+                @authenticated = true
+                return true
+              else
+                ScopesExtractor.logger.warn "[Bugcrowd] Authentication failed on attempt #{attempt}/#{max_retries}"
+              end
+            rescue StandardError => e
+              error_msg = "Authentication error on attempt #{attempt}/#{max_retries}: #{e.message}"
+              ScopesExtractor.logger.warn "[Bugcrowd] #{error_msg}"
+            end
+
+            # Wait before retry (except on last attempt)
+            sleep(2) if attempt < max_retries
           end
+
+          # All retries failed
+          ScopesExtractor.logger.error "[Bugcrowd] Authentication failed after #{max_retries} attempts"
+          @authenticated = false
+          false
         end
+        # rubocop:enable Metrics/MethodLength
 
         # Fetches all programs from Bugcrowd
         # @return [Array<Models::Program>] array of programs

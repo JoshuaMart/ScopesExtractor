@@ -49,8 +49,44 @@ RSpec.describe ScopesExtractor::Platforms::YesWeHack::Platform do
         expect(platform.valid_access?).to be false
       end
 
-      it 'logs the error' do
-        expect(ScopesExtractor.logger).to receive(:error).with(/Access validation failed: Auth failed/)
+      it 'retries authentication 3 times' do
+        expect(ScopesExtractor::Platforms::YesWeHack::Authenticator).to receive(:new).exactly(3).times.and_return(authenticator)
+        expect(authenticator).to receive(:authenticate).exactly(3).times.and_raise(StandardError.new('Auth failed'))
+        platform.valid_access?
+      end
+
+      it 'logs warning for each failed attempt' do
+        expect(ScopesExtractor.logger).to receive(:warn).with(%r{Authentication error on attempt 1/3}).ordered
+        expect(ScopesExtractor.logger).to receive(:warn).with(%r{Authentication error on attempt 2/3}).ordered
+        expect(ScopesExtractor.logger).to receive(:warn).with(%r{Authentication error on attempt 3/3}).ordered
+        expect(ScopesExtractor.logger).to receive(:error).with(/Authentication failed after 3 attempts/)
+        platform.valid_access?
+      end
+
+      it 'waits 2 seconds between retries' do
+        expect(platform).to receive(:sleep).with(2).twice
+        platform.valid_access?
+      end
+    end
+
+    context 'when authentication succeeds after retry' do
+      before do
+        call_count = 0
+        allow(authenticator).to receive(:authenticate) do
+          call_count += 1
+          raise StandardError, 'Auth failed' if call_count < 2
+
+          'valid_token'
+        end
+      end
+
+      it 'returns true' do
+        expect(platform.valid_access?).to be true
+      end
+
+      it 'logs success on the successful attempt' do
+        allow(ScopesExtractor.logger).to receive(:warn)
+        expect(ScopesExtractor.logger).to receive(:info).with(/Authentication successful on attempt 2/)
         platform.valid_access?
       end
     end

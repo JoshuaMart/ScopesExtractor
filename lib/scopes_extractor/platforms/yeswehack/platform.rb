@@ -21,18 +21,41 @@ module ScopesExtractor
 
         # Validates access by attempting authentication
         # Resets token and forces re-authentication on each call
+        # Retries authentication up to 3 times on failure
         # @return [Boolean] true if authentication succeeds, false otherwise
         def valid_access?
-          # Reset token to force fresh authentication
-          @token = nil
-          @authenticator = nil
+          max_retries = 3
+          attempt = 0
 
-          authenticate
-          true
-        rescue StandardError => e
-          ScopesExtractor.logger.error "[YesWeHack] Access validation failed: #{e.message}"
-          @token = nil
-          @authenticator = nil
+          while attempt < max_retries
+            attempt += 1
+
+            # Reset token to force fresh authentication
+            @token = nil
+            @authenticator = nil
+
+            begin
+              ScopesExtractor.logger.debug "[YesWeHack] Authentication attempt #{attempt}/#{max_retries}"
+
+              authenticate
+
+              ScopesExtractor.logger.info "[YesWeHack] Authentication successful on attempt #{attempt}"
+              return true
+            rescue StandardError => e
+              error_msg = "Authentication error on attempt #{attempt}/#{max_retries}: #{e.message}"
+              ScopesExtractor.logger.warn "[YesWeHack] #{error_msg}"
+
+              # Reset state on error
+              @token = nil
+              @authenticator = nil
+            end
+
+            # Wait before retry (except on last attempt)
+            sleep(2) if attempt < max_retries
+          end
+
+          # All retries failed
+          ScopesExtractor.logger.error "[YesWeHack] Authentication failed after #{max_retries} attempts"
           false
         end
 
