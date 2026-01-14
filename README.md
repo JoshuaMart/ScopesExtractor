@@ -45,7 +45,8 @@ docker build -t scopes_extractor .
 docker run -v $(pwd)/config/settings.yml:/app/config/settings.yml \
            -v $(pwd)/db:/app/db \
            -v $(pwd)/.env:/app/.env \
-           scopes_extractor sync
+           scopes_extractor \
+           bundle exec bin/scopes_extractor sync
 ```
 
 ### Local Installation
