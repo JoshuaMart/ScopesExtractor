@@ -45,7 +45,7 @@ RSpec.describe ScopesExtractor::SyncManager do
       it 'logs synchronization start and completion' do
         expect(ScopesExtractor.logger).to receive(:info).with(/Starting synchronization/)
         expect(ScopesExtractor.logger).to receive(:info).with(/Starting sync/).at_least(:once)
-        expect(ScopesExtractor.logger).to receive(:info).with(/Sync completed/).at_least(:once)
+        expect(ScopesExtractor.logger).to receive(:info).with(/First sync detected/).at_least(:once)
         expect(ScopesExtractor.logger).to receive(:info).with(/Synchronization completed/)
         sync_manager.run
       end
@@ -111,14 +111,14 @@ RSpec.describe ScopesExtractor::SyncManager do
     end
 
     it 'processes each program through DiffEngine' do
-      expect(diff_engine).to receive(:process_program).with('testplatform', program1)
-      expect(diff_engine).to receive(:process_program).with('testplatform', program2)
+      expect(diff_engine).to receive(:process_program).with('testplatform', program1, skip_notifications: true)
+      expect(diff_engine).to receive(:process_program).with('testplatform', program2, skip_notifications: true)
       sync_manager.run
     end
 
     it 'handles removed programs' do
       expect(diff_engine).to receive(:process_removed_programs)
-        .with('testplatform', %w[program-1 program-2])
+        .with('testplatform', %w[program-1 program-2], skip_notifications: true)
       sync_manager.run
     end
 
@@ -129,14 +129,14 @@ RSpec.describe ScopesExtractor::SyncManager do
       end
 
       it 'skips excluded program' do
-        expect(diff_engine).not_to receive(:process_program).with('testplatform', program1)
-        expect(diff_engine).to receive(:process_program).with('testplatform', program2)
+        expect(diff_engine).not_to receive(:process_program).with('testplatform', program1, anything)
+        expect(diff_engine).to receive(:process_program).with('testplatform', program2, skip_notifications: true)
         sync_manager.run
       end
 
       it 'excludes program from removed programs check' do
         expect(diff_engine).to receive(:process_removed_programs)
-          .with('testplatform', ['program-2'])
+          .with('testplatform', ['program-2'], skip_notifications: true)
         sync_manager.run
       end
 
@@ -148,14 +148,14 @@ RSpec.describe ScopesExtractor::SyncManager do
 
     context 'when program processing fails' do
       before do
-        allow(diff_engine).to receive(:process_program).with('testplatform', program1)
+        allow(diff_engine).to receive(:process_program).with('testplatform', program1, skip_notifications: true)
                                                        .and_raise(StandardError.new('Test error'))
+        allow(diff_engine).to receive(:process_program).with('testplatform', program2, skip_notifications: true)
       end
 
       it 'logs the error and continues' do
         expect(ScopesExtractor.logger).to receive(:error).with(/Failed to process program program-1/)
         expect(notifier).to receive(:notify_error).with('Program Sync Error', anything)
-        expect(diff_engine).to receive(:process_program).with('testplatform', program2)
         sync_manager.run
       end
     end
@@ -275,6 +275,66 @@ RSpec.describe ScopesExtractor::SyncManager do
         expect(program[:slug]).to eq('existing-program')
         scope = db[:scopes].first
         expect(scope[:value]).to eq('example.com')
+      end
+    end
+
+    context 'when it is the first sync for a platform (empty database)' do
+      before do
+        platform_with_programs = MockPlatform.new(name: 'TestPlatform', programs: [program1, program2])
+        allow(sync_manager).to receive(:targets_for).and_return([platform_with_programs])
+      end
+
+      it 'detects first sync and logs it' do
+        allow(ScopesExtractor.logger).to receive(:info) # Allow other log messages
+        expect(ScopesExtractor.logger).to receive(:info).with(/First sync detected - notifications will be skipped/)
+        sync_manager.run
+      end
+
+      it 'passes skip_notifications: true to process_program' do
+        expect(diff_engine).to receive(:process_program).with('testplatform', program1, skip_notifications: true)
+        expect(diff_engine).to receive(:process_program).with('testplatform', program2, skip_notifications: true)
+        sync_manager.run
+      end
+
+      it 'passes skip_notifications: true to process_removed_programs' do
+        expect(diff_engine).to receive(:process_removed_programs)
+          .with('testplatform', %w[program-1 program-2], skip_notifications: true)
+        sync_manager.run
+      end
+    end
+
+    context 'when it is not the first sync for a platform (database has programs)' do
+      before do
+        # Insert existing program in database for this platform
+        db = ScopesExtractor.db
+        db[:programs].insert(
+          slug: 'existing-program',
+          platform: 'testplatform',
+          name: 'Existing Program',
+          bounty: true,
+          last_updated: Time.now
+        )
+
+        platform_with_programs = MockPlatform.new(name: 'TestPlatform', programs: [program1, program2])
+        allow(sync_manager).to receive(:targets_for).and_return([platform_with_programs])
+      end
+
+      it 'does not log first sync message' do
+        expect(ScopesExtractor.logger).not_to receive(:info).with(/First sync detected/)
+        allow(ScopesExtractor.logger).to receive(:info) # Allow other log messages
+        sync_manager.run
+      end
+
+      it 'passes skip_notifications: false to process_program' do
+        expect(diff_engine).to receive(:process_program).with('testplatform', program1, skip_notifications: false)
+        expect(diff_engine).to receive(:process_program).with('testplatform', program2, skip_notifications: false)
+        sync_manager.run
+      end
+
+      it 'passes skip_notifications: false to process_removed_programs' do
+        expect(diff_engine).to receive(:process_removed_programs)
+          .with('testplatform', anything, skip_notifications: false)
+        sync_manager.run
       end
     end
   end

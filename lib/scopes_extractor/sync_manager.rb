@@ -8,6 +8,7 @@ module ScopesExtractor
       @diff_engine = diff_engine || DiffEngine.new(notifier: notifier)
       @notifier = notifier || Notifiers::Discord.new
       @platforms = []
+      @db = ScopesExtractor.db
       setup_platforms
     end
 
@@ -102,12 +103,19 @@ module ScopesExtractor
         return nil
       end
 
+      # Check if this is the first sync for this platform (DB is empty)
+      is_first_sync = @db[:programs].where(platform: platform_key).none?
+
+      if is_first_sync
+        ScopesExtractor.logger.info "[#{platform.name}] First sync detected - notifications will be skipped"
+      end
+
       programs = platform.fetch_programs
 
       # Skip processing if fetch failed (exception was raised and caught)
       return unless programs
 
-      process_programs(platform_key, programs)
+      process_programs(platform_key, programs, skip_notifications: is_first_sync)
 
       ScopesExtractor.logger.info "[#{platform.name}] Sync completed. Processed #{programs.size} program(s)."
     rescue StandardError => e
@@ -116,7 +124,7 @@ module ScopesExtractor
       nil
     end
 
-    def process_programs(platform_key, programs)
+    def process_programs(platform_key, programs, skip_notifications: false)
       # Extract fetched slugs for removed program detection
       fetched_slugs = programs.reject { |p| Config.excluded?(platform_key, p.slug) }
                               .map(&:slug)
@@ -125,13 +133,13 @@ module ScopesExtractor
       programs.each do |program|
         next if skip_excluded_program?(platform_key, program)
 
-        @diff_engine.process_program(platform_key, program)
+        @diff_engine.process_program(platform_key, program, skip_notifications: skip_notifications)
       rescue StandardError => e
         handle_program_error(platform_key, program, e)
       end
 
-      # Handle removed programs
-      @diff_engine.process_removed_programs(platform_key, fetched_slugs)
+      # Handle removed programs (skip notifications on first sync)
+      @diff_engine.process_removed_programs(platform_key, fetched_slugs, skip_notifications: skip_notifications)
     end
 
     def skip_excluded_program?(platform_key, program)

@@ -8,7 +8,7 @@ module ScopesExtractor
       @notifier = notifier || Notifiers::Discord.new
     end
 
-    def process_program(platform_name, fetched_program)
+    def process_program(platform_name, fetched_program, skip_notifications: false)
       program_slug = fetched_program.slug
 
       # 1. Ensure program exists in DB
@@ -24,13 +24,35 @@ module ScopesExtractor
       end
 
       # 2. Sync Scopes
-      scope_stats = sync_scopes(program_id, platform_name, fetched_program, is_new_program: is_new_program)
+      # Skip individual notifications for new programs OR first sync
+      skip_scope_notifications = is_new_program || skip_notifications
+      scope_stats = sync_scopes(program_id, platform_name, fetched_program,
+                                skip_notifications: skip_scope_notifications)
 
-      # 3. Notify about new program with scope counts (after scopes are processed)
-      notify_new_program(platform_name, fetched_program, program_id, scope_stats) if is_new_program
+      # 3. Log event and notify about new program
+      return unless is_new_program
+
+      # Always log the event for history tracking
+      log_event(
+        program_id: program_id,
+        platform_name: platform_name,
+        program_name: fetched_program.name,
+        event_type: 'add_program',
+        details: 'Brand new program discovered'
+      )
+
+      # Only send Discord notification if not skipping notifications
+      return if skip_notifications
+
+      @notifier.notify_new_program(
+        platform_name,
+        fetched_program.name,
+        fetched_program.slug,
+        scope_stats: scope_stats
+      )
     end
 
-    def process_removed_programs(platform_name, fetched_slugs)
+    def process_removed_programs(platform_name, fetched_slugs, skip_notifications: false)
       existing_programs = @db[:programs].where(platform: platform_name).all
       existing_slugs = existing_programs.map { |p| p[:slug] }
 
@@ -41,7 +63,9 @@ module ScopesExtractor
         next unless program
 
         save_scopes_before_deletion(program[:id])
-        @notifier.notify_removed_program(platform_name, program[:name], slug)
+
+        # Skip notification if this is the first sync
+        @notifier.notify_removed_program(platform_name, program[:name], slug) unless skip_notifications
 
         log_event(
           program_id: program[:id],
@@ -67,23 +91,6 @@ module ScopesExtractor
       )
     end
 
-    def notify_new_program(platform_name, fetched_program, program_id, scope_stats)
-      @notifier.notify_new_program(
-        platform_name,
-        fetched_program.name,
-        fetched_program.slug,
-        scope_stats: scope_stats
-      )
-
-      log_event(
-        program_id: program_id,
-        platform_name: platform_name,
-        program_name: fetched_program.name,
-        event_type: 'add_program',
-        details: 'Brand new program discovered'
-      )
-    end
-
     def update_program_if_changed(program_id, existing_program, fetched_program)
       return if existing_program[:name] == fetched_program.name && existing_program[:bounty] == fetched_program.bounty
 
@@ -94,7 +101,7 @@ module ScopesExtractor
       )
     end
 
-    def sync_scopes(program_id, platform_name, fetched_program, is_new_program: false)
+    def sync_scopes(program_id, platform_name, fetched_program, skip_notifications: false)
       existing_scopes = @db[:scopes].where(program_id: program_id).all
       existing_values = existing_scopes.map { |s| s[:value] }
 
@@ -108,11 +115,11 @@ module ScopesExtractor
         fetched_program,
         existing_values,
         filtered_scopes,
-        skip_notifications: is_new_program
+        skip_notifications: skip_notifications
       )
 
       process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
-                             existing_scopes)
+                             existing_scopes, skip_notifications: skip_notifications)
 
       scope_stats
     end
@@ -176,7 +183,7 @@ module ScopesExtractor
     end
 
     def process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
-                               existing_scopes)
+                               existing_scopes, skip_notifications: false)
       removed = existing_values - fetched_values
 
       removed.each do |val|
@@ -184,7 +191,7 @@ module ScopesExtractor
         next unless existing_scope
 
         delete_scope(program_id, val)
-        @notifier.notify_removed_scope(platform_name, fetched_program.name, val)
+        @notifier.notify_removed_scope(platform_name, fetched_program.name, val) unless skip_notifications
 
         log_event(
           program_id: program_id,
