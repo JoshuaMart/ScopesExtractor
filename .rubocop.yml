@@ -75,3 +75,15 @@ RSpec/MessageSpies:
 
 RSpec/SpecFilePathFormat:
   Enabled: false  # Allow yeswehack instead of yes_we_hack
+
+RSpec/NestedGroups:
+  Max: 4  # Allow 4 levels of nesting for complex test scenarios
+
+RSpec/VerifiedDoubles:
+  Enabled: false  # Allow regular doubles for HTTP responses
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 7  # Allow more helpers for complex scenarios
+
+RSpec/IndexedLet:
+  Enabled: false  # Allow response1, response2 for pagination tests

@@ -3,7 +3,6 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
-# rubocop:disable RSpec/MultipleMemoizedHelpers
 RSpec.describe ScopesExtractor::Platforms::YesWeHack::Authenticator do
   let(:email) { 'test@example.com' }
   let(:password) { 'password123' }
@@ -125,4 +124,3 @@ RSpec.describe ScopesExtractor::Platforms::YesWeHack::Authenticator do
     end
   end
 end
-# rubocop:enable RSpec/MultipleMemoizedHelpers

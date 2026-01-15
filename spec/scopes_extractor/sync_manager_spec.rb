@@ -3,7 +3,6 @@
 require 'spec_helper'
 require 'support/mock_platform'
 
-# rubocop:disable RSpec/MultipleMemoizedHelpers, RSpec/IndexedLet
 RSpec.describe ScopesExtractor::SyncManager do
   let(:diff_engine) { instance_double(ScopesExtractor::DiffEngine) }
   let(:notifier) { instance_double(ScopesExtractor::Notifiers::Discord) }
@@ -339,4 +338,4 @@ RSpec.describe ScopesExtractor::SyncManager do
     end
   end
 end
-# rubocop:enable RSpec/MultipleMemoizedHelpers, RSpec/IndexedLet
+# rubocop:enable RSpec/IndexedLet
