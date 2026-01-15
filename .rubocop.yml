@@ -83,7 +83,7 @@ RSpec/VerifiedDoubles:
   Enabled: false  # Allow regular doubles for HTTP responses
 
 RSpec/MultipleMemoizedHelpers:
-  Max: 7  # Allow more helpers for complex scenarios
+  Max: 10  # Allow more helpers for complex authentication scenarios
 
 RSpec/IndexedLet:
   Enabled: false  # Allow response1, response2 for pagination tests
