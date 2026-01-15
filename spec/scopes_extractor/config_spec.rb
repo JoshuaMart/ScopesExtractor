@@ -68,6 +68,17 @@ RSpec.describe ScopesExtractor::Config do
         expect(described_class.api_bind).to eq('0.0.0.0')
       end
     end
+
+    describe '.api_require_auth' do
+      it 'returns the configured authentication requirement' do
+        expect(described_class.api_require_auth).to be(true)
+      end
+
+      it 'defaults to true when not configured' do
+        allow(described_class).to receive(:api).and_return({})
+        expect(described_class.api_require_auth).to be(true)
+      end
+    end
   end
 
   describe 'platform settings' do

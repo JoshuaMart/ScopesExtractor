@@ -52,6 +52,10 @@ module ScopesExtractor
         api[:bind] || '0.0.0.0'
       end
 
+      def api_require_auth
+        api.fetch(:require_auth, true)
+      end
+
       def platforms
         load[:platforms] || {}
       end

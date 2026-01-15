@@ -189,7 +189,7 @@ The REST API provides programmatic access to scopes and change history.
 ### Example Request
 
 ```bash
-curl "http://localhost:4567/?platform=hackerone&type=web&bounty=true"
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/?platform=hackerone&type=web&bounty=true"
 ```
 
 ### Example Response
@@ -245,7 +245,7 @@ curl "http://localhost:4567/?platform=hackerone&type=web&bounty=true"
 ### Example Request
 
 ```bash
-curl "http://localhost:4567/changes?hours=48&platform=bugcrowd&type=new_scope"
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/changes?hours=48&platform=bugcrowd&type=new_scope"
 ```
 
 ### Example Response
@@ -293,7 +293,7 @@ curl "http://localhost:4567/changes?hours=48&platform=bugcrowd&type=new_scope"
 ### Example Request
 
 ```bash
-curl "http://localhost:4567/wildcards?platform=hackerone"
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/wildcards?platform=hackerone"
 ```
 
 ### Example Response
@@ -341,7 +341,7 @@ curl "http://localhost:4567/wildcards?platform=hackerone"
 ### Example Request
 
 ```bash
-curl "http://localhost:4567/exclusions"
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/exclusions"
 ```
 
 ### Example Response

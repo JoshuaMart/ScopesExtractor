@@ -20,6 +20,20 @@ module ScopesExtractor
 
     before do
       content_type :json
+
+      # API key authentication
+      if Config.api_require_auth
+        provided_key = request.env['HTTP_X_API_KEY']
+        expected_key = ENV.fetch('API_KEY', nil)
+
+        halt 500, { error: 'API_KEY not configured in environment' }.to_json if expected_key.nil? || expected_key.empty?
+
+        unless provided_key == expected_key
+          ScopesExtractor.logger.warn("Unauthorized API access attempt from #{request.ip}")
+          halt 401, { error: 'Unauthorized - Invalid or missing API key' }.to_json
+        end
+      end
+
       # Ensure database is connected
       unless Database.instance_variable_get(:@db)
         Database.connect

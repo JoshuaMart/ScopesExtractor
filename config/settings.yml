@@ -15,6 +15,7 @@ http:
 api:
   port: 4567
   bind: "0.0.0.0"
+  require_auth: true  # Set to false to disable API key authentication
 
 platforms:
   yeswehack:

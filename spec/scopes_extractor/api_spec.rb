@@ -10,16 +10,77 @@ RSpec.describe ScopesExtractor::API do
     ScopesExtractor::API.tap { |a| a.set :environment, :test }
   end
 
+  let(:valid_api_key) { 'test_api_key_123' }
+
   before do
     ScopesExtractor::Database.connect
     ScopesExtractor::Database.reset
     ScopesExtractor::Database.migrate
+    ENV['API_KEY'] = valid_api_key
+  end
+
+  after do
+    ENV.delete('API_KEY')
+  end
+
+  def authenticated_header
+    { 'HTTP_X_API_KEY' => valid_api_key }
+  end
+
+  describe 'Authentication' do
+    context 'when API_KEY is not set in environment' do
+      before do
+        ENV.delete('API_KEY')
+      end
+
+      it 'returns 500 error' do
+        get '/'
+        expect(last_response.status).to eq(500)
+
+        data = JSON.parse(last_response.body)
+        expect(data['error']).to eq('API_KEY not configured in environment')
+      end
+    end
+
+    context 'when authentication is required (default)' do
+      it 'returns 401 without API key' do
+        get '/'
+        expect(last_response.status).to eq(401)
+
+        data = JSON.parse(last_response.body)
+        expect(data['error']).to eq('Unauthorized - Invalid or missing API key')
+      end
+
+      it 'returns 401 with invalid API key' do
+        get '/', {}, { 'HTTP_X_API_KEY' => 'invalid_key' }
+        expect(last_response.status).to eq(401)
+
+        data = JSON.parse(last_response.body)
+        expect(data['error']).to eq('Unauthorized - Invalid or missing API key')
+      end
+
+      it 'allows access with valid API key' do
+        get '/', {}, authenticated_header
+        expect(last_response).to be_ok
+      end
+    end
+
+    context 'when authentication is disabled' do
+      before do
+        allow(ScopesExtractor::Config).to receive(:api_require_auth).and_return(false)
+      end
+
+      it 'allows access without API key' do
+        get '/'
+        expect(last_response).to be_ok
+      end
+    end
   end
 
   describe 'GET /' do
     context 'with no scopes in database' do
       it 'returns empty array' do
-        get '/'
+        get '/', {}, authenticated_header
         expect(last_response).to be_ok
         expect(last_response.content_type).to include('application/json')
 
@@ -58,7 +119,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'returns all scopes' do
-        get '/'
+        get '/', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -67,7 +128,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'filters by platform' do
-        get '/', platform: 'yeswehack'
+        get '/', { platform: 'yeswehack' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -76,7 +137,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'filters by type' do
-        get '/', type: 'web'
+        get '/', { type: 'web' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -85,7 +146,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'filters by bounty status' do
-        get '/', bounty: 'true'
+        get '/', { bounty: 'true' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -95,7 +156,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'filters by slug' do
-        get '/', slug: 'test-program'
+        get '/', { slug: 'test-program' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -104,7 +165,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'combines multiple filters' do
-        get '/', platform: 'yeswehack', type: 'web', bounty: 'true'
+        get '/', { platform: 'yeswehack', type: 'web', bounty: 'true' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -113,7 +174,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'returns only values when values_only=true' do
-        get '/', values_only: 'true'
+        get '/', { values_only: 'true' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -128,7 +189,7 @@ RSpec.describe ScopesExtractor::API do
   describe 'GET /changes' do
     context 'with no history' do
       it 'returns empty array' do
-        get '/changes'
+        get '/changes', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -181,7 +242,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'returns recent changes (default 24h)' do
-        get '/changes'
+        get '/changes', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -189,7 +250,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'accepts custom hours parameter' do
-        get '/changes', hours: 1
+        get '/changes', { hours: 1 }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -197,7 +258,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'filters by platform' do
-        get '/changes', platform: 'yeswehack'
+        get '/changes', { platform: 'yeswehack' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -205,7 +266,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'filters by event type' do
-        get '/changes', type: 'new_program'
+        get '/changes', { type: 'new_program' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -214,7 +275,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'orders by created_at descending' do
-        get '/changes'
+        get '/changes', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -223,7 +284,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'includes program_slug in response' do
-        get '/changes'
+        get '/changes', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -270,7 +331,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'returns only wildcard scopes' do
-        get '/wildcards'
+        get '/wildcards', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -279,7 +340,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'filters by platform' do
-        get '/wildcards', platform: 'yeswehack'
+        get '/wildcards', { platform: 'yeswehack' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -287,7 +348,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'returns only values when values_only=true' do
-        get '/wildcards', values_only: 'true'
+        get '/wildcards', { values_only: 'true' }, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -320,7 +381,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'returns all ignored assets' do
-        get '/exclusions'
+        get '/exclusions', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -328,7 +389,7 @@ RSpec.describe ScopesExtractor::API do
       end
 
       it 'orders by created_at descending' do
-        get '/exclusions'
+        get '/exclusions', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -339,7 +400,7 @@ RSpec.describe ScopesExtractor::API do
 
     context 'with no ignored assets' do
       it 'returns empty array' do
-        get '/exclusions'
+        get '/exclusions', {}, authenticated_header
         expect(last_response).to be_ok
 
         data = JSON.parse(last_response.body)
@@ -351,7 +412,7 @@ RSpec.describe ScopesExtractor::API do
 
   describe 'Error handling' do
     it 'returns 404 for unknown routes' do
-      get '/unknown'
+      get '/unknown', {}, authenticated_header
       expect(last_response.status).to eq(404)
 
       data = JSON.parse(last_response.body)
