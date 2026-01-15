@@ -1,181 +1,541 @@
 ![Image](https://github.com/user-attachments/assets/8fa9dd2a-04c8-48d4-a0d7-6057c102436c)
 
-A tool for monitoring bug bounty programs across multiple platforms to track scope changes.
+A tool to automatically synchronize and track bug bounty program scopes from multiple platforms. Monitor new programs, scope changes, and receive Discord notifications for updates.
 
 [![Ruby](https://img.shields.io/badge/Ruby-3.4.7-red.svg)](https://www.ruby-lang.org/en/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Maintainability](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor/maintainability.svg)](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor)
 
-## 📖 Overview
+> **⚠️ Version 2.x Warning**
+>
+> This is version 2.x of ScopesExtractor which contains **breaking changes** from version 1.x.
+> If you're upgrading from 1.x, please review the [CHANGELOG.md](CHANGELOG.md) for more informations
 
-Scopes Extractor is a Ruby application that monitors bug bounty programs. It tracks changes to program scopes (additions and removals) and sends notifications through Discord webhooks. The tool can be run in classic mode or API mode for querying the latest data.
+## Features
 
-## ✨ Features
+- 🔄 **Multi-Platform Support**: YesWeHack, HackerOne, Intigriti, Bugcrowd
+- 📊 **Automatic Synchronization**: Continuously monitor programs and detect scope changes
+- 🔔 **Discord Notifications**: Get notified about new programs, scope changes, and removals
+- 🗄️ **SQLite Database**: Persistent storage with historical change tracking
+- 🌐 **REST API**: Query scopes and changes programmatically
+- 🎯 **Smart Scope Processing**: Automatic validation and normalization with platform-specific rules
 
-- 🔍 Monitors multiple bug bounty platforms (YesWeHack, Immunefi, Hackerone & Bugcrowd)
-- 🔄 Detects changes in program scopes
-- 📏 Normalizes scope formats for better consistency (e.g., domain.(tld|xyz) becomes domain.tld and domain.xyz)
-- 🚨 Sends notifications to Discord webhooks
-- 🔌 Offers an API mode for querying data
-- 🔄 Supports automatic synchronization with configurable intervals
-- 🔐 Authentication with platforms including OTP support
-- 💾 Persistent storage of program data in JSON format
-- 📊 Historical tracking of changes with retention policy
-
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 
-- Docker (recommended) or Ruby >=3.4
+- Ruby >= 3.4.0
+- SQLite3
+- libcurl (for Typhoeus)
 
-### Setup
+### Configuration
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/JoshuaMart/ScopesExtractor
-   cd ScopesExtractor
-   ```
-
-2. Create the environment file:
+1. **Copy the environment template**:
    ```bash
    cp .env.example .env
    ```
 
-3. Configure your `.env` file with:
-   - YesWeHack, Intigriti, Hackerone and Bugcrowd credentials (if applicable)
-   - Discord webhook URLs
-   - API settings
-   - Synchronization options
-   - History retention policy
+2. **Configure platform credentials** in `.env` (email, password, API tokens, TOTP secrets)
 
-4. Build the Docker image:
-   ```bash
-   docker build . -t scopes
-   ```
+3. **Configure application settings** in `config/settings.yml` (enable/disable platforms, Discord webhooks, etc.)
 
-## 🚀 Usage
-
-### Classic Mode
-
-Run the application in classic mode (no API):
+### Using Docker (Recommended)
 
 ```bash
-docker run --mount type=bind,source="$(pwd)/libs/db/db.json",target=/app/libs/db/db.json --mount type=bind,source="$(pwd)/libs/db/history.json",target=/app/libs/db/history.json scopes
+# Build the image
+docker build -t scopes_extractor .
+
+# Run with mounted config and database
+docker run -v $(pwd)/config/settings.yml:/app/config/settings.yml \
+           -v $(pwd)/db:/app/db \
+           -v $(pwd)/.env:/app/.env \
+           scopes_extractor \
+           bundle exec bin/scopes_extractor sync
 ```
 
-### API Mode
-
-Run the application in API mode to expose HTTP endpoints for querying the data:
+### Local Installation
 
 ```bash
-docker run -p 4567:4567 --mount type=bind,source="$(pwd)/libs/db/db.json",target=/app/libs/db/db.json --mount type=bind,source="$(pwd)/libs/db/history.json",target=/app/libs/db/history.json scopes
+# Install dependencies
+bundle install
+
+# Run migrations
+bundle exec bin/scopes_extractor migrate
 ```
 
-When in API mode, you can query the data by sending a request to the endpoint with your configured API key:
+## CLI Usage
+
+### Commands
+
+#### Sync Programs
 
 ```bash
-# Get current program data
-curl -H "X-API-Key: your_api_key_here" http://localhost:4567
+# Sync all enabled platforms
+bundle exec bin/scopes_extractor sync
 
-# Get recent changes (last 48 hours by default)
-curl -H "X-API-Key: your_api_key_here" http://localhost:4567/changes
+# Sync specific platform
+bundle exec bin/scopes_extractor sync hackerone
 
-# Get changes from the last 24 hours
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=24"
-
-# Filter changes by platform
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?platform=YesWeHack"
-
-# Filter by change type (add_program, remove_program, add_scope, remove_scope)
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?type=add_scope"
-
-# Filter by program name
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?program=ProgramName"
-
-# Filter by category
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?category=web"
-
-# Combine filters
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/changes?hours=72&platform=Hackerone&type=add_scope"
-
-# Get all wildcard domains (*.example.com)
-curl -H "X-API-Key: your_api_key_here" http://localhost:4567/wildcards
-
-# Get wildcards from specific platform
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/wildcards?platform=YesWeHack"
-
-# Get wildcards from specific program
-curl -H "X-API-Key: your_api_key_here" "http://localhost:4567/wildcards?program=ProgramName"
+# Verbose output
+bundle exec bin/scopes_extractor sync -v
+bundle exec bin/scopes_extractor sync yeswehack --verbose
 ```
 
-## ⚙️ Configuration
+#### Start API Server
 
-### Environment Variables
+```bash
+# Start API server
+bundle exec bin/scopes_extractor serve
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `API_MODE` | Enable/disable API mode | `false` |
-| `API_KEY` | API key for authentication | `""` |
-| `AUTO_SYNC` | Enable/disable automatic synchronization | `false` |
-| `SYNC_DELAY` | Delay between synchronizations (in seconds) | `10800` |
-| `HISTORY_RETENTION_DAYS` | Number of days to retain change history | `30` |
-| `YWH_SYNC` | Enable YesWeHack synchronization | `false` |
-| `YWH_EMAIL` | YesWeHack email | `""` |
-| `YWH_PWD` | YesWeHack password | `""` |
-| `YWH_OTP` | YesWeHack OTP secret | `""` |
-| `INTIGRITI_SYNC` | Enable Intigriti synchronization | `false` |
-| `INTIGRITI_TOKEN` | Intigriti API Token | `""` |
-| `H1_SYNC` | Enable Hackerone synchronization | `false` |
-| `H1_USERNAME` | Hackerone username | `""` |
-| `H1_TOKEN` | Hackerone API Token | `""` |
-| `BC_SYNC` | Enable Bugcrowd synchronization | `false` |
-| `BC_EMAIL` | Bugcrowd email | `""` |
-| `BC_PWD` | Bugcrowd password | `""` |
-| `BC_OTP` | Bugcrowd OTP secret | `""` |
-| `IMMUNEFI_SYNC` | Enable Immunefi synchronization | `false` |
-| `NOTIFY_CATEGORIES` | Scopes categories for which notifications are sent | `all` |
-| `DISCORD_WEBHOOK` | Discord webhook URL for program notifications | `""` |
-| `DISCORD_LOGS_WEBHOOK` | Discord webhook URL for log notifications | `""` |
-| `NOTIFY_URI_ERRORS` | Send a notification for scope parsing errors | `true` |
-| `NOTIFY_INTIGRITI_403_ERRORS` | Send Discord notifications for Intigriti program fetch errors (set to false to skip 403 errors) | `true` |
+# Custom port and bind address
+bundle exec bin/scopes_extractor serve -p 8080 -b 127.0.0.1
 
-### 📊 Exclusions
+# Enable auto-sync in background
+bundle exec bin/scopes_extractor serve --sync
 
-You can configure pattern exclusions in `config/exclusions.yml` to filter out specific scopes.
+# Verbose logging
+bundle exec bin/scopes_extractor serve -v
+```
 
-## ✋ FAQ
+#### Database Management
+
+```bash
+# Run migrations
+bundle exec bin/scopes_extractor migrate
+
+# Cleanup old history entries
+bundle exec bin/scopes_extractor cleanup
+
+# Reset database (WARNING: deletes all data)
+bundle exec bin/scopes_extractor reset
+bundle exec bin/scopes_extractor reset --force  # Skip confirmation
+```
+
+#### Other Commands
+
+```bash
+# Display version
+bundle exec bin/scopes_extractor version
+
+# Show help
+bundle exec bin/scopes_extractor help
+```
+
+## Docker Usage
+
+### Docker Compose
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  scopes_extractor:
+    build: .
+    container_name: scopes_extractor
+    volumes:
+      - ./config/settings.yml:/app/config/settings.yml
+      - ./db:/app/db
+      - ./.env:/app/.env
+    ports:
+      - "4567:4567"
+    command: bundle exec bin/scopes_extractor serve --sync
+    restart: unless-stopped
+```
+
+Run with:
+
+```bash
+docker-compose up -d
+```
+
+### Docker Run Examples
+
+```bash
+# Sync once
+docker run -v $(pwd)/config/settings.yml:/app/config/settings.yml \
+           -v $(pwd)/db:/app/db \
+           -v $(pwd)/.env:/app/.env \
+           --name scopes_extractor \
+           scopes_extractor \
+           bundle exec bin/scopes_extractor sync
+
+# Start API server with auto-sync
+docker run -d \
+           -v $(pwd)/config/settings.yml:/app/config/settings.yml \
+           -v $(pwd)/db:/app/db \
+           -v $(pwd)/.env:/app/.env \
+           -p 4567:4567 \
+           --name scopes_extractor \
+           scopes_extractor \
+           bundle exec bin/scopes_extractor serve --sync
+
+# View logs
+docker logs -f scopes_extractor
+```
+
+## API Documentation
+
+The REST API provides programmatic access to scopes and change history.
 
 <details>
-  <summary>Some programs are missing</summary>
+<summary><strong>GET /</strong> - List all scopes</summary>
 
-  VDPs and scopes without bounty not included
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `platform` | string | Filter by platform name (e.g., `hackerone`, `bugcrowd`) |
+| `type` | string | Filter by scope type (e.g., `web`, `mobile`, `api`) |
+| `bounty` | boolean | Filter by bounty status (`true` or `false`) |
+| `slug` | string | Filter by program slug |
+| `values_only` | boolean | Return only scope values as array |
+
+### Example Request
+
+```bash
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/?platform=hackerone&type=web&bounty=true"
+```
+
+### Example Response
+
+```json
+{
+  "scopes": [
+    {
+      "slug": "example-program",
+      "platform": "hackerone",
+      "program_name": "Example Program",
+      "bounty": true,
+      "value": "*.example.com",
+      "type": "web",
+      "is_in_scope": true
+    },
+    {
+      "slug": "example-program",
+      "platform": "hackerone",
+      "program_name": "Example Program",
+      "bounty": true,
+      "value": "api.example.com",
+      "type": "web",
+      "is_in_scope": true
+    }
+  ],
+  "count": 2
+}
+```
+
+### Example Response (values_only=true)
+
+```json
+[
+  "*.example.com",
+  "api.example.com"
+]
+```
+
 </details>
 
 <details>
-  <summary>Intigriti - Failed to fetch program ... 403</summary>
+<summary><strong>GET /changes</strong> - Recent changes in history</summary>
 
-  Programs must be manually accepted on the Intigriti website in order to be able to consult them. You can set `NOTIFY_INTIGRITI_403_ERRORS=false` to skip Discord notifications for these 403 errors while still receiving notifications for other types of fetch errors.
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `hours` | integer | Number of hours to look back (default: 24) |
+| `platform` | string | Filter by platform name |
+| `type` | string | Filter by event type (`new_program`, `removed_program`, `new_scope`, `removed_scope`) |
+
+### Example Request
+
+```bash
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/changes?hours=48&platform=bugcrowd&type=new_scope"
+```
+
+### Example Response
+
+```json
+{
+  "changes": [
+    {
+      "id": 123,
+      "program_id": 45,
+      "program_slug": "example-program",
+      "platform_name": "bugcrowd",
+      "event_type": "new_scope",
+      "scope_value": "newapp.example.com",
+      "scope_type": "web",
+      "created_at": "2026-01-10T14:30:00Z"
+    },
+    {
+      "id": 122,
+      "program_id": 46,
+      "program_slug": "another-program",
+      "platform_name": "bugcrowd",
+      "event_type": "new_scope",
+      "scope_value": "*.another.com",
+      "scope_type": "web",
+      "created_at": "2026-01-10T12:15:00Z"
+    }
+  ],
+  "count": 2
+}
+```
+
 </details>
 
 <details>
-  <summary>Error : Invalid OTP code</summary>
+<summary><strong>GET /wildcards</strong> - List all wildcard scopes</summary>
 
-  The most likely reason is that your server's time is not correct, so the generated OTP code is not correct either.
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `platform` | string | Filter by platform name |
+| `values_only` | boolean | Return only wildcard values as array |
+
+### Example Request
+
+```bash
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/wildcards?platform=hackerone"
+```
+
+### Example Response
+
+```json
+{
+  "wildcards": [
+    {
+      "slug": "example-program",
+      "platform": "hackerone",
+      "program_name": "Example Program",
+      "bounty": true,
+      "value": "*.example.com",
+      "type": "web",
+      "is_in_scope": true
+    },
+    {
+      "slug": "another-program",
+      "platform": "hackerone",
+      "program_name": "Another Program",
+      "bounty": false,
+      "value": "*.another.org",
+      "type": "web",
+      "is_in_scope": true
+    }
+  ],
+  "count": 2
+}
+```
+
+### Example Response (values_only=true)
+
+```json
+[
+  "*.example.com",
+  "*.another.org"
+]
+```
+
 </details>
 
 <details>
-  <summary>Change History Informations</summary>
+<summary><strong>GET /exclusions</strong> - List all excluded/ignored assets</summary>
 
-  ScopesExtractor now tracks all changes (program and scope additions/removals) with timestamps. This history is automatically managed with a configurable retention policy to avoid excessive growth. By default, changes are kept for 30 days.
+### Example Request
 
-  You can query recent changes through the API (only) to see what has changed in the last few hours or days, which is useful for keeping track of bug bounty program changes even if you missed the Discord notifications.
+```bash
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/exclusions"
+```
 
-  The changes reflect what is detected by ScopesExtractor (addition/removal of scopes and programs) and not the modifications indicated directly on the program page of each platform.
+### Example Response
 
-  When a program is removed, the complete scope information that was present at the time of removal is preserved in the history. This allows you to see exactly what scopes were lost when a program disappeared from a platform.
+```json
+{
+  "exclusions": [
+    {
+      "id": 1,
+      "value": "admin.example.com",
+      "reason": "Out of scope - admin panel",
+      "created_at": "2026-01-09T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "value": "internal.example.com",
+      "reason": "Internal use only",
+      "created_at": "2026-01-08T15:30:00Z"
+    }
+  ],
+  "count": 2
+}
+```
+
 </details>
 
-## 📜 License
+## Discord Notifications
 
-This project is open-source and available under the MIT License.
+Configure Discord webhooks to receive real-time notifications:
+
+### Notification Types
+
+- **new_program**: New bug bounty program discovered
+- **removed_program**: Program no longer available
+- **new_scope**: New scope added to a program
+- **removed_scope**: Scope removed from a program
+- **ignored_asset**: Asset failed validation and was ignored
+
+### Scope Type Filtering
+
+Use `new_scope_types` to filter which scope types trigger notifications:
+
+```yaml
+discord:
+  webhooks:
+    main:
+      new_scope_types: ["web"]  # Only notify for web scopes
+      # Or leave empty/null to notify for all types
+```
+
+## Scope Processing
+
+ScopesExtractor includes intelligent scope processing with automatic normalization and validation.
+
+<details>
+<summary><strong>Auto-Heuristic Type Detection</strong></summary>
+
+Scopes are automatically categorized based on pattern matching, overriding platform-provided types when applicable:
+
+| Pattern | Detected Type | Example |
+|---------|--------------|---------|
+| GitHub/GitLab URLs | `source_code` | `https://github.com/user/repo` |
+| Atlassian Marketplace | `source_code` | `https://marketplace.atlassian.com/apps/123` |
+| App Store URLs | `mobile` | `https://apps.apple.com/app/id123` |
+| Play Store URLs | `mobile` | `https://play.google.com/store/apps/details?id=com.app` |
+| Chrome Web Store | `executable` | `https://chrome.google.com/webstore/detail/ext` |
+| CIDR notation | `cidr` | `192.168.1.0/24` |
+| Wildcard domains | `web` | `*.example.com` |
+
+</details>
+
+<details>
+<summary><strong>Platform-Specific Normalization</strong></summary>
+
+Each platform has custom normalization rules to handle their scope formats:
+
+**YesWeHack**
+- Expands multi-TLD patterns: `example.{fr,com}` → `example.fr`, `example.com`
+- Handles prefix patterns: `{www,api}.example.com` → `www.example.com`, `api.example.com`
+
+**HackerOne**
+- Replaces `.*` with `.com`: `example.*` → `example.com`
+- Replaces `.(TLD)` with `.com`: `example.(TLD)` → `example.com`
+- Splits comma-separated values: `domain1.com,domain2.com` → `domain1.com`, `domain2.com`
+
+**Intigriti**
+- Replaces `<tld>` with `.com`: `*.example.<tld>` → `*.example.com`
+- Splits slash-separated values: `domain1.com / domain2.com` → `domain1.com`, `domain2.com`
+
+**Bugcrowd**
+- Extracts primary domain from dash-separated descriptions: `example.com - Production` → `example.com`
+
+</details>
+
+<details>
+<summary><strong>Global Normalization</strong></summary>
+
+Applied to all scopes regardless of platform:
+
+- Converts leading dots to wildcards: `.example.com` → `*.example.com`
+- Removes trailing slashes and wildcards: `example.com/*` → `example.com`
+- Downcases all values: `Example.COM` → `example.com`
+- Cleans up escaped characters and extra spaces
+
+</details>
+
+<details>
+<summary><strong>Validation Rules</strong></summary>
+
+Scopes are validated before being added to the database. Invalid scopes trigger `ignored_asset` notifications.
+
+**Rejected patterns:**
+- Values without dots (unless IP addresses)
+- Multiple wildcards: `*.xyz.*.example.com` ❌
+- Invalid wildcard placement: `example*.com` ❌
+- Template placeholders: `{id}`, `<identifier>`, `[name]`
+- Descriptions in parentheses: `example.com (production only)`
+- Sentence punctuation: periods, commas, semicolons in unexpected positions
+- Values with spaces (except in URLs with query parameters)
+- Very short values (< 4 characters)
+- Hash symbols in domain portion (allowed in URL fragments)
+
+**Accepted patterns:**
+- Standard domains: `example.com` ✅
+- Subdomains: `api.example.com` ✅
+- Wildcards: `*.example.com` ✅
+- URLs with protocols: `https://example.com` ✅
+- URLs with paths: `https://example.com/api` ✅
+- IP addresses: `192.168.1.1` ✅
+- CIDR ranges: `10.0.0.0/8` ✅
+
+</details>
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+bundle exec rspec
+
+# Run with coverage
+bundle exec rspec --format documentation
+
+# Run specific test file
+bundle exec rspec spec/scopes_extractor/models/scope_spec.rb
+```
+
+### Code Quality
+
+```bash
+# Run RuboCop
+bundle exec rubocop
+```
+
+### Project Structure
+
+```
+scopes_refactor/
+├── bin/
+│   └── scopes_extractor          # CLI executable
+├── lib/
+│   └── scopes_extractor/
+│       ├── api.rb                # REST API server
+│       ├── auto_sync.rb          # Background sync scheduler
+│       ├── cli.rb                # Thor CLI commands
+│       ├── config.rb             # Configuration loader
+│       ├── database.rb           # Database connection & migrations
+│       ├── diff_engine.rb        # Program diff & change detection
+│       ├── http.rb               # HTTP client with cookie support
+│       ├── normalizer.rb         # Scope value normalization
+│       ├── sync_manager.rb       # Platform synchronization orchestration
+│       ├── validator.rb          # Scope validation logic
+│       ├── models/               # Dry-Struct models
+│       ├── notifiers/            # Discord notifications
+│       └── platforms/            # Platform-specific implementations
+│           ├── base_platform.rb
+│           ├── yeswehack/
+│           ├── hackerone/
+│           ├── intigriti/
+│           ├── bugcrowd/
+│           └── immunefi/
+├── spec/                         # RSpec tests
+├── config/
+│   └── settings.yml              # Main configuration
+├── Dockerfile
+└── Gemfile
+```
+
+## License
+
+This project is licensed under the MIT License.

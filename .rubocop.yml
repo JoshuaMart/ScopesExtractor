@@ -1,15 +1,77 @@
+# RuboCop Configuration for ScopesExtractor
+# Modern Ruby standards with reasonable limits
+
+plugins:
+  - rubocop-performance
+  - rubocop-rspec
+  - rubocop-sequel
+
 AllCops:
   NewCops: enable
+  TargetRubyVersion: 3.4
+  SuggestExtensions: false
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'db/schema.rb'
 
+# Metrics - Reasonable limits for maintainability
 Metrics/BlockLength:
+  Max: 30
   Exclude:
-    - "spec/**/*"
+    - 'spec/**/*'
+    - 'db/migrations/**/*'
 
-Layout/LineLength:
-  Exclude:
-    - "spec/**/*"
+Metrics/ClassLength:
+  Max: 200
 
 Metrics/MethodLength:
-  Max: 15
+  Max: 30
+
+Metrics/AbcSize:
+  Max: 30
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/PerceivedComplexity:
+  Max: 10
+
+Metrics/ParameterLists:
+  Max: 7
+  CountKeywordArgs: false
+
+# Layout
+Layout/LineLength:
+  Max: 120
   Exclude:
-    - "libs/platforms/config.rb"
+    - 'spec/**/*'
+
+# Style
+Style/Documentation:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+# Naming
+Naming/PredicatePrefix:
+  Exclude:
+    - 'lib/scopes_extractor/platforms/**/authenticator.rb'
+
+# RSpec - More permissive for tests
+RSpec/MultipleExpectations:
+  Max: 7
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/SpecFilePathFormat:
+  Enabled: false  # Allow yeswehack instead of yes_we_hack

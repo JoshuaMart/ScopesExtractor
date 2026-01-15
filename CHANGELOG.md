@@ -1,5 +1,37 @@
 # Changelog
 
+## Version 2.0.0 - Complete Refactor
+
+### 🚨 BREAKING CHANGES
+
+This is a complete rewrite of ScopesExtractor with significant architectural changes and breaking changes from version 1.x.
+
+#### API Breaking Changes
+- **Endpoint changes**: All API endpoints restructured
+  - `/wildcards` now returns different JSON structure with full scope objects
+  - `/changes` endpoint for history tracking
+  - New `/exclusions` endpoint for ignored assets
+- **Response format**: All endpoints now return JSON with `count` metadata
+- **Query parameters**: Standardized filtering with `platform`, `type`, `bounty`, `slug` parameters
+
+#### CLI Breaking Changes
+- **Command structure**: New Thor-based CLI with different command syntax
+  - `sync [PLATFORM]` - Sync programs (replaces old sync command)
+  - `serve` - Start API server (new)
+  - `migrate` - Run database migrations (new)
+  - `cleanup` - Cleanup old history (new)
+  - `reset` - Reset database (new)
+- **Flags**: New standardized flags across commands
+  - `--verbose` / `-v` - Enable verbose logging
+  - `--sync` / `-s` - Enable auto-sync with API server
+  - `--port` / `-p` - Custom API port
+  - `--bind` / `-b` - Custom bind address
+
+#### Platform Support
+- ⚠️ **Immunefi**: Removed (pending reimplementation)
+
+---
+
 ## Version 1.13.0 - Program Exclusions
 
 ### 🆕 New Features

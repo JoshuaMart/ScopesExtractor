@@ -1,10 +1,4 @@
-
 .env
-
-.idea/
-extract.json
-Gemfile.lock
-libs/db/db.json
 /coverage
-libs/db/history.json
-libs/db/cookies.txt
+db/scopes.db
+spec/examples.txt
