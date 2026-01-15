@@ -19,6 +19,10 @@ RUN bundle install --without development test
 # Copy application code
 COPY . .
 
+# Copy and set entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Create non-root user and set ownership
 RUN groupadd -r scopes && useradd -r -g scopes scopes && \
     chown -R scopes:scopes /app && \
@@ -27,6 +31,9 @@ RUN groupadd -r scopes && useradd -r -g scopes scopes && \
 
 # Switch to non-root user
 USER scopes
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Expose API port
 EXPOSE 4567

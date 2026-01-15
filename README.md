@@ -46,10 +46,13 @@ A tool to automatically synchronize and track bug bounty program scopes from mul
 # Build the image
 docker build -t scopes_extractor .
 
-# Run with mounted config and database
-docker run -v $(pwd)/config/settings.yml:/app/config/settings.yml \
-           -v $(pwd)/db:/app/db \
-           -v $(pwd)/.env:/app/.env \
+# Create named volume for database
+docker volume create scopes_db
+
+# Run with mounted config and named volume for database
+docker run -v $(pwd)/config/settings.yml:/app/config/settings.yml:ro \
+           -v $(pwd)/.env:/app/.env:ro \
+           -v scopes_db:/app/db \
            scopes_extractor \
            bundle exec bin/scopes_extractor sync
 ```
@@ -134,13 +137,16 @@ services:
     build: .
     container_name: scopes_extractor
     volumes:
-      - ./config/settings.yml:/app/config/settings.yml
-      - ./db:/app/db
-      - ./.env:/app/.env
+      - ./config/settings.yml:/app/config/settings.yml:ro
+      - ./.env:/app/.env:ro
+      - scopes_db:/app/db  # Use named volume for database
     ports:
       - "4567:4567"
     command: bundle exec bin/scopes_extractor serve --sync
     restart: unless-stopped
+
+volumes:
+  scopes_db:  # Persistent database volume
 ```
 
 Run with:
@@ -152,19 +158,22 @@ docker-compose up -d
 ### Docker Run Examples
 
 ```bash
+# Create named volume first
+docker volume create scopes_db
+
 # Sync once
-docker run -v $(pwd)/config/settings.yml:/app/config/settings.yml \
-           -v $(pwd)/db:/app/db \
-           -v $(pwd)/.env:/app/.env \
-           --name scopes_extractor \
+docker run --rm \
+           -v $(pwd)/config/settings.yml:/app/config/settings.yml:ro \
+           -v $(pwd)/.env:/app/.env:ro \
+           -v scopes_db:/app/db \
            scopes_extractor \
            bundle exec bin/scopes_extractor sync
 
 # Start API server with auto-sync
 docker run -d \
-           -v $(pwd)/config/settings.yml:/app/config/settings.yml \
-           -v $(pwd)/db:/app/db \
-           -v $(pwd)/.env:/app/.env \
+           -v $(pwd)/config/settings.yml:/app/config/settings.yml:ro \
+           -v $(pwd)/.env:/app/.env:ro \
+           -v scopes_db:/app/db \
            -p 4567:4567 \
            --name scopes_extractor \
            scopes_extractor \
