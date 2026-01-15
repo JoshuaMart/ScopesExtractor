@@ -16,6 +16,7 @@ api:
   port: 4567
   bind: "0.0.0.0"
   require_auth: true  # Set to false to disable API key authentication
+  allowed_hosts: []  # List of allowed hosts (empty = allow all). Example: ["example.com", "api.example.com"]
 
 platforms:
   yeswehack:

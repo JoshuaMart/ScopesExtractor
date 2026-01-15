@@ -79,6 +79,17 @@ RSpec.describe ScopesExtractor::Config do
         expect(described_class.api_require_auth).to be(true)
       end
     end
+
+    describe '.api_allowed_hosts' do
+      it 'returns the configured allowed hosts' do
+        expect(described_class.api_allowed_hosts).to eq([])
+      end
+
+      it 'defaults to empty array when not configured' do
+        allow(described_class).to receive(:api).and_return({})
+        expect(described_class.api_allowed_hosts).to eq([])
+      end
+    end
   end
 
   describe 'platform settings' do

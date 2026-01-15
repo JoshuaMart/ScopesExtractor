@@ -56,6 +56,10 @@ module ScopesExtractor
         api.fetch(:require_auth, true)
       end
 
+      def api_allowed_hosts
+        api[:allowed_hosts] || []
+      end
+
       def platforms
         load[:platforms] || {}
       end

@@ -11,6 +11,11 @@ module ScopesExtractor
       set :port, Config.api_port
       set :show_exceptions, false
       set :raise_errors, false
+
+      # Configure allowed hosts (empty array = allow all)
+      allowed_hosts = Config.api_allowed_hosts
+      set :protection, allowed_hosts.empty? ? false : { except: %i[remote_token session_hijacking frame_options] }
+      set :protection, permitted_hosts: allowed_hosts unless allowed_hosts.empty?
     end
 
     # Disable protection for test environment
