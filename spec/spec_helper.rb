@@ -4,9 +4,6 @@ require 'simplecov'
 SimpleCov.start do
   add_filter '/spec/'
   add_filter '/vendor/'
-
-  # Generate JSON format for Qlty coverage upload
-  formatter SimpleCov::Formatter::JSONFormatter if ENV['CI']
 end
 
 require_relative '../lib/scopes_extractor'
