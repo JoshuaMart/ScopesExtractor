@@ -86,9 +86,6 @@ module ScopesExtractor
         password: ENV.fetch('BUGCROWD_PASSWORD', nil),
         otp_secret: ENV.fetch('BUGCROWD_OTP', nil)
       )
-
-      # TODO: Add other platforms when implemented
-      # @platforms << Platforms::Immunefi::Platform.new if config.dig(:immunefi, :enabled)
     end
 
     def sync_platform(platform)
