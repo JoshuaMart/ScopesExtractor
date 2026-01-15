@@ -6,6 +6,7 @@ A tool to automatically synchronize and track bug bounty program scopes from mul
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Maintainability](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor/maintainability.svg)](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor)
+[![Code Coverage](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor/coverage.svg)](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor)
 
 > **⚠️ Version 2.x Warning**
 >
