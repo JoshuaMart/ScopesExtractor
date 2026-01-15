@@ -7,6 +7,11 @@ A tool to automatically synchronize and track bug bounty program scopes from mul
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Maintainability](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor/maintainability.svg)](https://qlty.sh/gh/JoshuaMart/projects/ScopesExtractor)
 
+> **⚠️ Version 2.x Warning**
+>
+> This is version 2.x of ScopesExtractor which contains **breaking changes** from version 1.x.
+> If you're upgrading from 1.x, please review the [CHANGELOG.md](CHANGELOG.md) for more informations
+
 ## Features
 
 - 🔄 **Multi-Platform Support**: YesWeHack, HackerOne, Intigriti, Bugcrowd
