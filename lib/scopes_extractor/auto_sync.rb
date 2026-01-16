@@ -18,13 +18,16 @@ module ScopesExtractor
 
       ScopesExtractor.logger.info "Starting auto-sync with #{delay}s delay"
 
-      # Perform initial sync immediately
-      perform_sync
-
       @thread = Thread.new do
+        Thread.current.abort_on_exception = true
+
+        # Perform initial sync immediately
+        perform_sync
+
         loop do
           break unless @running
 
+          ScopesExtractor.logger.debug "[AutoSync] Sleeping for #{delay} seconds until next sync"
           sleep(delay)
           break unless @running
 
