@@ -23,8 +23,8 @@ platforms:
     enabled: true
     skip_vdp: true
   hackerone:
-    enabled: false
-    skip_vdp: true
+    enabled: true
+    skip_vdp: false
   intigriti:
     enabled: true
     skip_vdp: true
