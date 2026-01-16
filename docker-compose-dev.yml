@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    command: bundle exec bin/scopes_extractor serve --sync -v
+    volumes:
+      - ./config/settings.yml:/app/config/settings.yml:ro
+      - ./.env:/app/.env:ro
+      - scopes_db:/app/db
+
+volumes:
+  scopes_db:
