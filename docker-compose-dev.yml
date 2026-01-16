@@ -3,6 +3,8 @@ services:
     build: .
     restart: unless-stopped
     command: bundle exec bin/scopes_extractor serve --sync -v
+    ports:
+      - "4567:4567"
     volumes:
       - ./config/settings.yml:/app/config/settings.yml:ro
       - ./.env:/app/.env:ro
