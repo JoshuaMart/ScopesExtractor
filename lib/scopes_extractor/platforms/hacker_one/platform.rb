@@ -53,17 +53,24 @@ module ScopesExtractor
           fetcher = ProgramFetcher.new(auth)
           raw_programs = fetcher.fetch_all
 
+          # Filter out VDP programs before fetching details
+          if Config.skip_vdp?('hackerone')
+            raw_programs = raw_programs.reject do |raw|
+              attr = raw['attributes']
+              if attr['offers_bounties'] == false
+                ScopesExtractor.logger.debug "[HackerOne] Skipping VDP program: #{attr['handle']}"
+                true
+              else
+                false
+              end
+            end
+          end
+
           raw_programs.filter_map do |raw|
             attr = raw['attributes']
 
-            # Only process open programs that offer bounties
-            next unless attr['submission_state'] == 'open' && attr['offers_bounties'] == true
-
-            # Skip VDP programs if configured
-            if Config.skip_vdp?('hackerone') && attr['offers_bounties'] == false
-              ScopesExtractor.logger.debug "[HackerOne] Skipping VDP program: #{attr['handle']}"
-              next
-            end
+            # Only process open programs
+            next unless attr['submission_state'] == 'open'
 
             handle = attr['handle']
 
