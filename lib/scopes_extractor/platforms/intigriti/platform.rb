@@ -47,13 +47,19 @@ module ScopesExtractor
           fetcher = ProgramFetcher.new(@token)
           raw_programs = fetcher.fetch_all
 
-          raw_programs.filter_map do |raw|
-            # Skip VDP programs if configured (maxBounty == 0)
-            if Config.skip_vdp?('intigriti') && raw.dig('maxBounty', 'value')&.zero?
-              ScopesExtractor.logger.debug "[Intigriti] Skipping VDP program: #{raw['handle']}"
-              next
+          # Filter out VDP programs before fetching details
+          if Config.skip_vdp?('intigriti')
+            raw_programs = raw_programs.reject do |raw|
+              if raw.dig('maxBounty', 'value')&.zero?
+                ScopesExtractor.logger.debug "[Intigriti] Skipping VDP program: #{raw['handle']}"
+                true
+              else
+                false
+              end
             end
+          end
 
+          raw_programs.filter_map do |raw|
             # Fetch full details to get scopes
             details = fetcher.fetch_details(raw['id'])
             next unless details
