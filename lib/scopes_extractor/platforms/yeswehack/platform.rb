@@ -67,16 +67,22 @@ module ScopesExtractor
           fetcher = ProgramFetcher.new(@token)
           raw_programs = fetcher.fetch_all
 
+          # Filter out VDP programs before fetching details
+          if Config.skip_vdp?('yeswehack')
+            raw_programs = raw_programs.reject do |raw|
+              if raw['vdp'] == true
+                ScopesExtractor.logger.debug "[YesWeHack] Skipping VDP program: #{raw['slug']}"
+                true
+              else
+                false
+              end
+            end
+          end
+
           raw_programs.filter_map do |raw|
             # Fetch full details to get scopes
             details = fetcher.fetch_details(raw['slug'])
             next unless details
-
-            # Skip VDP programs if configured
-            if Config.skip_vdp?('yeswehack') && details['vdp'] == true
-              ScopesExtractor.logger.debug "[YesWeHack] Skipping VDP program: #{raw['slug']}"
-              next
-            end
 
             begin
               parse_program(details)
