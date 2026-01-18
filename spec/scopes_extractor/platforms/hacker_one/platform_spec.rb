@@ -153,7 +153,7 @@ RSpec.describe ScopesExtractor::Platforms::HackerOne::Platform do
       end
     end
 
-    context 'when program does not offer bounties' do
+    context 'when program is VDP and skip_vdp is true' do
       let(:raw_programs) do
         [
           {
@@ -167,7 +167,12 @@ RSpec.describe ScopesExtractor::Platforms::HackerOne::Platform do
         ]
       end
 
+      before do
+        allow(ScopesExtractor::Config).to receive(:skip_vdp?).with('hackerone').and_return(true)
+      end
+
       it 'skips the program' do
+        expect(ScopesExtractor.logger).to receive(:debug).with('[HackerOne] Skipping VDP program: vdp-program')
         programs = platform.fetch_programs
         expect(programs).to be_empty
       end
