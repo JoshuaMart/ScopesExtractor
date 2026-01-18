@@ -86,16 +86,11 @@ module ScopesExtractor
             raise 'Authentication failed, cannot fetch programs' unless success
           end
 
-          fetcher = ProgramFetcher.new
-          raw_programs = fetcher.fetch_all
+          raw_programs = fetch_raw_programs
 
           raw_programs.filter_map do |raw|
             brief_url = raw['briefUrl']
             slug = brief_url[1..] # Remove leading slash
-
-            # Skip VDP programs if configured
-            # Note: Bugcrowd engagements.json doesn't have clear bounty indicator,
-            # but category=bug_bounty filter should handle this
 
             # Fetch scopes for this program
             raw_scopes = fetcher.fetch_scopes(brief_url)
@@ -112,6 +107,32 @@ module ScopesExtractor
         end
 
         private
+
+        # Fetches raw programs from Bugcrowd API
+        # @return [Array<Hash>] array of raw program data
+        def fetch_raw_programs
+          fetcher = ProgramFetcher.new
+
+          # Fetch bug bounty programs and filter out those without rewards
+          programs = fetcher.fetch_all(category: 'bug_bounty')
+          programs = programs.reject do |raw|
+            if raw['rewardSummary'].nil?
+              ScopesExtractor.logger.debug "[Bugcrowd] Skipping program without rewards: #{raw['briefUrl']}"
+              true
+            else
+              false
+            end
+          end
+
+          # Fetch VDP programs if configured
+          unless Config.skip_vdp?('bugcrowd')
+            vdp_programs = fetcher.fetch_all(category: 'vdp')
+            ScopesExtractor.logger.debug "[Bugcrowd] Fetched #{vdp_programs.size} VDP program(s)"
+            programs.concat(vdp_programs)
+          end
+
+          programs
+        end
 
         # Authenticates with Bugcrowd
         def authenticate
@@ -133,7 +154,7 @@ module ScopesExtractor
             slug: slug,
             platform: 'bugcrowd',
             name: raw['name'],
-            bounty: true, # All programs from bug_bounty category
+            bounty: !raw['rewardSummary'].nil?,
             scopes: scopes
           )
         end

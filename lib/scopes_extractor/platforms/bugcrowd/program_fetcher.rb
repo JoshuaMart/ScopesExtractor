@@ -11,17 +11,18 @@ module ScopesExtractor
           # No auth needed, cookies are handled by HTTP module
         end
 
-        # Fetches all bug bounty programs from Bugcrowd
+        # Fetches all programs from Bugcrowd for a given category
+        # @param category [String] program category ('bug_bounty' or 'vdp')
         # @return [Array<Hash>] array of raw program data
         # @raise [StandardError] if fetching fails
-        def fetch_all
+        def fetch_all(category: 'bug_bounty')
           programs = []
           page = 1
 
           loop do
-            ScopesExtractor.logger.debug "[Bugcrowd] Fetching engagements page #{page}"
+            ScopesExtractor.logger.debug "[Bugcrowd] Fetching #{category} engagements page #{page}"
 
-            url = "#{BASE_URL}/engagements.json?page=#{page}&category=bug_bounty"
+            url = "#{BASE_URL}/engagements.json?page=#{page}&category=#{category}"
             response = HTTP.get(url)
 
             raise "Failed to fetch engagements page #{page}: HTTP #{response.code}" unless response.success?

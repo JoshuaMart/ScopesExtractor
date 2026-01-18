@@ -46,9 +46,9 @@ RSpec.describe ScopesExtractor::Platforms::Bugcrowd::ProgramFetcher do
       end
 
       it 'logs the fetch operation' do
-        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching engagements page 1')
+        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching bug_bounty engagements page 1')
         expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetched 2 open programs from page 1')
-        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching engagements page 2')
+        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching bug_bounty engagements page 2')
         expect(ScopesExtractor.logger).to receive(:info).with('[Bugcrowd] Fetched total of 2 program(s)')
         fetcher.fetch_all
       end
@@ -89,11 +89,11 @@ RSpec.describe ScopesExtractor::Platforms::Bugcrowd::ProgramFetcher do
       end
 
       it 'logs each page fetch' do
-        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching engagements page 1')
+        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching bug_bounty engagements page 1')
         expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetched 1 open programs from page 1')
-        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching engagements page 2')
+        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching bug_bounty engagements page 2')
         expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetched 1 open programs from page 2')
-        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching engagements page 3')
+        expect(ScopesExtractor.logger).to receive(:debug).with('[Bugcrowd] Fetching bug_bounty engagements page 3')
         expect(ScopesExtractor.logger).to receive(:info).with('[Bugcrowd] Fetched total of 2 program(s)')
         fetcher.fetch_all
       end
