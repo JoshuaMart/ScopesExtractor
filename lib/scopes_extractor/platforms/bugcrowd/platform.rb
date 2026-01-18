@@ -86,7 +86,8 @@ module ScopesExtractor
             raise 'Authentication failed, cannot fetch programs' unless success
           end
 
-          raw_programs = fetch_raw_programs
+          fetcher = ProgramFetcher.new
+          raw_programs = fetch_raw_programs(fetcher)
 
           raw_programs.filter_map do |raw|
             brief_url = raw['briefUrl']
@@ -109,10 +110,9 @@ module ScopesExtractor
         private
 
         # Fetches raw programs from Bugcrowd API
+        # @param fetcher [ProgramFetcher] the fetcher instance
         # @return [Array<Hash>] array of raw program data
-        def fetch_raw_programs
-          fetcher = ProgramFetcher.new
-
+        def fetch_raw_programs(fetcher)
           # Fetch bug bounty programs and filter out those without rewards
           programs = fetcher.fetch_all(category: 'bug_bounty')
           programs = programs.reject do |raw|
