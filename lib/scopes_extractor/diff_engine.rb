@@ -62,7 +62,7 @@ module ScopesExtractor
         program = existing_programs.find { |p| p[:slug] == slug }
         next unless program
 
-        save_scopes_before_deletion(program[:id])
+        scopes_data = build_scopes_data(program[:id])
 
         # Skip notification if this is the first sync
         @notifier.notify_removed_program(platform_name, program[:name], slug) unless skip_notifications
@@ -72,7 +72,8 @@ module ScopesExtractor
           platform_name: platform_name,
           program_name: program[:name],
           event_type: 'remove_program',
-          details: 'Program no longer available'
+          details: 'Program no longer available',
+          extra_data: { slug: slug, scopes: scopes_data }
         )
 
         @db[:programs].where(id: program[:id]).delete
@@ -251,22 +252,25 @@ module ScopesExtractor
       )
     end
 
-    def save_scopes_before_deletion(program_id)
+    def build_scopes_data(program_id)
       scopes = @db[:scopes].where(program_id: program_id).all
-      return if scopes.empty?
+      return { in: {}, out: {} } if scopes.empty?
 
-      scopes_json = scopes.map do |s|
-        {
-          value: s[:value],
-          type: s[:type],
-          is_in_scope: s[:is_in_scope]
-        }
-      end.to_json
+      result = { in: {}, out: {} }
 
-      ScopesExtractor.logger.debug "Saved #{scopes.count} scopes before program deletion: #{scopes_json}"
+      scopes.each do |scope|
+        scope_category = scope[:is_in_scope] ? :in : :out
+        scope_type = scope[:type]
+
+        result[scope_category][scope_type] ||= []
+        result[scope_category][scope_type] << scope[:value]
+      end
+
+      result
     end
 
-    def log_event(program_id:, platform_name:, program_name:, event_type:, details:, scope_type: nil, category: nil)
+    def log_event(program_id:, platform_name:, program_name:, event_type:, details:, scope_type: nil, category: nil,
+                  extra_data: nil)
       @db[:history].insert(
         program_id: program_id,
         platform_name: platform_name,
@@ -275,6 +279,7 @@ module ScopesExtractor
         details: details,
         scope_type: scope_type,
         category: category,
+        extra_data: extra_data&.to_json,
         created_at: Time.now
       )
     end

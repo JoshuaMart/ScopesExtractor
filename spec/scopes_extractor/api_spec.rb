@@ -292,6 +292,52 @@ RSpec.describe ScopesExtractor::API do
         expect(data['changes'].first['program_slug']).to eq('test-program')
       end
     end
+
+    context 'with remove_program event' do
+      before do
+        extra_data = {
+          slug: 'removed-program',
+          scopes: {
+            in: { web: ['*.removed.com', 'api.removed.com'] },
+            out: { web: ['admin.removed.com'] }
+          }
+        }
+
+        ScopesExtractor.db[:history].insert(
+          program_id: nil,
+          platform_name: 'intigriti',
+          program_name: 'Removed Program',
+          event_type: 'remove_program',
+          details: 'Program no longer available',
+          extra_data: extra_data.to_json,
+          created_at: Time.now - 1800
+        )
+      end
+
+      it 'parses extra_data and includes it in response' do
+        get '/changes', {}, authenticated_header
+        expect(last_response).to be_ok
+
+        data = JSON.parse(last_response.body)
+        removed_entry = data['changes'].find { |c| c['event_type'] == 'remove_program' }
+
+        expect(removed_entry['extra_data']).to be_a(Hash)
+        expect(removed_entry['extra_data']['slug']).to eq('removed-program')
+        expect(removed_entry['extra_data']['scopes']['in']['web']).to contain_exactly('*.removed.com',
+                                                                                      'api.removed.com')
+        expect(removed_entry['extra_data']['scopes']['out']['web']).to contain_exactly('admin.removed.com')
+      end
+
+      it 'extracts program_slug from extra_data when program_id is null' do
+        get '/changes', {}, authenticated_header
+        expect(last_response).to be_ok
+
+        data = JSON.parse(last_response.body)
+        removed_entry = data['changes'].find { |c| c['event_type'] == 'remove_program' }
+
+        expect(removed_entry['program_slug']).to eq('removed-program')
+      end
+    end
   end
 
   describe 'GET /wildcards' do

@@ -105,6 +105,18 @@ module ScopesExtractor
       query = query.where(Sequel[:history][:event_type] => params[:type]) if params[:type]
 
       results = query.order(Sequel.desc(Sequel[:history][:created_at])).all
+
+      # Parse extra_data JSON and extract slug for removed programs
+      results = results.map do |row|
+        row = row.dup
+        if row[:extra_data]
+          parsed = JSON.parse(row[:extra_data], symbolize_names: true)
+          row[:extra_data] = parsed
+          row[:program_slug] ||= parsed[:slug]
+        end
+        row
+      end
+
       { changes: results, count: results.size }.to_json
     rescue StandardError => e
       status 500

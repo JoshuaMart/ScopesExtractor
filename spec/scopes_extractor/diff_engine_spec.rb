@@ -280,6 +280,62 @@ RSpec.describe ScopesExtractor::DiffEngine do
       expect(history[:details]).to eq('Program no longer available')
     end
 
+    it 'stores slug in extra_data' do
+      diff_engine.process_removed_programs('yeswehack', ['program-1'])
+
+      history = ScopesExtractor.db[:history].where(event_type: 'remove_program').first
+      extra_data = JSON.parse(history[:extra_data], symbolize_names: true)
+      expect(extra_data[:slug]).to eq('program-2')
+    end
+
+    context 'when removed program has scopes' do
+      before do
+        program = ScopesExtractor.db[:programs].where(slug: 'program-2').first
+        ScopesExtractor.db[:scopes].insert(
+          program_id: program[:id],
+          value: '*.example.com',
+          type: 'web',
+          is_in_scope: true,
+          created_at: Time.now
+        )
+        ScopesExtractor.db[:scopes].insert(
+          program_id: program[:id],
+          value: 'api.example.com',
+          type: 'web',
+          is_in_scope: true,
+          created_at: Time.now
+        )
+        ScopesExtractor.db[:scopes].insert(
+          program_id: program[:id],
+          value: 'admin.example.com',
+          type: 'web',
+          is_in_scope: false,
+          created_at: Time.now
+        )
+      end
+
+      it 'stores scopes in extra_data grouped by in/out and type' do
+        diff_engine.process_removed_programs('yeswehack', ['program-1'])
+
+        history = ScopesExtractor.db[:history].where(event_type: 'remove_program').first
+        extra_data = JSON.parse(history[:extra_data], symbolize_names: true)
+
+        expect(extra_data[:scopes][:in][:web]).to contain_exactly('*.example.com', 'api.example.com')
+        expect(extra_data[:scopes][:out][:web]).to contain_exactly('admin.example.com')
+      end
+    end
+
+    context 'when removed program has no scopes' do
+      it 'stores empty scopes structure in extra_data' do
+        diff_engine.process_removed_programs('yeswehack', ['program-1'])
+
+        history = ScopesExtractor.db[:history].where(event_type: 'remove_program').first
+        extra_data = JSON.parse(history[:extra_data], symbolize_names: true)
+
+        expect(extra_data[:scopes]).to eq({ in: {}, out: {} })
+      end
+    end
+
     context 'when skip_notifications is true' do
       it 'does not notify about removed programs' do
         expect(notifier).not_to receive(:notify_removed_program)
