@@ -322,7 +322,7 @@ RSpec.describe ScopesExtractor::API do
         removed_entry = data['changes'].find { |c| c['event_type'] == 'remove_program' }
 
         expect(removed_entry['extra_data']).to be_a(Hash)
-        expect(removed_entry['extra_data']['slug']).to eq('removed-program')
+        expect(removed_entry['extra_data']).not_to have_key('slug')
         expect(removed_entry['extra_data']['scopes']['in']['web']).to contain_exactly('*.removed.com',
                                                                                       'api.removed.com')
         expect(removed_entry['extra_data']['scopes']['out']['web']).to contain_exactly('admin.removed.com')
