@@ -111,8 +111,8 @@ module ScopesExtractor
         row = row.dup
         if row[:extra_data]
           parsed = JSON.parse(row[:extra_data], symbolize_names: true)
+          row[:program_slug] ||= parsed.delete(:slug) # Move slug from extra_data
           row[:extra_data] = parsed
-          row[:program_slug] ||= parsed[:slug]
         end
         row
       end
