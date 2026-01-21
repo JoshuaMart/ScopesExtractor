@@ -255,7 +255,7 @@ curl -H "X-API-KEY: your_api_key" "http://localhost:4567/?platform=hackerone&typ
 |-----------|------|-------------|
 | `hours` | integer | Number of hours to look back (default: 24) |
 | `platform` | string | Filter by platform name |
-| `type` | string | Filter by event type (`new_program`, `removed_program`, `new_scope`, `removed_scope`) |
+| `type` | string | Filter by event type (`add_program`, `remove_program`, `add_scope`, `remove_scope`) |
 
 ### Example Request
 
@@ -273,7 +273,7 @@ curl -H "X-API-KEY: your_api_key" "http://localhost:4567/changes?hours=48&platfo
       "program_id": 45,
       "program_slug": "example-program",
       "platform_name": "bugcrowd",
-      "event_type": "new_scope",
+      "event_type": "add_scope",
       "scope_value": "newapp.example.com",
       "scope_type": "web",
       "created_at": "2026-01-10T14:30:00Z"
@@ -283,7 +283,7 @@ curl -H "X-API-KEY: your_api_key" "http://localhost:4567/changes?hours=48&platfo
       "program_id": 46,
       "program_slug": "another-program",
       "platform_name": "bugcrowd",
-      "event_type": "new_scope",
+      "event_type": "add_scope",
       "scope_value": "*.another.com",
       "scope_type": "web",
       "created_at": "2026-01-10T12:15:00Z"
