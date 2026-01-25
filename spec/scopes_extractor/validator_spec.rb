@@ -45,6 +45,13 @@ RSpec.describe ScopesExtractor::Validator do
         expect(described_class.valid_web_target?('*.-sub.example.com', 'web')).to be false
       end
 
+      it 'rejects wildcards with less than 2 dots (e.g., *.com)' do
+        expect(described_class.valid_web_target?('*.com', 'web')).to be false
+        expect(described_class.valid_web_target?('*.fr', 'web')).to be false
+        expect(described_class.valid_web_target?('*.co.uk', 'web')).to be true
+        expect(described_class.valid_web_target?('*.example.com', 'web')).to be true
+      end
+
       it 'rejects descriptions in parentheses' do
         expect(described_class.valid_web_target?('*.example.com (description text)', 'web')).to be false
       end

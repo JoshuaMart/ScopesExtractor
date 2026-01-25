@@ -66,6 +66,9 @@ module ScopesExtractor
       domain_part = val[2..]
       return false if domain_part&.start_with?('-')
 
+      # 5. Must have at least 2 dots total (e.g., "*.example.com" is valid, "*.com" is not)
+      return false if val.count('.') < 2
+
       true
     end
   end
