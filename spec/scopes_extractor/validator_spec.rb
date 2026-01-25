@@ -59,6 +59,27 @@ RSpec.describe ScopesExtractor::Validator do
         expect(described_class.valid_web_target?('*.test.com.au', 'web')).to be true
       end
 
+      it 'rejects wildcards on private suffixes by default' do
+        expect(described_class.valid_web_target?('*.digitaloceanspaces.com', 'web')).to be false
+        expect(described_class.valid_web_target?('*.githubusercontent.com', 'web')).to be false
+      end
+
+      context 'when allow_private_suffixes is enabled' do
+        before do
+          allow(ScopesExtractor::Config).to receive(:allow_private_suffixes?).and_return(true)
+        end
+
+        it 'accepts wildcards on private suffixes' do
+          expect(described_class.valid_web_target?('*.digitaloceanspaces.com', 'web')).to be true
+          expect(described_class.valid_web_target?('*.githubusercontent.com', 'web')).to be true
+        end
+
+        it 'still rejects public suffixes' do
+          expect(described_class.valid_web_target?('*.co.uk', 'web')).to be false
+          expect(described_class.valid_web_target?('*.com.au', 'web')).to be false
+        end
+      end
+
       it 'rejects descriptions in parentheses' do
         expect(described_class.valid_web_target?('*.example.com (description text)', 'web')).to be false
       end

@@ -80,6 +80,14 @@ module ScopesExtractor
         load[:history_retention_days] || 30
       end
 
+      def validation
+        load[:validation] || {}
+      end
+
+      def allow_private_suffixes?
+        validation[:allow_private_suffixes] == true
+      end
+
       def discord
         load[:discord] || {}
       end

@@ -70,7 +70,7 @@ module ScopesExtractor
 
       # 5. Domain part must be a valid registrable domain (not just a public suffix like *.co.uk)
       begin
-        parsed = PublicSuffix.parse(domain_part)
+        parsed = PublicSuffix.parse(domain_part, ignore_private: Config.allow_private_suffixes?)
         return false if parsed.sld.nil?
       rescue PublicSuffix::DomainInvalid, PublicSuffix::DomainNotAllowed
         return false

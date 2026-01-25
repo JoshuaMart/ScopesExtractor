@@ -11,6 +11,10 @@ http:
   proxy: null  # Optional: "http://proxy.example.com:8080"
   timeout: 30  # seconds
 
+# Validation settings
+validation:
+  allow_private_suffixes: false  # https://github.com/weppos/publicsuffix-ruby/blob/main/data/list.txt
+
 # API server configuration
 api:
   port: 4567
