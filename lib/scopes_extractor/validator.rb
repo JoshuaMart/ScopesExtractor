@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'public_suffix'
+
 module ScopesExtractor
   module Validator
     def self.valid_web_target?(value, type)
@@ -66,8 +68,13 @@ module ScopesExtractor
       domain_part = val[2..]
       return false if domain_part&.start_with?('-')
 
-      # 5. Must have at least 2 dots total (e.g., "*.example.com" is valid, "*.com" is not)
-      return false if val.count('.') < 2
+      # 5. Domain part must be a valid registrable domain (not just a public suffix like *.co.uk)
+      begin
+        parsed = PublicSuffix.parse(domain_part)
+        return false if parsed.sld.nil?
+      rescue PublicSuffix::DomainInvalid, PublicSuffix::DomainNotAllowed
+        return false
+      end
 
       true
     end

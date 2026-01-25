@@ -189,6 +189,7 @@ DEPENDENCIES
   dry-types (~> 1.9)
   logger (~> 1.7)
   pry (~> 0.16)
+  public_suffix (~> 7.0)
   puma (~> 7.1)
   rack (~> 3.2)
   rack-test (~> 2.1)
