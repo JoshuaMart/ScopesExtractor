@@ -39,7 +39,7 @@ module ScopesExtractor
       end
 
       # Ensure database is connected
-      unless Database.instance_variable_get(:@db)
+      unless ScopesExtractor.db
         Database.connect
         Database.migrate
         Database.cleanup_old_history
