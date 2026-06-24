@@ -1,4 +1,6 @@
 .env
 /coverage
 db/scopes.db
+db/scopes.db-wal
+db/scopes.db-shm
 spec/examples.txt

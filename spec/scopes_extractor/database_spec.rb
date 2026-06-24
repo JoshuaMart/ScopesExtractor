@@ -12,7 +12,10 @@ RSpec.describe ScopesExtractor::Database do
   end
 
   after do
-    FileUtils.rm_f(test_db_path)
+    ScopesExtractor.db&.disconnect
+    ScopesExtractor.db = nil
+    # WAL mode leaves -wal/-shm side-files alongside the main database file.
+    FileUtils.rm_f([test_db_path, "#{test_db_path}-wal", "#{test_db_path}-shm"])
   end
 
   describe '.connect' do
@@ -30,6 +33,28 @@ RSpec.describe ScopesExtractor::Database do
     it 'logs the connection info' do
       expect(ScopesExtractor.logger).to receive(:info).with(/Connected to database/)
       described_class.connect
+    end
+
+    it 'enables WAL journal mode for concurrent access' do
+      db = described_class.connect
+      expect(db['PRAGMA journal_mode'].first[:journal_mode]).to eq('wal')
+    end
+
+    it 'sets synchronous to NORMAL on every pooled connection' do
+      db = described_class.connect
+
+      # NORMAL = 1, and it is a per-connection pragma, so exercise several
+      # concurrent connections to ensure after_connect ran on each.
+      results = Array.new(5).map do
+        Thread.new { db['PRAGMA synchronous'].first[:synchronous] }.value
+      end
+
+      expect(results).to all(eq(1))
+    end
+
+    it 'raises the busy timeout above the 5s default' do
+      db = described_class.connect
+      expect(db['PRAGMA busy_timeout'].first[:timeout]).to eq(10_000)
     end
   end
 
