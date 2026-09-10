@@ -66,6 +66,8 @@ require_relative 'scopes_extractor/http'
 
 # Require notifiers
 require_relative 'scopes_extractor/notifiers/discord'
+require_relative 'scopes_extractor/notifiers/webhook'
+require_relative 'scopes_extractor/notifiers/multi'
 
 # Require models
 require_relative 'scopes_extractor/models/scope'

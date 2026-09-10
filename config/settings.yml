@@ -52,6 +52,16 @@ discord:
     errors:
       url: ""  # https://discord.com/api/webhooks/.../yyy
 
+# Generic HTTP webhook notifications (JSON payloads)
+webhook:
+  enabled: false
+  url: ""  # https://example.com/hooks/scopes
+  headers: {}  # Optional custom headers, "${VAR}" is replaced by the environment variable
+               # Example: { "Authorization": "Bearer ${WEBHOOK_TOKEN}" }
+  events: ["new_program", "removed_program", "new_scope", "removed_scope", "ignored_asset", "error"]
+  new_scope_types: ["web"]  # Filter new_scope notifications by type (web, mobile, android, ios, etc.)
+                            # Empty or null = notify all types
+
 platform_exclusions:
   yeswehack: []
   hackerone: []

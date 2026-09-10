@@ -5,7 +5,7 @@ module ScopesExtractor
   class DiffEngine
     def initialize(notifier: nil)
       @db = ScopesExtractor.db
-      @notifier = notifier || Notifiers::Discord.new
+      @notifier = notifier || Notifiers::Multi.default
     end
 
     def process_program(platform_name, fetched_program, skip_notifications: false)
@@ -45,7 +45,7 @@ module ScopesExtractor
         details: 'Brand new program discovered'
       )
 
-      # Only send Discord notification if not skipping notifications
+      # Only send notifications if not skipping them
       return if skip_notifications
 
       @notifier.notify_new_program(

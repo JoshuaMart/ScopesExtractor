@@ -1,5 +1,43 @@
 # Changelog
 
+## Unreleased
+
+### ✨ Features
+
+#### Generic HTTP Webhook Notifications
+
+Notifications are no longer Discord-only: a generic HTTP webhook notifier can be enabled alongside (or instead of) Discord.
+
+**Changes:**
+- **New `Notifiers::Webhook`**: POSTs every event as JSON to a configurable endpoint
+- **New `Notifiers::Multi`**: fans notifications out to all configured notifiers, a failing one never blocks the others
+- **Custom headers**: optional headers (typically for authentication) with `${VAR}` environment variable interpolation, so secrets stay in `.env`
+- **Same filtering as Discord**: `events` and `new_scope_types` filters, plus a dedicated `error` event
+
+**Configuration** (`config/settings.yml`):
+
+```yaml
+webhook:
+  enabled: true
+  url: "https://example.com/hooks/scopes"
+  headers:
+    Authorization: "Bearer ${WEBHOOK_TOKEN}"
+  events: ["new_program", "removed_program", "new_scope", "removed_scope", "ignored_asset", "error"]
+  new_scope_types: ["web"]
+```
+
+**Payload:**
+
+```json
+{
+  "event": "new_scope",
+  "timestamp": "2025-07-30T10:17:00Z",
+  "data": { "platform": "yeswehack", "program": "Example Program", "value": "*.example.com", "type": "web" }
+}
+```
+
+---
+
 ## Version 2.0.1 - Bugcrowd Auth Fix
 
 ### 🐛 Bug Fixes
