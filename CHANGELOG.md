@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## Version 2.1.0 - Generic HTTP Webhook Notifications
 
 ### ✨ Features
 
