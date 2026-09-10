@@ -131,6 +131,32 @@ module ScopesExtractor
         discord_main_webhook[:new_scope_types] || []
       end
 
+      def webhook
+        load[:webhook] || {}
+      end
+
+      def webhook_enabled?
+        webhook[:enabled] == true
+      end
+
+      def webhook_url
+        resolve_env(webhook[:url])
+      end
+
+      # Custom headers sent with every webhook call (e.g. authentication).
+      # Values may reference environment variables using the "${VAR}" syntax.
+      def webhook_headers
+        (webhook[:headers] || {}).transform_keys(&:to_s).transform_values { |value| resolve_env(value) }
+      end
+
+      def webhook_events
+        webhook[:events] || []
+      end
+
+      def webhook_new_scope_types
+        webhook[:new_scope_types] || []
+      end
+
       def platform_exclusions
         load[:platform_exclusions] || {}
       end
@@ -142,6 +168,10 @@ module ScopesExtractor
       end
 
       private
+
+      def resolve_env(value)
+        value.to_s.gsub(/\$\{(\w+)\}/) { ENV.fetch(Regexp.last_match(1), '') }
+      end
 
       def config_path
         File.join(ScopesExtractor.root, 'config', 'settings.yml')

@@ -1,6 +1,6 @@
 ![Image](https://github.com/user-attachments/assets/8fa9dd2a-04c8-48d4-a0d7-6057c102436c)
 
-A tool to automatically synchronize and track bug bounty program scopes from multiple platforms. Monitor new programs, scope changes, and receive Discord notifications for updates.
+A tool to automatically synchronize and track bug bounty program scopes from multiple platforms. Monitor new programs, scope changes, and receive Discord or HTTP webhook notifications for updates.
 
 [![Ruby](https://img.shields.io/badge/Ruby-3.4.7-red.svg)](https://www.ruby-lang.org/en/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
@@ -17,7 +17,7 @@ A tool to automatically synchronize and track bug bounty program scopes from mul
 
 - 🔄 **Multi-Platform Support**: YesWeHack, HackerOne, Intigriti, Bugcrowd
 - 📊 **Automatic Synchronization**: Continuously monitor programs and detect scope changes
-- 🔔 **Discord Notifications**: Get notified about new programs, scope changes, and removals
+- 🔔 **Notifications**: Get notified about new programs, scope changes, and removals via Discord or a generic HTTP webhook (JSON)
 - 🗄️ **SQLite Database**: Persistent storage with historical change tracking
 - 🌐 **REST API**: Query scopes and changes programmatically
 - 🎯 **Smart Scope Processing**: Automatic validation and normalization with platform-specific rules
@@ -39,7 +39,7 @@ A tool to automatically synchronize and track bug bounty program scopes from mul
 
 2. **Configure platform credentials** in `.env` (email, password, API tokens, TOTP secrets)
 
-3. **Configure application settings** in `config/settings.yml` (enable/disable platforms, Discord webhooks, etc.)
+3. **Configure application settings** in `config/settings.yml` (enable/disable platforms, notification webhooks, etc.)
 
 ### Using Docker (Recommended)
 
@@ -383,9 +383,10 @@ curl -H "X-API-KEY: your_api_key" "http://localhost:4567/exclusions"
 
 </details>
 
-## Discord Notifications
+## Notifications
 
-Configure Discord webhooks to receive real-time notifications:
+Two notifiers are available and can be enabled independently (both at once if needed):
+Discord webhooks and a generic HTTP webhook receiving JSON payloads.
 
 ### Notification Types
 
@@ -394,10 +395,11 @@ Configure Discord webhooks to receive real-time notifications:
 - **new_scope**: New scope added to a program
 - **removed_scope**: Scope removed from a program
 - **ignored_asset**: Asset failed validation and was ignored
+- **error**: Synchronization error (HTTP webhook only, Discord uses a dedicated `errors` webhook)
 
 ### Scope Type Filtering
 
-Use `new_scope_types` to filter which scope types trigger notifications:
+Use `new_scope_types` to filter which scope types trigger `new_scope` notifications:
 
 ```yaml
 discord:
@@ -406,6 +408,83 @@ discord:
       new_scope_types: ["web"]  # Only notify for web scopes
       # Or leave empty/null to notify for all types
 ```
+
+### Discord Notifications
+
+```yaml
+discord:
+  enabled: true
+  webhooks:
+    main:
+      url: "https://discord.com/api/webhooks/.../xxx"
+      events: ["new_program", "removed_program", "new_scope", "removed_scope", "ignored_asset"]
+      new_scope_types: ["web"]
+    errors:
+      url: "https://discord.com/api/webhooks/.../yyy"
+```
+
+### HTTP Webhook Notifications
+
+Send every event as a JSON `POST` to your own endpoint:
+
+```yaml
+webhook:
+  enabled: true
+  url: "https://example.com/hooks/scopes"
+  headers:
+    Authorization: "Bearer ${WEBHOOK_TOKEN}"  # ${VAR} is replaced by the environment variable
+  events: ["new_program", "removed_program", "new_scope", "removed_scope", "ignored_asset", "error"]
+  new_scope_types: ["web"]
+```
+
+Custom headers are optional and mainly meant for authentication. Any `${VAR}` inside a header
+value (or inside the URL) is replaced by the matching environment variable, so secrets stay in
+`.env` instead of `config/settings.yml`.
+
+#### Payload Format
+
+Every request shares the same envelope, `data` depends on the event:
+
+```json
+{
+  "event": "new_scope",
+  "timestamp": "2025-07-30T10:17:00Z",
+  "data": {
+    "platform": "yeswehack",
+    "program": "Example Program",
+    "value": "*.example.com",
+    "type": "web"
+  }
+}
+```
+
+<details>
+<summary><strong>Payload per event</strong></summary>
+
+| Event | `data` fields |
+|-------|---------------|
+| `new_program` | `platform`, `program`, `slug`, `scopes_count`, `scopes` (count per type) |
+| `removed_program` | `platform`, `program`, `slug` |
+| `new_scope` | `platform`, `program`, `value`, `type` |
+| `removed_scope` | `platform`, `program`, `value` |
+| `ignored_asset` | `platform`, `program`, `value`, `reason` |
+| `error` | `title`, `message` |
+
+```json
+{
+  "event": "new_program",
+  "timestamp": "2025-07-30T10:17:00Z",
+  "data": {
+    "platform": "yeswehack",
+    "program": "Example Program",
+    "slug": "example-program",
+    "scopes_count": 3,
+    "scopes": { "web": 2, "mobile": 1 }
+  }
+}
+```
+
+</details>
 
 ## Scope Processing
 
@@ -531,7 +610,7 @@ scopes_refactor/
 │       ├── sync_manager.rb       # Platform synchronization orchestration
 │       ├── validator.rb          # Scope validation logic
 │       ├── models/               # Dry-Struct models
-│       ├── notifiers/            # Discord notifications
+│       ├── notifiers/            # Discord & HTTP webhook notifications
 │       └── platforms/            # Platform-specific implementations
 │           ├── base_platform.rb
 │           ├── yeswehack/

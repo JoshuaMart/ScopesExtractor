@@ -6,7 +6,7 @@ module ScopesExtractor
   class SyncManager
     def initialize(diff_engine: nil, notifier: nil)
       @diff_engine = diff_engine || DiffEngine.new(notifier: notifier)
-      @notifier = notifier || Notifiers::Discord.new
+      @notifier = notifier || Notifiers::Multi.default
       @platforms = []
       @db = ScopesExtractor.db
       setup_platforms

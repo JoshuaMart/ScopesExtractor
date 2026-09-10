@@ -161,6 +161,44 @@ RSpec.describe ScopesExtractor::Config do
     end
   end
 
+  describe 'webhook configuration' do
+    describe '.webhook_enabled?' do
+      it 'is disabled by default' do
+        expect(described_class.webhook_enabled?).to be false
+      end
+    end
+
+    describe '.webhook_url' do
+      it 'resolves environment variables in the url' do
+        allow(described_class).to receive(:webhook).and_return({ url: 'https://example.com/${WEBHOOK_PATH}' })
+        allow(ENV).to receive(:fetch).with('WEBHOOK_PATH', '').and_return('hooks')
+
+        expect(described_class.webhook_url).to eq('https://example.com/hooks')
+      end
+    end
+
+    describe '.webhook_headers' do
+      it 'returns an empty hash when none are configured' do
+        allow(described_class).to receive(:webhook).and_return({})
+
+        expect(described_class.webhook_headers).to eq({})
+      end
+
+      it 'stringifies keys and resolves environment variables in values' do
+        allow(described_class).to receive(:webhook).and_return({ headers: { Authorization: 'Bearer ${WEBHOOK_TOKEN}' } })
+        allow(ENV).to receive(:fetch).with('WEBHOOK_TOKEN', '').and_return('s3cret')
+
+        expect(described_class.webhook_headers).to eq('Authorization' => 'Bearer s3cret')
+      end
+
+      it 'resolves unknown environment variables to an empty string' do
+        allow(described_class).to receive(:webhook).and_return({ headers: { 'X-Token' => '${MISSING_VAR}' } })
+
+        expect(described_class.webhook_headers).to eq('X-Token' => '')
+      end
+    end
+  end
+
   describe 'platform exclusions' do
     describe '.excluded?' do
       it 'returns false when program is not in exclusion list' do
