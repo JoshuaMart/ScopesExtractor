@@ -127,6 +127,24 @@ RSpec.describe ScopesExtractor::API do
         expect(data['scopes'].size).to eq(2)
       end
 
+      it 'shows the new scope state after synchronization' do
+        notifier = instance_double(ScopesExtractor::Notifiers::Discord,
+                                   notify_removed_scope: nil, notify_new_scope: nil)
+        program = ScopesExtractor::Models::Program.new(
+          slug: 'test-program', platform: 'yeswehack', name: 'Test Program', bounty: true,
+          scopes: [
+            ScopesExtractor::Models::Scope.new(value: '*.example.com', type: 'web', is_in_scope: false),
+            ScopesExtractor::Models::Scope.new(value: 'com.example.app', type: 'mobile', is_in_scope: false)
+          ]
+        )
+        ScopesExtractor::DiffEngine.new(notifier: notifier).process_program('yeswehack', program)
+
+        get '/', { slug: 'test-program', type: 'web' }, authenticated_header
+
+        data = JSON.parse(last_response.body)
+        expect(data['scopes'].first['is_in_scope']).to be false
+      end
+
       it 'filters by platform' do
         get '/', { platform: 'yeswehack' }, authenticated_header
         expect(last_response).to be_ok

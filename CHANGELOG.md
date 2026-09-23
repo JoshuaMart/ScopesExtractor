@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 2.1.2 - Scope State Synchronization
+
+### 🐛 Bug Fixes
+
+- Compare scopes by value, type, and in-scope status so changes to either property update the stored scope and the `/` API response.
+- Record scope state and type transitions as `remove_scope` followed by `add_scope` events in history.
+- Remove scopes by their database ID so entries sharing a value do not delete one another.
+- Update the CLI `version` command and HTTP User-Agent to report the current release.
+
+---
+
 ## Version 2.1.1 - YesWeHack Inactive Programs
 
 ### 🐛 Bug Fixes

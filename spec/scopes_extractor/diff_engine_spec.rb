@@ -239,6 +239,79 @@ RSpec.describe ScopesExtractor::DiffEngine do
         expect(ignored.count).to eq(1)
       end
     end
+
+    context 'when a scope changes' do
+      let(:program_id) do
+        ScopesExtractor.db[:programs].insert(
+          slug: 'existing-program', platform: 'yeswehack', name: 'Existing Program',
+          bounty: true, last_updated: Time.now
+        )
+      end
+
+      before do
+        ScopesExtractor.db[:scopes].insert(
+          program_id: program_id, value: 'example.com', type: 'web',
+          is_in_scope: true, created_at: Time.now
+        )
+      end
+
+      def program_with(*scopes)
+        ScopesExtractor::Models::Program.new(
+          slug: 'existing-program', platform: 'yeswehack', name: 'Existing Program',
+          bounty: true, scopes: scopes
+        )
+      end
+
+      def scope(value: 'example.com', type: 'web', is_in_scope: true)
+        ScopesExtractor::Models::Scope.new(value: value, type: type, is_in_scope: is_in_scope)
+      end
+
+      it 'records an in-to-out transition and updates the stored scope' do
+        diff_engine.process_program('yeswehack', program_with(scope(is_in_scope: false)))
+
+        expect(ScopesExtractor.db[:scopes].where(program_id: program_id).all)
+          .to contain_exactly(include(value: 'example.com', type: 'web', is_in_scope: false))
+        changes = ScopesExtractor.db[:history].order(:id).all
+        expect(changes.map { |change| [change[:event_type], change[:scope_type]] })
+          .to eq([%w[remove_scope in], %w[add_scope out]])
+      end
+
+      it 'records an out-to-in transition' do
+        ScopesExtractor.db[:scopes].where(program_id: program_id).update(is_in_scope: false)
+
+        diff_engine.process_program('yeswehack', program_with(scope))
+
+        expect(ScopesExtractor.db[:scopes].where(program_id: program_id).first[:is_in_scope]).to be true
+        expect(ScopesExtractor.db[:history].order(:id).map { |change| [change[:event_type], change[:scope_type]] })
+          .to eq([%w[remove_scope out], %w[add_scope in]])
+      end
+
+      it 'records a type change for the same value' do
+        diff_engine.process_program('yeswehack', program_with(scope(type: 'mobile')))
+
+        expect(ScopesExtractor.db[:scopes].where(program_id: program_id).first[:type]).to eq('mobile')
+        expect(ScopesExtractor.db[:history].order(:id).map { |change| [change[:event_type], change[:category]] })
+          .to eq([%w[remove_scope web], %w[add_scope mobile]])
+      end
+
+      it 'does not create events or duplicate rows on an unchanged sync' do
+        existing_id = ScopesExtractor.db[:scopes].where(program_id: program_id).first[:id]
+
+        diff_engine.process_program('yeswehack', program_with(scope(value: 'EXAMPLE.COM'), scope))
+
+        expect(ScopesExtractor.db[:scopes].where(program_id: program_id).select_map(:id)).to eq([existing_id])
+        expect(ScopesExtractor.db[:history].count).to eq(0)
+      end
+
+      it 'removes only the matching entry when a value has both scope states' do
+        diff_engine.process_program('yeswehack', program_with(scope, scope(is_in_scope: false)))
+        expect(ScopesExtractor.db[:scopes].where(program_id: program_id).count).to eq(2)
+
+        diff_engine.process_program('yeswehack', program_with(scope(is_in_scope: false)))
+
+        expect(ScopesExtractor.db[:scopes].where(program_id: program_id).select_map(:is_in_scope)).to eq([false])
+      end
+    end
   end
 
   describe '#process_program when fetch failed' do

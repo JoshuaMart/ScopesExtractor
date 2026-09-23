@@ -118,25 +118,31 @@ module ScopesExtractor
 
     def sync_scopes(program_id, platform_name, fetched_program, skip_notifications: false)
       existing_scopes = @db[:scopes].where(program_id: program_id).all
-      existing_values = existing_scopes.map { |s| s[:value] }
 
-      # Normalize and validate scopes
+      # Normalize and validate scopes before comparing all three identity fields.
+      # A status or type change becomes a removal followed by an addition.
       filtered_scopes = filter_and_normalize_scopes(platform_name, fetched_program)
-      fetched_values = filtered_scopes.map(&:value).uniq
+                        .uniq { |scope| scope_identity(scope) }
+      existing_identities = existing_scopes.to_set { |scope| scope_identity(scope) }
+      fetched_identities = filtered_scopes.to_set { |scope| scope_identity(scope) }
 
-      scope_stats = process_added_scopes(
+      removed_scopes = existing_scopes.reject { |scope| fetched_identities.include?(scope_identity(scope)) }
+      added_scopes = filtered_scopes.reject { |scope| existing_identities.include?(scope_identity(scope)) }
+
+      process_removed_scopes(program_id, platform_name, fetched_program, removed_scopes,
+                             skip_notifications: skip_notifications)
+
+      process_added_scopes(
         program_id,
         platform_name,
         fetched_program,
-        existing_values,
-        filtered_scopes,
+        added_scopes,
         skip_notifications: skip_notifications
       )
+    end
 
-      process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
-                             existing_scopes, skip_notifications: skip_notifications)
-
-      scope_stats
+    def scope_identity(scope)
+      scope.to_h.values_at(:value, :type, :is_in_scope)
     end
 
     def filter_and_normalize_scopes(platform_name, fetched_program)
@@ -165,30 +171,27 @@ module ScopesExtractor
       valid_scopes
     end
 
-    def process_added_scopes(program_id, platform_name, fetched_program, existing_values, filtered_scopes,
-                             skip_notifications: false)
-      fetched_values = filtered_scopes.map(&:value).uniq
-      added = fetched_values - existing_values
-
+    def process_added_scopes(program_id, platform_name, fetched_program, added_scopes, skip_notifications: false)
       # Count scopes by type for new program notification
       scope_stats = Hash.new(0)
 
-      added.each do |val|
-        scope_obj = filtered_scopes.find { |s| s.value == val }
+      added_scopes.each do |scope_obj|
         insert_scope(program_id, scope_obj)
 
         # Count by type
         scope_stats[scope_obj.type] += 1
 
         # Skip individual notifications for new programs
-        @notifier.notify_new_scope(platform_name, fetched_program.name, val, scope_obj.type) unless skip_notifications
+        unless skip_notifications
+          @notifier.notify_new_scope(platform_name, fetched_program.name, scope_obj.value, scope_obj.type)
+        end
 
         log_event(
           program_id: program_id,
           platform_name: platform_name,
           program_name: fetched_program.name,
           event_type: 'add_scope',
-          details: val,
+          details: scope_obj.value,
           scope_type: scope_obj.is_in_scope ? 'in' : 'out',
           category: scope_obj.type
         )
@@ -197,23 +200,19 @@ module ScopesExtractor
       scope_stats
     end
 
-    def process_removed_scopes(program_id, platform_name, fetched_program, existing_values, fetched_values,
-                               existing_scopes, skip_notifications: false)
-      removed = existing_values - fetched_values
-
-      removed.each do |val|
-        existing_scope = existing_scopes.find { |s| s[:value] == val }
-        next unless existing_scope
-
-        delete_scope(program_id, val)
-        @notifier.notify_removed_scope(platform_name, fetched_program.name, val) unless skip_notifications
+    def process_removed_scopes(program_id, platform_name, fetched_program, removed_scopes, skip_notifications: false)
+      removed_scopes.each do |existing_scope|
+        delete_scope(existing_scope[:id])
+        unless skip_notifications
+          @notifier.notify_removed_scope(platform_name, fetched_program.name, existing_scope[:value])
+        end
 
         log_event(
           program_id: program_id,
           platform_name: platform_name,
           program_name: fetched_program.name,
           event_type: 'remove_scope',
-          details: val,
+          details: existing_scope[:value],
           scope_type: existing_scope[:is_in_scope] ? 'in' : 'out',
           category: existing_scope[:type]
         )
@@ -230,8 +229,8 @@ module ScopesExtractor
       )
     end
 
-    def delete_scope(program_id, value)
-      @db[:scopes].where(program_id: program_id, value: value).delete
+    def delete_scope(scope_id)
+      @db[:scopes].where(id: scope_id).delete
     end
 
     def handle_ignored_asset(platform_name, fetched_program, value, type)
