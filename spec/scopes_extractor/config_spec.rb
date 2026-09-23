@@ -36,7 +36,7 @@ RSpec.describe ScopesExtractor::Config do
   describe 'http settings' do
     describe '.user_agent' do
       it 'returns the configured user agent' do
-        expect(described_class.user_agent).to include('ScopesExtractor/2.1.1')
+        expect(described_class.user_agent).to include('ScopesExtractor/2.1.2')
         expect(described_class.user_agent).to include('Ruby')
         expect(described_class.user_agent).to include('github.com')
       end
