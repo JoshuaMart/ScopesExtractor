@@ -67,22 +67,17 @@ module ScopesExtractor
           fetcher = ProgramFetcher.new(@token)
           raw_programs = fetcher.fetch_all
 
-          # Filter out VDP programs before fetching details
-          if Config.skip_vdp?('yeswehack')
-            raw_programs = raw_programs.reject do |raw|
-              if raw['vdp'] == true
-                ScopesExtractor.logger.debug "[YesWeHack] Skipping VDP program: #{raw['slug']}"
-                true
-              else
-                false
-              end
-            end
+          # Inactive programs must disappear from the fetched set so the sync
+          # removes their previously stored scopes as well.
+          raw_programs = raw_programs.reject do |raw|
+            skip_program?(raw)
           end
 
           raw_programs.filter_map do |raw|
             # Fetch full details to get scopes
             details = fetcher.fetch_details(raw['slug'])
             next unless details
+            next if skip_program?(details)
 
             begin
               parse_program(details)
@@ -96,6 +91,20 @@ module ScopesExtractor
         end
 
         private
+
+        def skip_program?(data)
+          reason = if data['archived'] == true
+                     'archived'
+                   elsif data['disabled'] == true
+                     'disabled'
+                   elsif Config.skip_vdp?('yeswehack') && data['vdp'] == true
+                     'VDP'
+                   end
+          return false unless reason
+
+          ScopesExtractor.logger.debug "[YesWeHack] Skipping #{reason} program: #{data['slug']}"
+          true
+        end
 
         def authenticate
           return @token if @token

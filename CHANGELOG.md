@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 2.1.1 - YesWeHack Inactive Programs
+
+### 🐛 Bug Fixes
+
+- Exclude YesWeHack programs marked `archived` or `disabled` from synchronization, using both the program listing and detail response.
+- Remove previously stored scopes for these programs on the next sync, so they no longer appear in `/`. The removal is recorded in history as a `remove_program` event.
+- Update the CLI `version` command and HTTP User-Agent to report the current release.
+
+---
+
 ## Version 2.1.0 - Generic HTTP Webhook Notifications
 
 ### ✨ Features

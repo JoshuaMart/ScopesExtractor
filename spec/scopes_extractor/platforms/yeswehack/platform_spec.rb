@@ -121,6 +121,31 @@ RSpec.describe ScopesExtractor::Platforms::YesWeHack::Platform do
       expect(platform.fetch_programs).to eq([])
     end
 
+    %w[archived disabled].each do |status|
+      it "skips #{status} programs before fetching their details" do
+        allow(program_fetcher).to receive(:fetch_all).and_return(
+          [{ 'slug' => 'inactive', status => true },
+           { 'slug' => 'active', 'archived' => false, 'disabled' => false }]
+        )
+        allow(program_fetcher).to receive(:fetch_details).with('active').and_return(
+          'slug' => 'active', 'title' => 'Active', 'bounty' => true, 'scopes' => []
+        )
+
+        expect(program_fetcher).not_to receive(:fetch_details).with('inactive')
+        expect(platform.fetch_programs.map(&:slug)).to eq(['active'])
+      end
+
+      it "skips a program whose details mark it #{status}" do
+        allow(program_fetcher).to receive(:fetch_all).and_return([{ 'slug' => 'inactive' }])
+        allow(program_fetcher).to receive(:fetch_details).with('inactive').and_return(
+          'slug' => 'inactive', 'title' => 'Inactive', 'bounty' => true,
+          'scopes' => [], status => true
+        )
+
+        expect(platform.fetch_programs).to eq([])
+      end
+    end
+
     context 'when already authenticated' do
       it 'does not authenticate again' do
         # First call authenticates

@@ -7,7 +7,7 @@ app:
 
 # HTTP client configuration
 http:
-  user_agent: "ScopesExtractor/2.0 (Ruby; +github.com/JoshuaMart/ScopesExtractor)"
+  user_agent: "ScopesExtractor/2.1.1 (Ruby; +github.com/JoshuaMart/ScopesExtractor)"
   proxy: null  # Optional: "http://proxy.example.com:8080"
   timeout: 30  # seconds
 

@@ -10,7 +10,7 @@ module ScopesExtractor
 
     desc 'version', 'Display version information'
     def version
-      puts 'ScopesExtractor version 2.0.0'
+      puts 'ScopesExtractor version 2.1.1'
     end
 
     desc 'reset', 'Reset the database (WARNING: deletes all data)'
