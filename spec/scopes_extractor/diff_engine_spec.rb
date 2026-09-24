@@ -238,6 +238,31 @@ RSpec.describe ScopesExtractor::DiffEngine do
         ignored = ScopesExtractor.db[:ignored_assets].all
         expect(ignored.count).to eq(1)
       end
+
+      it 'replaces a previously ignored alternative pattern with valid scopes' do
+        source = "www.unibet.(com\u00AD|it|se|co.uk|be|nl|dk|ro|ee|ie|com.au|mt)"
+        ScopesExtractor.db[:ignored_assets].insert(
+          platform: 'yeswehack', program_slug: 'test-program', value: source,
+          reason: 'Invalid format for web scope', created_at: Time.now
+        )
+        ScopesExtractor.db[:ignored_assets].insert(
+          platform: 'yeswehack', program_slug: 'test-program', value: 'manual.example.com',
+          reason: 'Manually excluded', created_at: Time.now
+        )
+        program = ScopesExtractor::Models::Program.new(
+          slug: 'test-program', platform: 'yeswehack', name: 'Test Program', bounty: true,
+          scopes: [
+            ScopesExtractor::Models::Scope.new(value: source, type: 'web', is_in_scope: true),
+            ScopesExtractor::Models::Scope.new(value: 'invalid', type: 'web', is_in_scope: true)
+          ]
+        )
+
+        diff_engine.process_program('yeswehack', program)
+
+        expect(ScopesExtractor.db[:scopes].select_map(:value)).to include('www.unibet.com', 'www.unibet.com.au')
+        expect(ScopesExtractor.db[:scopes].count).to eq(12)
+        expect(ScopesExtractor.db[:ignored_assets].select_map(:value)).to contain_exactly('invalid', 'manual.example.com')
+      end
     end
 
     context 'when a scope changes' do

@@ -60,6 +60,50 @@ RSpec.describe ScopesExtractor::Normalizer do
         input = 'example.(com|net|org)'
         expect(described_class.normalize('yeswehack', input)).to eq(['example.com', 'example.net', 'example.org'])
       end
+
+      it 'expands alternatives at the beginning of a hostname' do
+        input = '(navigate|engage|checkout|internal|cached-api|api).shoppingapp.decathlon.com'
+        expect(described_class.normalize('yeswehack', input)).to eq(
+          %w[navigate engage checkout internal cached-api api].map { |name| "#{name}.shoppingapp.decathlon.com" }
+        )
+
+        expect(described_class.normalize('yeswehack', '(se|fi|uk).bingo.com')).to eq(
+          %w[se.bingo.com fi.bingo.com uk.bingo.com]
+        )
+      end
+
+      it 'expands alternatives inside a hostname while preserving the URL path' do
+        input = 'https://api-(global|eu|sg|cn).decathlon.net/connect'
+        expect(described_class.normalize('yeswehack', input)).to eq(
+          %w[global eu sg cn].map { |region| "https://api-#{region}.decathlon.net/connect" }
+        )
+      end
+
+      it 'removes soft hyphens before expanding multi-part TLDs' do
+        tlds = %w[com it se co.uk be nl dk ro ee ie com.au mt]
+        %w[payment www].each do |subdomain|
+          input = "#{subdomain}.unibet.(com\u00AD|it|se|co.uk|be|nl|dk|ro|ee|ie|com.au|mt)"
+          expect(described_class.normalize('yeswehack', input)).to eq(
+            tlds.map { |tld| "#{subdomain}.unibet.#{tld}" }
+          )
+        end
+      end
+
+      it 'expands only the explicit entries in a bracketed list' do
+        input = 'https://[it | fr | us | sg | …].louisvuitton.com'
+        expect(described_class.normalize('yeswehack', input)).to eq(
+          %w[it fr us sg].map { |country| "https://#{country}.louisvuitton.com" }
+        )
+      end
+
+      it 'does not expand alternatives in URL paths or descriptive parentheses' do
+        expect(described_class.normalize('yeswehack', 'https://example.com/(one|two)')).to eq(
+          ['https://example.com/(one|two)']
+        )
+        expect(described_class.normalize('yeswehack', 'example.com (production only)')).to eq(
+          ['example.com (production only)']
+        )
+      end
     end
 
     context 'with Intigriti platform' do

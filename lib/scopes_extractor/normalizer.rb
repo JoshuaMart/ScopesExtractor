@@ -2,7 +2,15 @@
 
 module ScopesExtractor
   module Normalizer
-    MULTI_TLDS_REGEX = %r{(?<prefix>https?://|wss?://|\*\.)?(?<middle>[\w.-]+\.)\((?<tlds>[a-z0-9.\\/|_-]+)\)}
+    HOST_ALTERNATIVES_REGEX = /
+      \A(?<prefix>[^()\[\]]*)
+      (?<open>\(|\[)
+      (?<options>[^()\[\]]+)
+      (?<close>\)|\])
+      (?<suffix>[^()\[\]]*)\z
+    /x
+    ALTERNATIVE_REGEX = %r{\A[a-z0-9][a-z0-9._/-]*\z}
+    MAX_ALTERNATIVES = 100
 
     def self.normalize(platform, value)
       value = global_normalization(value)
@@ -20,7 +28,7 @@ module ScopesExtractor
     end
 
     def self.global_normalization(value)
-      value = value.to_s.strip
+      value = value.to_s.strip.delete("\u00AD")
 
       # Remove protocol only if it's a wildcard (not a valid URL anymore)
       value = value.sub(%r{^https?://}, '') if value.include?('*')
@@ -51,14 +59,31 @@ module ScopesExtractor
     end
 
     def self.normalize_yeswehack(value)
-      if (match = value.match(MULTI_TLDS_REGEX))
-        prefix = match[:prefix] || ''
-        middle = match[:middle]
-        tlds = match[:tlds].split('|')
-        tlds.map { |tld| "#{prefix}#{middle}#{tld}" }
-      else
-        [value]
-      end
+      match = value.match(HOST_ALTERNATIVES_REGEX)
+      return [value] unless expandable_host_pattern?(match)
+
+      explicit_options = host_options(match[:options])
+      return [value] if explicit_options.empty?
+
+      explicit_options.map { |option| "#{match[:prefix]}#{option}#{match[:suffix]}" }
+    end
+
+    def self.expandable_host_pattern?(match)
+      return false unless match
+      return false unless { '(' => ')', '[' => ']' }[match[:open]] == match[:close]
+
+      # A slash before the group means the alternatives are in the URL path.
+      !match[:prefix].sub(%r{\A[a-z]+://}, '').include?('/')
+    end
+
+    def self.host_options(value)
+      options = value.split('|', -1).map(&:strip)
+      return [] unless options.size.between?(2, MAX_ALTERNATIVES)
+
+      explicit_options = options.reject { |option| %w[… ...].include?(option) }
+      return [] unless explicit_options.all? { |option| option.match?(ALTERNATIVE_REGEX) }
+
+      explicit_options
     end
 
     def self.normalize_intigriti(value)

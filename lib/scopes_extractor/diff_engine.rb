@@ -147,6 +147,7 @@ module ScopesExtractor
 
     def filter_and_normalize_scopes(platform_name, fetched_program)
       valid_scopes = []
+      invalid_values = []
 
       fetched_program.scopes.each do |scope|
         # Normalize the scope value
@@ -155,6 +156,7 @@ module ScopesExtractor
         normalized_values.each do |normalized_value|
           # Validate
           unless Validator.valid_web_target?(normalized_value, scope.type)
+            invalid_values << normalized_value
             handle_ignored_asset(platform_name, fetched_program, normalized_value, scope.type)
             next
           end
@@ -167,6 +169,13 @@ module ScopesExtractor
           )
         end
       end
+
+      # Keep ignored assets in sync with the current malformed scopes.
+      ignored = @db[:ignored_assets]
+                .where(platform: platform_name, program_slug: fetched_program.slug)
+                .where(Sequel.like(:reason, 'Invalid format%'))
+      ignored = ignored.exclude(value: invalid_values.uniq) unless invalid_values.empty?
+      ignored.delete
 
       valid_scopes
     end
