@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/8fa9dd2a-04c8-48d4-a0d7-6057c102436c" alt="ScopesExtractor">
+  <img src="https://github.com/user-attachments/assets/f7e0c970-bc84-4d58-958b-241c088f77a5" alt="ScopesExtractor">
 </p>
 
 <p align="center">
