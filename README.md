@@ -386,7 +386,7 @@ curl -H "X-API-KEY: your_api_key" "http://localhost:4567/exclusions"
 <details>
 <summary><strong>GET /malformed-scopes</strong> - List scopes rejected for an invalid format</summary>
 
-Returns only assets recorded with an `Invalid format` reason, ordered by program slug, platform, then scope value. Programs with the same slug on different platforms remain identifiable by the `platform` field.
+Returns only assets recorded with an `Invalid format` reason for programs that still exist, ordered by program slug, platform, then scope value. Programs with the same slug on different platforms remain identifiable by the `platform` field.
 
 ### Example Request
 

@@ -62,7 +62,7 @@ module ScopesExtractor
       match = value.match(HOST_ALTERNATIVES_REGEX)
       return [value] unless expandable_host_pattern?(match)
 
-      explicit_options = host_options(match[:options])
+      explicit_options = host_options(match)
       return [value] if explicit_options.empty?
 
       explicit_options.map { |option| "#{match[:prefix]}#{option}#{match[:suffix]}" }
@@ -72,18 +72,27 @@ module ScopesExtractor
       return false unless match
       return false unless { '(' => ')', '[' => ']' }[match[:open]] == match[:close]
 
-      # A slash before the group means the alternatives are in the URL path.
-      !match[:prefix].sub(%r{\A[a-z]+://}, '').include?('/')
+      # The group must appear in the hostname, before a path, query, fragment, port, or userinfo.
+      host_prefix = match[:prefix].sub(%r{\A[a-z][a-z0-9+.-]*://}, '')
+      !host_prefix.match?(%r{[/?#@:]})
     end
 
-    def self.host_options(value)
-      options = value.split('|', -1).map(&:strip)
+    def self.host_options(match)
+      options = match[:options].split('|', -1).map(&:strip)
       return [] unless options.size.between?(2, MAX_ALTERNATIVES)
 
       explicit_options = options.reject { |option| %w[… ...].include?(option) }
-      return [] unless explicit_options.all? { |option| option.match?(ALTERNATIVE_REGEX) }
+      return [] unless explicit_options.all? { |option| valid_host_option?(option, match) }
 
       explicit_options
+    end
+
+    def self.valid_host_option?(option, match)
+      return false unless option.match?(ALTERNATIVE_REGEX)
+      return true unless option.include?('/')
+
+      # Existing YesWeHack patterns may include a path in a complete TLD alternative.
+      match[:prefix].end_with?('.') && match[:suffix].empty?
     end
 
     def self.normalize_intigriti(value)

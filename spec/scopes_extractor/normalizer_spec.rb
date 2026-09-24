@@ -96,9 +96,15 @@ RSpec.describe ScopesExtractor::Normalizer do
         )
       end
 
-      it 'does not expand alternatives in URL paths or descriptive parentheses' do
+      it 'does not expand alternatives outside a hostname or across a hostname boundary' do
         expect(described_class.normalize('yeswehack', 'https://example.com/(one|two)')).to eq(
           ['https://example.com/(one|two)']
+        )
+        expect(described_class.normalize('yeswehack', 'https://example.com?q=(a|b)')).to eq(
+          ['https://example.com?q=(a|b)']
+        )
+        expect(described_class.normalize('yeswehack', 'https://api-(foo/bar|baz).example.com')).to eq(
+          ['https://api-(foo/bar|baz).example.com']
         )
         expect(described_class.normalize('yeswehack', 'example.com (production only)')).to eq(
           ['example.com (production only)']

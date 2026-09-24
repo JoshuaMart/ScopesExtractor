@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 2.1.3 - Malformed Scope Handling
+
+### ✨ Features
+
+- Add `GET /malformed-scopes` to list invalid-format assets ordered by program.
+- Expand explicit YesWeHack hostname alternatives in parentheses or brackets, including multi-part TLDs and URL paths.
+
+### 🐛 Bug Fixes
+
+- Restrict hostname expansion to safe host alternatives so query parameters and paths cannot produce unintended targets.
+- Hide malformed assets belonging to programs that have been removed.
+- Clear previously rejected assets after a successful sync when they are no longer malformed.
+- Allow the `extra_data` migration to complete when the column exists but the migration version was not recorded.
+- Isolate tests from the application database and preserve migration metadata during test cleanup.
+- Update the CLI version and HTTP User-Agent to `2.1.3`.
+
+---
+
 ## Version 2.1.2 - Scope State Synchronization
 
 ### 🐛 Bug Fixes

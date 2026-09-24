@@ -169,8 +169,14 @@ module ScopesExtractor
     # GET /malformed-scopes - List scopes rejected for an invalid format, sorted by program
     get '/malformed-scopes' do
       results = ScopesExtractor.db[:ignored_assets]
-                               .where(Sequel.like(:reason, 'Invalid format%'))
-                               .order(:program_slug, :platform, :value)
+                               .join(:programs,
+                                     Sequel[:programs][:platform] => Sequel[:ignored_assets][:platform],
+                                     Sequel[:programs][:slug] => Sequel[:ignored_assets][:program_slug])
+                               .select_all(:ignored_assets)
+                               .where(Sequel.like(Sequel[:ignored_assets][:reason], 'Invalid format%'))
+                               .order(Sequel[:ignored_assets][:program_slug],
+                                      Sequel[:ignored_assets][:platform],
+                                      Sequel[:ignored_assets][:value])
                                .all
 
       { malformed_scopes: results, count: results.size }.to_json

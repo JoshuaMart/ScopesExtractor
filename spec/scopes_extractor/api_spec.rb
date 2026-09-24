@@ -475,27 +475,57 @@ RSpec.describe ScopesExtractor::API do
   end
 
   describe 'GET /malformed-scopes' do
-    it 'returns only invalid-format scopes ordered by program and value' do
-      [
-        ['z-program', 'z.example', 'Invalid format for web scope'],
-        ['a-program', 'b.example', 'Invalid format for api scope'],
-        ['a-program', 'a.example', 'Invalid format'],
-        ['a-program', 'excluded.example', 'Manually excluded']
-      ].each do |slug, value, reason|
+    context 'with active and orphan assets' do
+      before do
+        %w[a-program z-program].each do |slug|
+          ScopesExtractor.db[:programs].insert(
+            platform: 'hackerone', slug: slug, name: slug, bounty: true, last_updated: Time.now
+          )
+        end
+
+        [
+          ['z-program', 'z.example', 'Invalid format for web scope'],
+          ['a-program', 'b.example', 'Invalid format for api scope'],
+          ['a-program', 'a.example', 'Invalid format'],
+          ['a-program', 'excluded.example', 'Manually excluded']
+        ].each do |slug, value, reason|
+          ScopesExtractor.db[:ignored_assets].insert(
+            platform: 'hackerone', program_slug: slug, value: value,
+            reason: reason, created_at: Time.now
+          )
+        end
         ScopesExtractor.db[:ignored_assets].insert(
-          platform: 'hackerone', program_slug: slug, value: value,
-          reason: reason, created_at: Time.now
+          platform: 'yeswehack', program_slug: 'a-program', value: 'orphan.example',
+          reason: 'Invalid format for web scope', created_at: Time.now
         )
       end
+
+      it 'returns only invalid-format scopes ordered by program and value' do
+        get '/malformed-scopes', {}, authenticated_header
+
+        expect(last_response).to be_ok
+        data = JSON.parse(last_response.body)
+        expect(data['count']).to eq(3)
+        expect(data['malformed_scopes'].map { |scope| [scope['program_slug'], scope['value']] }).to eq(
+          [['a-program', 'a.example'], ['a-program', 'b.example'], ['z-program', 'z.example']]
+        )
+      end
+    end
+
+    it 'omits malformed scopes when their program has been removed' do
+      program_id = ScopesExtractor.db[:programs].insert(
+        platform: 'yeswehack', slug: 'removed-program', name: 'Removed', bounty: true, last_updated: Time.now
+      )
+      ScopesExtractor.db[:ignored_assets].insert(
+        platform: 'yeswehack', program_slug: 'removed-program', value: 'invalid',
+        reason: 'Invalid format for web scope', created_at: Time.now
+      )
+      ScopesExtractor.db[:programs].where(id: program_id).delete
 
       get '/malformed-scopes', {}, authenticated_header
 
       expect(last_response).to be_ok
-      data = JSON.parse(last_response.body)
-      expect(data['count']).to eq(3)
-      expect(data['malformed_scopes'].map { |scope| [scope['program_slug'], scope['value']] }).to eq(
-        [['a-program', 'a.example'], ['a-program', 'b.example'], ['z-program', 'z.example']]
-      )
+      expect(JSON.parse(last_response.body)).to include('malformed_scopes' => [], 'count' => 0)
     end
 
     it 'returns an empty list when no malformed scopes exist' do
