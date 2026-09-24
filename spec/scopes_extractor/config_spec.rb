@@ -28,6 +28,7 @@ RSpec.describe ScopesExtractor::Config do
 
     describe '.database_path' do
       it 'returns the configured database path' do
+        allow(described_class).to receive(:database_path).and_call_original
         expect(described_class.database_path).to eq('db/scopes.db')
       end
     end

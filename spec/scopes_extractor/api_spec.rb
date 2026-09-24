@@ -474,6 +474,38 @@ RSpec.describe ScopesExtractor::API do
     end
   end
 
+  describe 'GET /malformed-scopes' do
+    it 'returns only invalid-format scopes ordered by program and value' do
+      [
+        ['z-program', 'z.example', 'Invalid format for web scope'],
+        ['a-program', 'b.example', 'Invalid format for api scope'],
+        ['a-program', 'a.example', 'Invalid format'],
+        ['a-program', 'excluded.example', 'Manually excluded']
+      ].each do |slug, value, reason|
+        ScopesExtractor.db[:ignored_assets].insert(
+          platform: 'hackerone', program_slug: slug, value: value,
+          reason: reason, created_at: Time.now
+        )
+      end
+
+      get '/malformed-scopes', {}, authenticated_header
+
+      expect(last_response).to be_ok
+      data = JSON.parse(last_response.body)
+      expect(data['count']).to eq(3)
+      expect(data['malformed_scopes'].map { |scope| [scope['program_slug'], scope['value']] }).to eq(
+        [['a-program', 'a.example'], ['a-program', 'b.example'], ['z-program', 'z.example']]
+      )
+    end
+
+    it 'returns an empty list when no malformed scopes exist' do
+      get '/malformed-scopes', {}, authenticated_header
+
+      expect(last_response).to be_ok
+      expect(JSON.parse(last_response.body)).to include('malformed_scopes' => [], 'count' => 0)
+    end
+  end
+
   describe 'Error handling' do
     it 'returns 404 for unknown routes' do
       get '/unknown', {}, authenticated_header

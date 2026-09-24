@@ -166,6 +166,19 @@ module ScopesExtractor
       { error: e.message }.to_json
     end
 
+    # GET /malformed-scopes - List scopes rejected for an invalid format, sorted by program
+    get '/malformed-scopes' do
+      results = ScopesExtractor.db[:ignored_assets]
+                               .where(Sequel.like(:reason, 'Invalid format%'))
+                               .order(:program_slug, :platform, :value)
+                               .all
+
+      { malformed_scopes: results, count: results.size }.to_json
+    rescue StandardError => e
+      status 500
+      { error: e.message }.to_json
+    end
+
     # Error handlers
     error 404 do
       content_type :json

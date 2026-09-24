@@ -2,10 +2,12 @@
 
 Sequel.migration do
   up do
-    add_column :history, :extra_data, String, text: true
+    unless schema(:history).any? { |column, _| column == :extra_data }
+      add_column :history, :extra_data, String, text: true
+    end
   end
 
   down do
-    drop_column :history, :extra_data
+    drop_column :history, :extra_data if schema(:history).any? { |column, _| column == :extra_data }
   end
 end

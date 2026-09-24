@@ -383,6 +383,37 @@ curl -H "X-API-KEY: your_api_key" "http://localhost:4567/exclusions"
 
 </details>
 
+<details>
+<summary><strong>GET /malformed-scopes</strong> - List scopes rejected for an invalid format</summary>
+
+Returns only assets recorded with an `Invalid format` reason, ordered by program slug, platform, then scope value. Programs with the same slug on different platforms remain identifiable by the `platform` field.
+
+### Example Request
+
+```bash
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/malformed-scopes"
+```
+
+### Example Response
+
+```json
+{
+  "malformed_scopes": [
+    {
+      "id": 1,
+      "platform": "hackerone",
+      "program_slug": "example-program",
+      "value": "example.com (production only)",
+      "reason": "Invalid format for web scope",
+      "created_at": "2026-01-09T10:00:00Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+</details>
+
 ## Notifications
 
 Two notifiers are available and can be enabled independently (both at once if needed):
