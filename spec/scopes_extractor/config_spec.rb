@@ -28,6 +28,7 @@ RSpec.describe ScopesExtractor::Config do
 
     describe '.database_path' do
       it 'returns the configured database path' do
+        allow(described_class).to receive(:database_path).and_call_original
         expect(described_class.database_path).to eq('db/scopes.db')
       end
     end
@@ -36,7 +37,7 @@ RSpec.describe ScopesExtractor::Config do
   describe 'http settings' do
     describe '.user_agent' do
       it 'returns the configured user agent' do
-        expect(described_class.user_agent).to include('ScopesExtractor/2.1.2')
+        expect(described_class.user_agent).to include('ScopesExtractor/2.1.3')
         expect(described_class.user_agent).to include('Ruby')
         expect(described_class.user_agent).to include('github.com')
       end

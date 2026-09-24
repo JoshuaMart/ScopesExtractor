@@ -29,7 +29,7 @@ module ScopesExtractor
       end
 
       def user_agent
-        http[:user_agent] || 'ScopesExtractor/2.1.2'
+        http[:user_agent] || 'ScopesExtractor/2.1.3'
       end
 
       def proxy

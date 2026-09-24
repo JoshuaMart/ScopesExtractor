@@ -83,6 +83,19 @@ RSpec.describe ScopesExtractor::Database do
       expect(ScopesExtractor.logger).to receive(:info).with('Database is up to date')
       described_class.migrate
     end
+
+    it 'completes a migration when extra_data exists but its version was not recorded' do
+      Sequel.extension :migration
+      migrations_path = File.join(ScopesExtractor.root, 'db', 'migrations')
+      Sequel::Migrator.run(ScopesExtractor.db, migrations_path, target: 1)
+      ScopesExtractor.db.alter_table(:history) { add_column :extra_data, String, text: true }
+      ScopesExtractor.db[:history].insert(event_type: 'remove_program', extra_data: '{"slug":"test"}')
+
+      described_class.migrate
+
+      expect(ScopesExtractor.db[:schema_info].get(:version)).to eq(2)
+      expect(ScopesExtractor.db[:history].get(:extra_data)).to eq('{"slug":"test"}')
+    end
   end
 
   describe '.cleanup_old_history' do

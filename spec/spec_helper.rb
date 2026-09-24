@@ -12,6 +12,11 @@ require_relative '../lib/scopes_extractor'
 ScopesExtractor.logger.level = Logger::FATAL
 
 RSpec.configure do |config|
+  config.before do
+    # Database specs reset tables; keep every example away from the configured application database.
+    allow(ScopesExtractor::Config).to receive(:database_path).and_return('tmp/test.db')
+  end
+
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
@@ -35,6 +40,8 @@ RSpec.configure do |config|
 
     begin
       ScopesExtractor.db.tables.each do |table|
+        next if table == :schema_info
+
         ScopesExtractor.db[table].delete
       rescue Sequel::DatabaseError
         # Ignore errors on readonly databases or missing tables

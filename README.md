@@ -383,6 +383,37 @@ curl -H "X-API-KEY: your_api_key" "http://localhost:4567/exclusions"
 
 </details>
 
+<details>
+<summary><strong>GET /malformed-scopes</strong> - List scopes rejected for an invalid format</summary>
+
+Returns only assets recorded with an `Invalid format` reason for programs that still exist, ordered by program slug, platform, then scope value. Programs with the same slug on different platforms remain identifiable by the `platform` field.
+
+### Example Request
+
+```bash
+curl -H "X-API-KEY: your_api_key" "http://localhost:4567/malformed-scopes"
+```
+
+### Example Response
+
+```json
+{
+  "malformed_scopes": [
+    {
+      "id": 1,
+      "platform": "hackerone",
+      "program_slug": "example-program",
+      "value": "example.com (production only)",
+      "reason": "Invalid format for web scope",
+      "created_at": "2026-01-09T10:00:00Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+</details>
+
 ## Notifications
 
 Two notifiers are available and can be enabled independently (both at once if needed):
@@ -513,8 +544,10 @@ Scopes are automatically categorized based on pattern matching, overriding platf
 Each platform has custom normalization rules to handle their scope formats:
 
 **YesWeHack**
-- Expands multi-TLD patterns: `example.{fr,com}` → `example.fr`, `example.com`
-- Handles prefix patterns: `{www,api}.example.com` → `www.example.com`, `api.example.com`
+- Expands pipe-separated hostname alternatives in parentheses or brackets: `(www|api).example.com` → `www.example.com`, `api.example.com`
+- Preserves URL paths: `https://api-(eu|sg).example.com/connect` → `https://api-eu.example.com/connect`, `https://api-sg.example.com/connect`
+- Removes soft hyphens from alternatives and expands multi-part TLDs such as `example.(com|co.uk)`
+- Expands only named entries when a list contains `…`; it does not infer additional domains
 
 **HackerOne**
 - Replaces `.*` with `.com`: `example.*` → `example.com`
@@ -546,6 +579,7 @@ Applied to all scopes regardless of platform:
 <summary><strong>Validation Rules</strong></summary>
 
 Scopes are validated before being added to the database. Invalid scopes trigger `ignored_asset` notifications.
+On a later successful sync, scopes that no longer fail validation are removed from the malformed-scopes list.
 
 **Rejected patterns:**
 - Values without dots (unless IP addresses)

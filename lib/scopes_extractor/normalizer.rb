@@ -2,7 +2,15 @@
 
 module ScopesExtractor
   module Normalizer
-    MULTI_TLDS_REGEX = %r{(?<prefix>https?://|wss?://|\*\.)?(?<middle>[\w.-]+\.)\((?<tlds>[a-z0-9.\\/|_-]+)\)}
+    HOST_ALTERNATIVES_REGEX = /
+      \A(?<prefix>[^()\[\]]*)
+      (?<open>\(|\[)
+      (?<options>[^()\[\]]+)
+      (?<close>\)|\])
+      (?<suffix>[^()\[\]]*)\z
+    /x
+    ALTERNATIVE_REGEX = %r{\A[a-z0-9][a-z0-9._/-]*\z}
+    MAX_ALTERNATIVES = 100
 
     def self.normalize(platform, value)
       value = global_normalization(value)
@@ -20,7 +28,7 @@ module ScopesExtractor
     end
 
     def self.global_normalization(value)
-      value = value.to_s.strip
+      value = value.to_s.strip.delete("\u00AD")
 
       # Remove protocol only if it's a wildcard (not a valid URL anymore)
       value = value.sub(%r{^https?://}, '') if value.include?('*')
@@ -51,14 +59,40 @@ module ScopesExtractor
     end
 
     def self.normalize_yeswehack(value)
-      if (match = value.match(MULTI_TLDS_REGEX))
-        prefix = match[:prefix] || ''
-        middle = match[:middle]
-        tlds = match[:tlds].split('|')
-        tlds.map { |tld| "#{prefix}#{middle}#{tld}" }
-      else
-        [value]
-      end
+      match = value.match(HOST_ALTERNATIVES_REGEX)
+      return [value] unless expandable_host_pattern?(match)
+
+      explicit_options = host_options(match)
+      return [value] if explicit_options.empty?
+
+      explicit_options.map { |option| "#{match[:prefix]}#{option}#{match[:suffix]}" }
+    end
+
+    def self.expandable_host_pattern?(match)
+      return false unless match
+      return false unless { '(' => ')', '[' => ']' }[match[:open]] == match[:close]
+
+      # The group must appear in the hostname, before a path, query, fragment, port, or userinfo.
+      host_prefix = match[:prefix].sub(%r{\A[a-z][a-z0-9+.-]*://}, '')
+      !host_prefix.match?(%r{[/?#@:]})
+    end
+
+    def self.host_options(match)
+      options = match[:options].split('|', -1).map(&:strip)
+      return [] unless options.size.between?(2, MAX_ALTERNATIVES)
+
+      explicit_options = options.reject { |option| %w[… ...].include?(option) }
+      return [] unless explicit_options.all? { |option| valid_host_option?(option, match) }
+
+      explicit_options
+    end
+
+    def self.valid_host_option?(option, match)
+      return false unless option.match?(ALTERNATIVE_REGEX)
+      return true unless option.include?('/')
+
+      # Existing YesWeHack patterns may include a path in a complete TLD alternative.
+      match[:prefix].end_with?('.') && match[:suffix].empty?
     end
 
     def self.normalize_intigriti(value)
